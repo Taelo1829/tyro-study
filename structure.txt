@@ -1,0 +1,162 @@
+tyro-study-reimagined.zip
+├── app/
+│   ├── (auth)/
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   ├── register/
+│   │   │   └── page.tsx
+│   │   └── layout.tsx
+│   ├── (dashboard)/
+│   │   ├── admin/
+│   │   │   ├── page.tsx
+│   │   │   ├── modules/
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx
+│   │   │   ├── chapters/
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx
+│   │   │   └── topics/
+│   │   │       ├── new/
+│   │   │       │   └── page.tsx
+│   │   │       └── [id]/
+│   │   │           └── page.tsx
+│   │   ├── dashboard/
+│   │   │   └── page.tsx
+│   │   ├── modules/
+│   │   │   ├── page.tsx
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx
+│   │   │       └── quiz/
+│   │   │           └── page.tsx
+│   │   ├── timetable/
+│   │   │   └── page.tsx
+│   │   ├── flashcards/
+│   │   │   └── page.tsx
+│   │   ├── assignments/
+│   │   │   └── page.tsx
+│   │   ├── settings/
+│   │   │   └── page.tsx
+│   │   └── layout.tsx
+│   ├── api/
+│   │   ├── auth/
+│   │   │   └── [...nextauth]/
+│   │   │       └── route.ts
+│   │   ├── modules/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/
+│   │   │       └── route.ts
+│   │   ├── chapters/
+│   │   │   └── route.ts
+│   │   ├── topics/
+│   │   │   └── route.ts
+│   │   ├── questions/
+│   │   │   ├── route.ts
+│   │   │   └── submit/
+│   │   │       └── route.ts
+│   │   ├── flashcards/
+│   │   │   └── route.ts
+│   │   ├── timetable/
+│   │   │   └── route.ts
+│   │   ├── progress/
+│   │   │   └── route.ts
+│   │   ├── notifications/
+│   │   │   ├── subscribe/
+│   │   │   │   └── route.ts
+│   │   │   └── send/
+│   │   │       └── route.ts
+│   │   └── ai/
+│   │       ├── extract-questions/
+│   │       │   └── route.ts
+│   │       └── generate-flashcards/
+│   │           └── route.ts
+│   ├── layout.tsx
+│   ├── page.tsx
+│   ├── globals.css
+│   ├── manifest.ts
+│   └── sw.ts
+├── components/
+│   ├── ui/
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── input.tsx
+│   │   ├── dialog.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   ├── progress.tsx
+│   │   ├── tabs.tsx
+│   │   ├── toast.tsx
+│   │   └── toaster.tsx
+│   ├── layout/
+│   │   ├── sidebar.tsx
+│   │   ├── header.tsx
+│   │   └── mobile-nav.tsx
+│   ├── dashboard/
+│   │   ├── study-progress-donut.tsx
+│   │   ├── current-streak.tsx
+│   │   ├── topic-up-next.tsx
+│   │   ├── today-study-plan.tsx
+│   │   └── upcoming-assignments.tsx
+│   ├── modules/
+│   │   ├── module-card.tsx
+│   │   ├── chapter-list.tsx
+│   │   ├── topic-list.tsx
+│   │   └── topic-content.tsx
+│   ├── quiz/
+│   │   ├── quiz-question.tsx
+│   │   ├── quiz-results.tsx
+│   │   └── quiz-navigation.tsx
+│   ├── timetable/
+│   │   ├── timetable-calendar.tsx
+│   │   ├── study-session-form.tsx
+│   │   └── progress-tracker.tsx
+│   ├── flashcards/
+│   │   ├── flashcard-deck.tsx
+│   │   └── flashcard-review.tsx
+│   ├── admin/
+│   │   ├── pdf-uploader.tsx
+│   │   ├── question-extractor.tsx
+│   │   └── content-manager.tsx
+│   └── notifications/
+│     └── notification-prompt.tsx
+├── lib/
+│   ├── db.ts
+│   ├── auth.ts
+│   ├── prisma.ts
+│   ├── utils.ts
+│   ├── ai/
+│   │   ├── openai.ts
+│   │   ├── pdf-parser.ts
+│   │   └── question-generator.ts
+│   ├── notifications/
+│   │   ├── push-manager.ts
+│   │   └── scheduler.ts
+│   └── validators/
+│       ├── module.ts
+│       ├── question.ts
+│       └── timetable.ts
+├── hooks/
+│   ├── use-toast.ts
+│   ├── use-quiz.ts
+│   ├── use-flashcards.ts
+│   └── use-progress.ts
+├── store/
+│   ├── auth-store.ts
+│   ├── quiz-store.ts
+│   ├── progress-store.ts
+│   └── notification-store.ts
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+├── public/
+│   ├── icons/
+│   │   ├── icon-192.png
+│   │   └── icon-512.png
+│   └── manifest.json
+├── middleware.ts
+├── next.config.js
+├── tailwind.config.ts
+├── package.json
+├── tsconfig.json
+├── .env.local
+├── .gitignore
+└── README.md
