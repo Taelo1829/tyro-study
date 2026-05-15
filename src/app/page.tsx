@@ -19,6 +19,7 @@ import {
   Award
 } from "lucide-react"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export default function HomePage() {
   // const { data: session, status } = useSession()
@@ -50,12 +51,12 @@ export default function HomePage() {
             </span>
           </div>
           <div className="flex items-center space-x-4">
-            <Link href="/login">
-              {/* <Button variant="ghost">Sign In</Button> */}
-            </Link>
-            <Link href="/register">
-              {/* <Button>Get Started</Button> */}
-            </Link>
+            <Button variant="ghost" asChild>
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button variant="primary" asChild>
+              <Link href="/register">Get Started</Link>
+            </Button>
           </div>
         </div>
       </nav>

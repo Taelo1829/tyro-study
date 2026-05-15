@@ -1,26 +1,112 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --neo-bg: #e4e9f0;
+  --neo-surface: #e4e9f0;
+  --neo-text: #2d3436;
+  --neo-muted: #636e72;
+  --neo-primary: #6c5ce7;
+  --neo-primary-foreground: #ffffff;
+  --neo-accent: #00b894;
+  --neo-shadow-light: #ffffff;
+  --neo-shadow-dark: #b8bec7;
+  --neo-inset-light: #ffffff;
+  --neo-inset-dark: #c5ccd6;
+  --neo-radius: 1rem;
+  --neo-radius-lg: 1.25rem;
+  --neo-radius-xl: 1.5rem;
+}
+
+.dark {
+  --neo-bg: #1a1d24;
+  --neo-surface: #1a1d24;
+  --neo-text: #e8eaed;
+  --neo-muted: #9aa0a6;
+  --neo-primary: #a29bfe;
+  --neo-primary-foreground: #1a1d24;
+  --neo-accent: #55efc4;
+  --neo-shadow-light: #23272f;
+  --neo-shadow-dark: #0f1115;
+  --neo-inset-light: #23272f;
+  --neo-inset-dark: #0f1115;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--neo-bg);
+  --color-foreground: var(--neo-text);
+  --color-muted-foreground: var(--neo-muted);
+  --color-primary: var(--neo-primary);
+  --color-primary-foreground: var(--neo-primary-foreground);
+  --color-accent: var(--neo-accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --radius-neo: var(--neo-radius);
+  --radius-neo-lg: var(--neo-radius-lg);
+  --radius-neo-xl: var(--neo-radius-xl);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--neo-bg);
+  color: var(--neo-text);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Neomorphic surfaces */
+.neo-flat {
+  background: var(--neo-surface);
+  border-radius: var(--neo-radius-lg);
+  box-shadow:
+    8px 8px 16px var(--neo-shadow-dark),
+    -8px -8px 16px var(--neo-shadow-light);
+}
+
+.neo-pressed {
+  background: var(--neo-surface);
+  border-radius: var(--neo-radius-lg);
+  box-shadow:
+    inset 6px 6px 12px var(--neo-inset-dark),
+    inset -6px -6px 12px var(--neo-inset-light);
+}
+
+.neo-inset {
+  background: var(--neo-surface);
+  border-radius: var(--neo-radius);
+  box-shadow:
+    inset 4px 4px 8px var(--neo-inset-dark),
+    inset -4px -4px 8px var(--neo-inset-light);
+}
+
+.neo-button {
+  background: var(--neo-surface);
+  border-radius: var(--neo-radius);
+  box-shadow:
+    6px 6px 12px var(--neo-shadow-dark),
+    -6px -6px 12px var(--neo-shadow-light);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.neo-button:active {
+  box-shadow:
+    inset 4px 4px 8px var(--neo-inset-dark),
+    inset -4px -4px 8px var(--neo-inset-light);
+  transform: scale(0.98);
+}
+
+.neo-glass {
+  background: color-mix(in srgb, var(--neo-surface) 85%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }

@@ -8,4 +8,18 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/User'
+export type * from './models/Account'
+export type * from './models/Session'
+export type * from './models/VerificationToken'
+export type * from './models/Module'
+export type * from './models/ModuleEnrollment'
+export type * from './models/Chapter'
+export type * from './models/Topic'
+export type * from './models/Question'
+export type * from './models/Answer'
+export type * from './models/UserAnswer'
+export type * from './models/Flashcard'
+export type * from './models/Timetable'
+export type * from './models/Notification'
 export type * from './commonInputTypes'
