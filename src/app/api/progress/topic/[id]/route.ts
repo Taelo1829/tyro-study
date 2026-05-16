@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -21,13 +21,14 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    let { id } = await params
     // Get quiz attempts for this topic
     const attempts = await prisma.userAnswer.groupBy({
       by: ['questionId'],
       where: {
         userId: user.id,
         question: {
-          topicId: params.id,
+          topicId: id,
         },
       },
       _count: true,
@@ -37,7 +38,7 @@ export async function GET(
 
     // Calculate best score
     const questions = await prisma.question.findMany({
-      where: { topicId: params.id },
+      where: { topicId: id },
       select: { id: true },
     })
 
@@ -46,12 +47,12 @@ export async function GET(
         userId: user.id,
         isCorrect: true,
         question: {
-          topicId: params.id,
+          topicId: id,
         },
       },
     })
 
-    const bestScore = questions.length > 0 
+    const bestScore = questions.length > 0
       ? Math.round((correctAnswers / questions.length) * 100)
       : 0
 
