@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { Header } from "@/components/layout/header"
 
 interface Topic {
     id: string
@@ -171,12 +172,12 @@ export default function TopicPage() {
 
     const hasQuestions = topic.questions?.length > 0
     const hasFlashcards = topic.flashcards?.length > 0
-    const isCompleted = progress?.completed || false
 
     return (
         <div>
+            <Header title={topic.title} subtitle="" />
             <div>
-                <div className="container max-w-4xl mx-auto px-4 py-8">
+                <div className="container max-w-4xl mx-auto px-4 ">
                     <div className="mb-4">
                         <Link
                             href={`/modules/${topic.chapter.module.id}`}
@@ -186,46 +187,10 @@ export default function TopicPage() {
                             Back to {topic.chapter.module.title}
                         </Link>
                     </div>
-
-                    <div className="flex items-start justify-between flex-wrap gap-4">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <Badge variant="secondary" className="text-xs">
-                                    {topic.chapter.title}
-                                </Badge>
-                                {isCompleted && (
-                                    <Badge variant="success" className="text-xs">
-                                        <CheckCircle className="mr-1 h-3 w-3" />
-                                        Completed
-                                    </Badge>
-                                )}
-                                {progress?.quizAttempts && progress?.quizAttempts > 0 && (
-                                    <Badge variant="info" className="text-xs">
-                                        <Trophy className="mr-1 h-3 w-3" />
-                                        Best Score: {progress?.bestScore}%
-                                    </Badge>
-                                )}
-                            </div>
-                            <h1 className="text-3xl md:text-4xl font-bold mb-2">{topic.title}</h1>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                <div className="flex items-center">
-                                    <FileQuestion className="mr-1 h-4 w-4" />
-                                    {topic.questions.length} Questions
-                                </div>
-                                {hasFlashcards && (
-                                    <div className="flex items-center">
-                                        <BookOpen className="mr-1 h-4 w-4" />
-                                        {topic.flashcards.length} Flashcards
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="container max-w-4xl mx-auto px-4 py-8">
+            <div className="container max-w-4xl mx-auto px-4 ">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                     <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
                         <TabsTrigger value="content" className="space-x-2">
@@ -244,7 +209,6 @@ export default function TopicPage() {
                         </TabsTrigger>
                     </TabsList>
 
-                    {/* Content Tab */}
                     <TabsContent value="content" className="space-y-6">
                         <Card>
                             <CardHeader>
@@ -266,7 +230,6 @@ export default function TopicPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Key Takeaways */}
                         {hasQuestions && (
                             <Card>
                                 <CardHeader>
