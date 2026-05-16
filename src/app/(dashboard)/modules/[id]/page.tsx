@@ -114,15 +114,17 @@ export default function StudentModulePage() {
           {mod.chapters.map((ch) => (
             <li key={ch.id}>
               <Card>
-                <CardContent className="flex items-center justify-between py-4">
-                  <div>
-                    <p className="font-semibold">{ch.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {ch._count.topics} topic{ch._count.topics !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </CardContent>
+                <Link href={`/modules/${id}}/chapters/${ch.id}`}>
+                  <CardContent className="flex items-center justify-between py-4">
+                    <div>
+                      <p className="font-semibold">{ch.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {ch._count.topics} topic{ch._count.topics !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </CardContent>
+                </Link>
               </Card>
             </li>
           ))}

@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react"
 import { Bell } from "lucide-react"
 
 interface HeaderProps {
-  title: string
+  title?: string
   subtitle?: string
 }
 
