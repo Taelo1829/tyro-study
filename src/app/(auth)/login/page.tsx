@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,13 +33,13 @@ export default function LoginPage() {
       setError("Invalid email or password")
       return
     }
-
+    console.log("ready to push")
     router.push("/dashboard")
     router.refresh()
   }
 
   return (
-  <>
+    <>
       <h1 className="mb-1 text-2xl font-bold">Welcome back</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Sign in to continue studying
@@ -64,14 +66,25 @@ export default function LoginPage() {
           >
             Password
           </label>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -80,7 +93,7 @@ export default function LoginPage() {
           </p>
         )}
 
-        <Button type="submit" variant="primary" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Signing in…" : "Sign in"}
         </Button>
       </form>

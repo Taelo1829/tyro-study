@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation"
 // import { useSession } from "next-auth/react"
 // import { Button } from "@/components/ui/button"
 // import { Card } from "@/components/ui/card"
-import { 
-  BookOpen, 
-  Brain, 
-  Calendar, 
-  FileText, 
-  Sparkles, 
+import {
+  BookOpen,
+  Brain,
+  Calendar,
+  FileText,
+  Sparkles,
   Zap,
   ArrowRight,
   CheckCircle,
@@ -54,7 +54,7 @@ export default function HomePage() {
             <Button variant="ghost" asChild>
               <Link href="/login">Sign In</Link>
             </Button>
-            <Button variant="primary" asChild>
+            <Button asChild>
               <Link href="/register">Get Started</Link>
             </Button>
           </div>
@@ -72,7 +72,7 @@ export default function HomePage() {
             Study Smarter, Not Harder
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Transform your learning experience with AI-generated quizzes, 
+            Transform your learning experience with AI-generated quizzes,
             intelligent flashcards, and personalized study plans.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -159,7 +159,7 @@ export default function HomePage() {
                 helping you master difficult concepts.
               </p>
             </Card> */}
-{/* 
+            {/* 
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                 <BookOpen className="h-6 w-6 text-primary" />
@@ -181,7 +181,7 @@ export default function HomePage() {
                 progress tracking.
               </p>
             </Card> */}
-{/* 
+            {/* 
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                 <TrendingUp className="h-6 w-6 text-primary" />
@@ -325,15 +325,6 @@ export default function HomePage() {
           </h2>
           <p className="text-xl text-primary-foreground mb-8 max-w-2xl mx-auto">
             Join thousands of students who are studying smarter with Tyro Study
-          </p>
-          <Link href="/register">
-            {/* <Button size="lg" variant="secondary" className="text-lg">
-              Get Started Now
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button> */}
-          </Link>
-          <p className="text-primary-foreground/80 mt-4 text-sm">
-            Free for 14 days • No commitment • Cancel anytime
           </p>
         </div>
       </section>

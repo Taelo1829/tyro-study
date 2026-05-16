@@ -2,7 +2,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import type { DefaultSession, NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
-import { prisma } from "./prisma"
+import { db } from "@/lib/db"
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -20,8 +20,9 @@ declare module "next-auth/jwt" {
   }
 }
 
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(db) as any,
   session: { strategy: "jwt" },
   providers: [
     CredentialsProvider({
@@ -35,7 +36,7 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        const user = await prisma.user.findUnique({
+        const user = await db.user.findUnique({
           where: { email: credentials.email },
         })
 
