@@ -10,7 +10,7 @@ const buttonVariants = cva(
       variant: {
         default: "neo-button text-foreground hover:opacity-90",
         primary:
-          "neo-button bg-primary text-primary-foreground hover:opacity-90",
+          "neo-button bg-primary hover:opacity-90",
         ghost: "hover:neo-pressed rounded-[var(--neo-radius)] px-3 py-2",
         inset: "neo-inset text-foreground",
       },

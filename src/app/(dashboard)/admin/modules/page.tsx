@@ -42,7 +42,7 @@ export default function AdminModulesPage() {
         <Link href="/admin" className="text-sm text-muted-foreground hover:text-primary">
           ← Admin
         </Link>
-        <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}>
+        <Button size="sm" onClick={() => setShowForm(!showForm)}>
           <Plus className="h-4 w-4" />
           New module
         </Button>

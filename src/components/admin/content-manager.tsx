@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import NeumorphicEditor from "./rich-text-editor"
 
 interface ContentManagerProps {
   topicId: string
@@ -68,11 +69,9 @@ export function ContentManager({
         <CardTitle>Topic content</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <textarea
-          className="neo-inset min-h-[160px] w-full rounded-[var(--neo-radius)] bg-transparent px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+        <NeumorphicEditor
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Study notes, summaries, or pasted material…"
+          setHtml={(e) => setContent(e)}
         />
         <div className="flex flex-wrap gap-2">
           <Button

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { BookOpen, ChevronRight, UserMinus, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { useModuleStore } from "@/app/(dashboard)/modules/store"
 
 export interface ModuleItem {
   id: string
@@ -27,21 +28,25 @@ export function ModuleCatalog({
   const [modules, setModules] = useState<ModuleItem[]>([])
   const [loading, setLoading] = useState(true)
   const [actionId, setActionId] = useState<string | null>(null)
-
+  const { reload, toggleReload } = useModuleStore()
   const load = useCallback(async () => {
     const res = await fetch("/api/modules")
     if (res.ok) {
-      setModules(await res.json())
+      const mods: ModuleItem[] = await res.json()
+      setModules(mods)
     }
     setLoading(false)
   }, [])
 
   useEffect(() => {
     load()
-  }, [load])
+  }, [load, reload])
+
 
   async function enroll(moduleId: string) {
     setActionId(moduleId)
+    setLoading(true)
+
     try {
       const res = await fetch("/api/enrollments", {
         method: "POST",
@@ -52,7 +57,8 @@ export function ModuleCatalog({
         const data = await res.json()
         throw new Error(data.error ?? "Enrollment failed")
       }
-      await load()
+      toggleReload()
+
     } catch (err) {
       alert(err instanceof Error ? err.message : "Enrollment failed")
     } finally {
@@ -64,6 +70,7 @@ export function ModuleCatalog({
     if (!confirm("Leave this module? Your progress is kept, but it will be hidden from your list.")) {
       return
     }
+    setLoading(true)
     setActionId(moduleId)
     try {
       const res = await fetch(`/api/enrollments/${moduleId}`, {
@@ -73,7 +80,7 @@ export function ModuleCatalog({
         const data = await res.json()
         throw new Error(data.error ?? "Failed to leave module")
       }
-      await load()
+      toggleReload()
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to leave module")
     } finally {

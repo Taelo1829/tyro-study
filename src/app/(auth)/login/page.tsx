@@ -33,7 +33,6 @@ export default function LoginPage() {
       setError("Invalid email or password")
       return
     }
-    console.log("ready to push")
     router.push("/dashboard")
     router.refresh()
   }

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import NeumorphicEditor from "./rich-text-editor"
 
 interface Field {
   name: string
@@ -51,14 +52,9 @@ export function EntityForm({
             {field.label}
           </label>
           {field.type === "textarea" ? (
-            <textarea
-              className="neo-inset min-h-[80px] w-full rounded-[var(--neo-radius)] bg-transparent px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-              placeholder={field.placeholder}
-              required={field.required}
+            <NeumorphicEditor
               value={values[field.name] ?? ""}
-              onChange={(e) =>
-                setValues((v) => ({ ...v, [field.name]: e.target.value }))
-              }
+              setHtml={(e) => setValues((v) => ({ ...v, [field.name]: e }))}
             />
           ) : (
             <Input

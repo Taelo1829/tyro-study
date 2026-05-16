@@ -34,7 +34,6 @@ async function main() {
     },
   })
 
-  console.log(`Admin user ready: ${user.email} (role: ${user.role})`)
   await prisma.$disconnect()
   await pool.end()
 }

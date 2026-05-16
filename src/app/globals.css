@@ -98,6 +98,16 @@ body {
   transition: box-shadow 0.2s ease, transform 0.15s ease;
 }
 
+#delete {
+  background: rgb(252, 58, 58) !important;
+  color: #fff;
+  border-radius: var(--neo-radius);
+  box-shadow:
+    6px 6px 12px var(--neo-shadow-dark),
+    -6px -6px 12px var(--neo-shadow-light);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
 .neo-button:active {
   box-shadow:
     inset 4px 4px 8px var(--neo-inset-dark),

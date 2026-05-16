@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { ContentManager } from "@/components/admin/content-manager"
 import { PdfUploader } from "@/components/admin/pdf-uploader"
@@ -10,6 +10,7 @@ import { QuestionExtractor } from "@/components/admin/question-extractor"
 import { ExcelBulkImport } from "@/components/admin/excel-bulk-import"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { ExtractedQuestion } from "@/lib/ai/question-generator"
+import { Button } from "@/components/ui/button"
 
 interface TopicDetail {
   id: string
@@ -30,14 +31,29 @@ interface TopicDetail {
 
 export default function AdminTopicDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const id = params.id as string
   const [topic, setTopic] = useState<TopicDetail | null>(null)
-  const [extracted, setExtracted] = useState<ExtractedQuestion[]>([])
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/topics/${id}`)
     if (res.ok) setTopic(await res.json())
   }, [id])
+
+  const deleteTopic = useCallback(async () => {
+    if (!confirm("Delete this topic?")) return
+    setTopic(null)
+    const res = await fetch(`/api/topics/${id}`, {
+      method: "DELETE",
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      load()
+      alert("failed to delete")
+    }
+
+    router.back()
+  }, [id, load])
 
   useEffect(() => {
     load()
@@ -92,26 +108,6 @@ export default function AdminTopicDetailPage() {
             />
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>PDF question extraction</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <PdfUploader
-              onExtracted={(questions) => {
-                setExtracted(questions)
-              }}
-            />
-            <QuestionExtractor
-              topicId={id}
-              questions={extracted}
-              onChange={setExtracted}
-              onSaved={load}
-            />
-          </CardContent>
-        </Card>
-
         {topic.questions.length > 0 && (
           <Card>
             <CardHeader>
@@ -129,11 +125,10 @@ export default function AdminTopicDetailPage() {
                     {q.answers.map((a) => (
                       <li
                         key={a.answer}
-                        className={`text-sm ${
-                          a.isCorrect
-                            ? "font-medium text-accent"
-                            : "text-muted-foreground"
-                        }`}
+                        className={`text-sm ${a.isCorrect
+                          ? "font-medium text-accent"
+                          : "text-muted-foreground"
+                          }`}
                       >
                         {a.isCorrect ? "✓ " : "○ "}
                         {a.answer}
@@ -152,6 +147,9 @@ export default function AdminTopicDetailPage() {
             {topic._count.flashcards !== 1 ? "s" : ""} for this topic
           </p>
         )}
+      </div>
+      <div className="pt-5">
+        <Button id="delete" className="float-end bg-red-500" onClick={deleteTopic}>delete</Button>
       </div>
     </>
   )
