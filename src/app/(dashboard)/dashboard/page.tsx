@@ -2,8 +2,56 @@ import { Header } from "@/components/layout/header"
 import { DashboardWidget } from "@/components/dashboard/dashboard-widget"
 import { StudyProgressDonut } from "@/components/dashboard/study-progress-donut"
 import { Flame, BookOpen, Calendar, ClipboardList } from "lucide-react"
+import { getAuthUserId } from "@/lib/auth-session"
+import { prisma } from "@/lib/prisma"
 
-export default function DashboardPage() {
+async function getStudyProgressPercent() {
+  const userId = await getAuthUserId()
+  if (!userId) return 0
+
+  const enrollments = await prisma.moduleEnrollment.findMany({
+    where: { userId },
+    select: { moduleId: true },
+  })
+
+  const moduleIds = enrollments.map((enrollment) => enrollment.moduleId)
+  if (moduleIds.length === 0) return 0
+
+  const totalQuestions = await prisma.question.count({
+    where: {
+      topic: {
+        chapter: {
+          moduleId: { in: moduleIds },
+        },
+      },
+    },
+  })
+
+  if (totalQuestions === 0) return 0
+
+  const answeredQuestions = await prisma.userAnswer.groupBy({
+    by: ["questionId"],
+    where: {
+      userId,
+      question: {
+        topic: {
+          chapter: {
+            moduleId: { in: moduleIds },
+          },
+        },
+      },
+    },
+  })
+
+  return Math.min(
+    100,
+    Math.round((answeredQuestions.length / totalQuestions) * 100)
+  )
+}
+
+export default async function DashboardPage() {
+  const studyProgressPercent = await getStudyProgressPercent()
+
   return (
     <>
       <Header
@@ -17,7 +65,7 @@ export default function DashboardPage() {
           description="Overall completion across modules"
           delay={0}
         >
-          <StudyProgressDonut percent={0} />
+          <StudyProgressDonut percent={studyProgressPercent} />
         </DashboardWidget>
 
         <DashboardWidget
