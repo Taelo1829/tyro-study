@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
 import { Sidebar } from "@/components/layout/sidebar"
 import { MobileNav } from "@/components/layout/mobile-nav"
-import { prisma } from "@/lib/prisma"
+import { recordDailyVisit } from "@/lib/streak"
 
 export default async function DashboardLayout({
   children,
@@ -18,10 +18,7 @@ export default async function DashboardLayout({
 
   let isAdmin = false
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
+    const user = await recordDailyVisit(session.user.id)
     isAdmin = user?.role === "ADMIN"
   } catch {
     // DB may be unavailable during local setup
