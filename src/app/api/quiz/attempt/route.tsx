@@ -204,7 +204,7 @@ export async function POST(req: NextRequest) {
                     id: q.id,
                     question: q.question,
                     difficulty: q.difficulty,
-                    answers: q.answers.map(a => ({
+                    answers: q.answers.map((a: any) => ({
                         id: a.id,
                         answer: a.answer,
                     })),
@@ -234,7 +234,7 @@ export async function POST(req: NextRequest) {
                     id: q.id,
                     text: q.question,
                     difficulty: q.difficulty,
-                    options: q.answers.map(a => ({
+                    options: q.answers.map((a: any) => ({
                         id: a.id,
                         text: a.answer,
                     })),
@@ -467,25 +467,32 @@ export async function PUT(req: NextRequest) {
             // Save user answers to permanent storage
             for (const qa of allQuestionAttempts) {
                 if (qa.selectedAnswerId) {
-                    await prisma.userAnswer.upsert({
+                    const existingUserAnswer = await prisma.userAnswer.findFirst({
                         where: {
-                            userId_questionId: {
-                                userId: user.id,
-                                questionId: qa.questionId,
-                            },
-                        },
-                        update: {
-                            selectedAnswerId: qa.selectedAnswerId,
-                            isCorrect: qa.isCorrect || false,
-                            answeredAt: new Date(),
-                        },
-                        create: {
                             userId: user.id,
                             questionId: qa.questionId,
-                            selectedAnswerId: qa.selectedAnswerId,
-                            isCorrect: qa.isCorrect || false,
                         },
                     })
+
+                    if (existingUserAnswer) {
+                        await prisma.userAnswer.update({
+                            where: { id: existingUserAnswer.id },
+                            data: {
+                                selectedAnswerId: qa.selectedAnswerId,
+                                isCorrect: qa.isCorrect || false,
+                                answeredAt: new Date(),
+                            },
+                        })
+                    } else {
+                        await prisma.userAnswer.create({
+                            data: {
+                                userId: user.id,
+                                questionId: qa.questionId,
+                                selectedAnswerId: qa.selectedAnswerId,
+                                isCorrect: qa.isCorrect || false,
+                            },
+                        })
+                    }
                 }
             }
 
