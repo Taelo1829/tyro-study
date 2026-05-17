@@ -235,7 +235,7 @@ export default function TopicPage() {
                                 <CardHeader>
                                     <CardTitle>Key Takeaways</CardTitle>
                                     <CardDescription>
-                                        Here's what you should know before taking the quiz.
+                                        Here&apos;s what you should know before taking the quiz.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -309,7 +309,7 @@ export default function TopicPage() {
                                             <Alert>
                                                 <Trophy className="h-4 w-4" />
                                                 <AlertDescription>
-                                                    You've attempted this quiz {progress.quizAttempts} time(s).
+                                                    You&apos;ve attempted this quiz {progress.quizAttempts} time(s).
                                                     Your best score was {progress.bestScore}%.
                                                     {progress.bestScore < 70
                                                         ? " Keep practicing to improve your score!"
@@ -401,9 +401,54 @@ function TopicSkeleton() {
 }
 
 // Helper Functions
+function getVideoEmbedHtml(rawUrl: string): string | null {
+    const trimmed = rawUrl.trim()
+    if (!trimmed) return null
+
+    let url: URL
+    try {
+        url = new URL(trimmed)
+    } catch {
+        return null
+    }
+
+    if (!["http:", "https:"].includes(url.protocol)) {
+        return null
+    }
+
+    const host = url.hostname.replace(/^www\./, "")
+    let embedUrl = ""
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+        const id = url.searchParams.get("v") ?? url.pathname.split("/").filter(Boolean).at(-1)
+        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}`
+    } else if (host === "youtu.be") {
+        const id = url.pathname.split("/").filter(Boolean)[0]
+        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}`
+    } else if (host === "vimeo.com" || host === "player.vimeo.com") {
+        const id = url.pathname.split("/").filter(Boolean).at(-1)
+        if (id) embedUrl = `https://player.vimeo.com/video/${encodeURIComponent(id)}`
+    }
+
+    if (embedUrl) {
+        return `<div class="topic-video-embed"><iframe src="${embedUrl}" title="Embedded topic video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
+    }
+
+    if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url.href)) {
+        return `<div class="topic-video-embed"><video src="${url.href}" controls></video></div>`
+    }
+
+    return null
+}
+
 function formatContent(content: string): string {
+    const contentWithVideoEmbeds = content
+        .split(/\n/)
+        .map((line) => getVideoEmbedHtml(line) ?? line)
+        .join("\n")
+
     // Convert markdown-like syntax to HTML
-    let formatted = content
+    const formatted = contentWithVideoEmbeds
         .replace(/\n\n/g, '</p><p>')
         .replace(/\n/g, '<br/>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
