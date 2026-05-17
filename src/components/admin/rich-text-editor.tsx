@@ -12,7 +12,7 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
         if (editorRef.current) {
             editorRef.current.innerHTML = value;
         }
-    })
+    }, [])
     const bg = "#e4e9f0";
 
     const exec = (command: string, value?: string) => {

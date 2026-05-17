@@ -15,3 +15,23 @@ export const Role = {
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const QuizStatus = {
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  EXPIRED: 'EXPIRED',
+  ABANDONED: 'ABANDONED'
+} as const
+
+export type QuizStatus = (typeof QuizStatus)[keyof typeof QuizStatus]
+
+
+export const AnswerStatus = {
+  PENDING: 'PENDING',
+  ANSWERED: 'ANSWERED',
+  SKIPPED: 'SKIPPED',
+  REVIEWING: 'REVIEWING'
+} as const
+
+export type AnswerStatus = (typeof AnswerStatus)[keyof typeof AnswerStatus]

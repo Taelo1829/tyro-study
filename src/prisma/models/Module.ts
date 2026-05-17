@@ -177,6 +177,7 @@ export type ModuleWhereInput = {
   chapters?: Prisma.ChapterListRelationFilter
   timetables?: Prisma.TimetableListRelationFilter
   enrollments?: Prisma.ModuleEnrollmentListRelationFilter
+  quizAttempts?: Prisma.QuizAttemptListRelationFilter
 }
 
 export type ModuleOrderByWithRelationInput = {
@@ -187,6 +188,7 @@ export type ModuleOrderByWithRelationInput = {
   chapters?: Prisma.ChapterOrderByRelationAggregateInput
   timetables?: Prisma.TimetableOrderByRelationAggregateInput
   enrollments?: Prisma.ModuleEnrollmentOrderByRelationAggregateInput
+  quizAttempts?: Prisma.QuizAttemptOrderByRelationAggregateInput
 }
 
 export type ModuleWhereUniqueInput = Prisma.AtLeast<{
@@ -200,6 +202,7 @@ export type ModuleWhereUniqueInput = Prisma.AtLeast<{
   chapters?: Prisma.ChapterListRelationFilter
   timetables?: Prisma.TimetableListRelationFilter
   enrollments?: Prisma.ModuleEnrollmentListRelationFilter
+  quizAttempts?: Prisma.QuizAttemptListRelationFilter
 }, "id">
 
 export type ModuleOrderByWithAggregationInput = {
@@ -230,6 +233,7 @@ export type ModuleCreateInput = {
   chapters?: Prisma.ChapterCreateNestedManyWithoutModuleInput
   timetables?: Prisma.TimetableCreateNestedManyWithoutModuleInput
   enrollments?: Prisma.ModuleEnrollmentCreateNestedManyWithoutModuleInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateInput = {
@@ -240,6 +244,7 @@ export type ModuleUncheckedCreateInput = {
   chapters?: Prisma.ChapterUncheckedCreateNestedManyWithoutModuleInput
   timetables?: Prisma.TimetableUncheckedCreateNestedManyWithoutModuleInput
   enrollments?: Prisma.ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUpdateInput = {
@@ -250,6 +255,7 @@ export type ModuleUpdateInput = {
   chapters?: Prisma.ChapterUpdateManyWithoutModuleNestedInput
   timetables?: Prisma.TimetableUpdateManyWithoutModuleNestedInput
   enrollments?: Prisma.ModuleEnrollmentUpdateManyWithoutModuleNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleUncheckedUpdateInput = {
@@ -260,6 +266,7 @@ export type ModuleUncheckedUpdateInput = {
   chapters?: Prisma.ChapterUncheckedUpdateManyWithoutModuleNestedInput
   timetables?: Prisma.TimetableUncheckedUpdateManyWithoutModuleNestedInput
   enrollments?: Prisma.ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleCreateManyInput = {
@@ -281,6 +288,11 @@ export type ModuleUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ModuleNullableScalarRelationFilter = {
+  is?: Prisma.ModuleWhereInput | null
+  isNot?: Prisma.ModuleWhereInput | null
 }
 
 export type ModuleCountOrderByAggregateInput = {
@@ -309,9 +321,20 @@ export type ModuleScalarRelationFilter = {
   isNot?: Prisma.ModuleWhereInput
 }
 
-export type ModuleNullableScalarRelationFilter = {
-  is?: Prisma.ModuleWhereInput | null
-  isNot?: Prisma.ModuleWhereInput | null
+export type ModuleCreateNestedOneWithoutQuizAttemptsInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutQuizAttemptsInput, Prisma.ModuleUncheckedCreateWithoutQuizAttemptsInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutQuizAttemptsInput
+  connect?: Prisma.ModuleWhereUniqueInput
+}
+
+export type ModuleUpdateOneWithoutQuizAttemptsNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutQuizAttemptsInput, Prisma.ModuleUncheckedCreateWithoutQuizAttemptsInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutQuizAttemptsInput
+  upsert?: Prisma.ModuleUpsertWithoutQuizAttemptsInput
+  disconnect?: Prisma.ModuleWhereInput | boolean
+  delete?: Prisma.ModuleWhereInput | boolean
+  connect?: Prisma.ModuleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ModuleUpdateToOneWithWhereWithoutQuizAttemptsInput, Prisma.ModuleUpdateWithoutQuizAttemptsInput>, Prisma.ModuleUncheckedUpdateWithoutQuizAttemptsInput>
 }
 
 export type ModuleCreateNestedOneWithoutEnrollmentsInput = {
@@ -358,6 +381,62 @@ export type ModuleUpdateOneWithoutTimetablesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ModuleUpdateToOneWithWhereWithoutTimetablesInput, Prisma.ModuleUpdateWithoutTimetablesInput>, Prisma.ModuleUncheckedUpdateWithoutTimetablesInput>
 }
 
+export type ModuleCreateWithoutQuizAttemptsInput = {
+  id?: string
+  title: string
+  description?: string | null
+  createdAt?: Date | string
+  chapters?: Prisma.ChapterCreateNestedManyWithoutModuleInput
+  timetables?: Prisma.TimetableCreateNestedManyWithoutModuleInput
+  enrollments?: Prisma.ModuleEnrollmentCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleUncheckedCreateWithoutQuizAttemptsInput = {
+  id?: string
+  title: string
+  description?: string | null
+  createdAt?: Date | string
+  chapters?: Prisma.ChapterUncheckedCreateNestedManyWithoutModuleInput
+  timetables?: Prisma.TimetableUncheckedCreateNestedManyWithoutModuleInput
+  enrollments?: Prisma.ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleCreateOrConnectWithoutQuizAttemptsInput = {
+  where: Prisma.ModuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutQuizAttemptsInput, Prisma.ModuleUncheckedCreateWithoutQuizAttemptsInput>
+}
+
+export type ModuleUpsertWithoutQuizAttemptsInput = {
+  update: Prisma.XOR<Prisma.ModuleUpdateWithoutQuizAttemptsInput, Prisma.ModuleUncheckedUpdateWithoutQuizAttemptsInput>
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutQuizAttemptsInput, Prisma.ModuleUncheckedCreateWithoutQuizAttemptsInput>
+  where?: Prisma.ModuleWhereInput
+}
+
+export type ModuleUpdateToOneWithWhereWithoutQuizAttemptsInput = {
+  where?: Prisma.ModuleWhereInput
+  data: Prisma.XOR<Prisma.ModuleUpdateWithoutQuizAttemptsInput, Prisma.ModuleUncheckedUpdateWithoutQuizAttemptsInput>
+}
+
+export type ModuleUpdateWithoutQuizAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  chapters?: Prisma.ChapterUpdateManyWithoutModuleNestedInput
+  timetables?: Prisma.TimetableUpdateManyWithoutModuleNestedInput
+  enrollments?: Prisma.ModuleEnrollmentUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleUncheckedUpdateWithoutQuizAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  chapters?: Prisma.ChapterUncheckedUpdateManyWithoutModuleNestedInput
+  timetables?: Prisma.TimetableUncheckedUpdateManyWithoutModuleNestedInput
+  enrollments?: Prisma.ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
+}
+
 export type ModuleCreateWithoutEnrollmentsInput = {
   id?: string
   title: string
@@ -365,6 +444,7 @@ export type ModuleCreateWithoutEnrollmentsInput = {
   createdAt?: Date | string
   chapters?: Prisma.ChapterCreateNestedManyWithoutModuleInput
   timetables?: Prisma.TimetableCreateNestedManyWithoutModuleInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateWithoutEnrollmentsInput = {
@@ -374,6 +454,7 @@ export type ModuleUncheckedCreateWithoutEnrollmentsInput = {
   createdAt?: Date | string
   chapters?: Prisma.ChapterUncheckedCreateNestedManyWithoutModuleInput
   timetables?: Prisma.TimetableUncheckedCreateNestedManyWithoutModuleInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleCreateOrConnectWithoutEnrollmentsInput = {
@@ -399,6 +480,7 @@ export type ModuleUpdateWithoutEnrollmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chapters?: Prisma.ChapterUpdateManyWithoutModuleNestedInput
   timetables?: Prisma.TimetableUpdateManyWithoutModuleNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleUncheckedUpdateWithoutEnrollmentsInput = {
@@ -408,6 +490,7 @@ export type ModuleUncheckedUpdateWithoutEnrollmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chapters?: Prisma.ChapterUncheckedUpdateManyWithoutModuleNestedInput
   timetables?: Prisma.TimetableUncheckedUpdateManyWithoutModuleNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleCreateWithoutChaptersInput = {
@@ -417,6 +500,7 @@ export type ModuleCreateWithoutChaptersInput = {
   createdAt?: Date | string
   timetables?: Prisma.TimetableCreateNestedManyWithoutModuleInput
   enrollments?: Prisma.ModuleEnrollmentCreateNestedManyWithoutModuleInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateWithoutChaptersInput = {
@@ -426,6 +510,7 @@ export type ModuleUncheckedCreateWithoutChaptersInput = {
   createdAt?: Date | string
   timetables?: Prisma.TimetableUncheckedCreateNestedManyWithoutModuleInput
   enrollments?: Prisma.ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleCreateOrConnectWithoutChaptersInput = {
@@ -451,6 +536,7 @@ export type ModuleUpdateWithoutChaptersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timetables?: Prisma.TimetableUpdateManyWithoutModuleNestedInput
   enrollments?: Prisma.ModuleEnrollmentUpdateManyWithoutModuleNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleUncheckedUpdateWithoutChaptersInput = {
@@ -460,6 +546,7 @@ export type ModuleUncheckedUpdateWithoutChaptersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timetables?: Prisma.TimetableUncheckedUpdateManyWithoutModuleNestedInput
   enrollments?: Prisma.ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleCreateWithoutTimetablesInput = {
@@ -469,6 +556,7 @@ export type ModuleCreateWithoutTimetablesInput = {
   createdAt?: Date | string
   chapters?: Prisma.ChapterCreateNestedManyWithoutModuleInput
   enrollments?: Prisma.ModuleEnrollmentCreateNestedManyWithoutModuleInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateWithoutTimetablesInput = {
@@ -478,6 +566,7 @@ export type ModuleUncheckedCreateWithoutTimetablesInput = {
   createdAt?: Date | string
   chapters?: Prisma.ChapterUncheckedCreateNestedManyWithoutModuleInput
   enrollments?: Prisma.ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleCreateOrConnectWithoutTimetablesInput = {
@@ -503,6 +592,7 @@ export type ModuleUpdateWithoutTimetablesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chapters?: Prisma.ChapterUpdateManyWithoutModuleNestedInput
   enrollments?: Prisma.ModuleEnrollmentUpdateManyWithoutModuleNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleUncheckedUpdateWithoutTimetablesInput = {
@@ -512,6 +602,7 @@ export type ModuleUncheckedUpdateWithoutTimetablesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chapters?: Prisma.ChapterUncheckedUpdateManyWithoutModuleNestedInput
   enrollments?: Prisma.ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 
@@ -523,12 +614,14 @@ export type ModuleCountOutputType = {
   chapters: number
   timetables: number
   enrollments: number
+  quizAttempts: number
 }
 
 export type ModuleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chapters?: boolean | ModuleCountOutputTypeCountChaptersArgs
   timetables?: boolean | ModuleCountOutputTypeCountTimetablesArgs
   enrollments?: boolean | ModuleCountOutputTypeCountEnrollmentsArgs
+  quizAttempts?: boolean | ModuleCountOutputTypeCountQuizAttemptsArgs
 }
 
 /**
@@ -562,6 +655,13 @@ export type ModuleCountOutputTypeCountEnrollmentsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.ModuleEnrollmentWhereInput
 }
 
+/**
+ * ModuleCountOutputType without action
+ */
+export type ModuleCountOutputTypeCountQuizAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.QuizAttemptWhereInput
+}
+
 
 export type ModuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -571,6 +671,7 @@ export type ModuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   chapters?: boolean | Prisma.Module$chaptersArgs<ExtArgs>
   timetables?: boolean | Prisma.Module$timetablesArgs<ExtArgs>
   enrollments?: boolean | Prisma.Module$enrollmentsArgs<ExtArgs>
+  quizAttempts?: boolean | Prisma.Module$quizAttemptsArgs<ExtArgs>
   _count?: boolean | Prisma.ModuleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["module"]>
 
@@ -600,6 +701,7 @@ export type ModuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   chapters?: boolean | Prisma.Module$chaptersArgs<ExtArgs>
   timetables?: boolean | Prisma.Module$timetablesArgs<ExtArgs>
   enrollments?: boolean | Prisma.Module$enrollmentsArgs<ExtArgs>
+  quizAttempts?: boolean | Prisma.Module$quizAttemptsArgs<ExtArgs>
   _count?: boolean | Prisma.ModuleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ModuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -611,6 +713,7 @@ export type $ModulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     chapters: Prisma.$ChapterPayload<ExtArgs>[]
     timetables: Prisma.$TimetablePayload<ExtArgs>[]
     enrollments: Prisma.$ModuleEnrollmentPayload<ExtArgs>[]
+    quizAttempts: Prisma.$QuizAttemptPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1014,6 +1117,7 @@ export interface Prisma__ModuleClient<T, Null = never, ExtArgs extends runtime.T
   chapters<T extends Prisma.Module$chaptersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$chaptersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChapterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   timetables<T extends Prisma.Module$timetablesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$timetablesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TimetablePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   enrollments<T extends Prisma.Module$enrollmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$enrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModuleEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  quizAttempts<T extends Prisma.Module$quizAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$quizAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuizAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1509,6 +1613,30 @@ export type Module$enrollmentsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.ModuleEnrollmentScalarFieldEnum | Prisma.ModuleEnrollmentScalarFieldEnum[]
+}
+
+/**
+ * Module.quizAttempts
+ */
+export type Module$quizAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the QuizAttempt
+   */
+  select?: Prisma.QuizAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the QuizAttempt
+   */
+  omit?: Prisma.QuizAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuizAttemptInclude<ExtArgs> | null
+  where?: Prisma.QuizAttemptWhereInput
+  orderBy?: Prisma.QuizAttemptOrderByWithRelationInput | Prisma.QuizAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.QuizAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.QuizAttemptScalarFieldEnum | Prisma.QuizAttemptScalarFieldEnum[]
 }
 
 /**

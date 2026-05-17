@@ -227,6 +227,7 @@ export type TopicWhereInput = {
   chapter?: Prisma.XOR<Prisma.ChapterScalarRelationFilter, Prisma.ChapterWhereInput>
   questions?: Prisma.QuestionListRelationFilter
   flashcards?: Prisma.FlashcardListRelationFilter
+  quizAttempts?: Prisma.QuizAttemptListRelationFilter
 }
 
 export type TopicOrderByWithRelationInput = {
@@ -239,6 +240,7 @@ export type TopicOrderByWithRelationInput = {
   chapter?: Prisma.ChapterOrderByWithRelationInput
   questions?: Prisma.QuestionOrderByRelationAggregateInput
   flashcards?: Prisma.FlashcardOrderByRelationAggregateInput
+  quizAttempts?: Prisma.QuizAttemptOrderByRelationAggregateInput
 }
 
 export type TopicWhereUniqueInput = Prisma.AtLeast<{
@@ -254,6 +256,7 @@ export type TopicWhereUniqueInput = Prisma.AtLeast<{
   chapter?: Prisma.XOR<Prisma.ChapterScalarRelationFilter, Prisma.ChapterWhereInput>
   questions?: Prisma.QuestionListRelationFilter
   flashcards?: Prisma.FlashcardListRelationFilter
+  quizAttempts?: Prisma.QuizAttemptListRelationFilter
 }, "id">
 
 export type TopicOrderByWithAggregationInput = {
@@ -291,6 +294,7 @@ export type TopicCreateInput = {
   chapter: Prisma.ChapterCreateNestedOneWithoutTopicsInput
   questions?: Prisma.QuestionCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardCreateNestedManyWithoutTopicInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutTopicInput
 }
 
 export type TopicUncheckedCreateInput = {
@@ -302,6 +306,7 @@ export type TopicUncheckedCreateInput = {
   createdAt?: Date | string
   questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardUncheckedCreateNestedManyWithoutTopicInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
 }
 
 export type TopicUpdateInput = {
@@ -313,6 +318,7 @@ export type TopicUpdateInput = {
   chapter?: Prisma.ChapterUpdateOneRequiredWithoutTopicsNestedInput
   questions?: Prisma.QuestionUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUpdateManyWithoutTopicNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutTopicNestedInput
 }
 
 export type TopicUncheckedUpdateInput = {
@@ -324,6 +330,7 @@ export type TopicUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   questions?: Prisma.QuestionUncheckedUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUncheckedUpdateManyWithoutTopicNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
 }
 
 export type TopicCreateManyInput = {
@@ -350,6 +357,11 @@ export type TopicUncheckedUpdateManyInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TopicNullableScalarRelationFilter = {
+  is?: Prisma.TopicWhereInput | null
+  isNot?: Prisma.TopicWhereInput | null
 }
 
 export type TopicListRelationFilter = {
@@ -400,6 +412,22 @@ export type TopicSumOrderByAggregateInput = {
 export type TopicScalarRelationFilter = {
   is?: Prisma.TopicWhereInput
   isNot?: Prisma.TopicWhereInput
+}
+
+export type TopicCreateNestedOneWithoutQuizAttemptsInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutQuizAttemptsInput, Prisma.TopicUncheckedCreateWithoutQuizAttemptsInput>
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutQuizAttemptsInput
+  connect?: Prisma.TopicWhereUniqueInput
+}
+
+export type TopicUpdateOneWithoutQuizAttemptsNestedInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutQuizAttemptsInput, Prisma.TopicUncheckedCreateWithoutQuizAttemptsInput>
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutQuizAttemptsInput
+  upsert?: Prisma.TopicUpsertWithoutQuizAttemptsInput
+  disconnect?: Prisma.TopicWhereInput | boolean
+  delete?: Prisma.TopicWhereInput | boolean
+  connect?: Prisma.TopicWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TopicUpdateToOneWithWhereWithoutQuizAttemptsInput, Prisma.TopicUpdateWithoutQuizAttemptsInput>, Prisma.TopicUncheckedUpdateWithoutQuizAttemptsInput>
 }
 
 export type TopicCreateNestedManyWithoutChapterInput = {
@@ -472,6 +500,66 @@ export type TopicUpdateOneRequiredWithoutFlashcardsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TopicUpdateToOneWithWhereWithoutFlashcardsInput, Prisma.TopicUpdateWithoutFlashcardsInput>, Prisma.TopicUncheckedUpdateWithoutFlashcardsInput>
 }
 
+export type TopicCreateWithoutQuizAttemptsInput = {
+  id?: string
+  title: string
+  content?: string | null
+  order?: number
+  createdAt?: Date | string
+  chapter: Prisma.ChapterCreateNestedOneWithoutTopicsInput
+  questions?: Prisma.QuestionCreateNestedManyWithoutTopicInput
+  flashcards?: Prisma.FlashcardCreateNestedManyWithoutTopicInput
+}
+
+export type TopicUncheckedCreateWithoutQuizAttemptsInput = {
+  id?: string
+  chapterId: string
+  title: string
+  content?: string | null
+  order?: number
+  createdAt?: Date | string
+  questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutTopicInput
+  flashcards?: Prisma.FlashcardUncheckedCreateNestedManyWithoutTopicInput
+}
+
+export type TopicCreateOrConnectWithoutQuizAttemptsInput = {
+  where: Prisma.TopicWhereUniqueInput
+  create: Prisma.XOR<Prisma.TopicCreateWithoutQuizAttemptsInput, Prisma.TopicUncheckedCreateWithoutQuizAttemptsInput>
+}
+
+export type TopicUpsertWithoutQuizAttemptsInput = {
+  update: Prisma.XOR<Prisma.TopicUpdateWithoutQuizAttemptsInput, Prisma.TopicUncheckedUpdateWithoutQuizAttemptsInput>
+  create: Prisma.XOR<Prisma.TopicCreateWithoutQuizAttemptsInput, Prisma.TopicUncheckedCreateWithoutQuizAttemptsInput>
+  where?: Prisma.TopicWhereInput
+}
+
+export type TopicUpdateToOneWithWhereWithoutQuizAttemptsInput = {
+  where?: Prisma.TopicWhereInput
+  data: Prisma.XOR<Prisma.TopicUpdateWithoutQuizAttemptsInput, Prisma.TopicUncheckedUpdateWithoutQuizAttemptsInput>
+}
+
+export type TopicUpdateWithoutQuizAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  chapter?: Prisma.ChapterUpdateOneRequiredWithoutTopicsNestedInput
+  questions?: Prisma.QuestionUpdateManyWithoutTopicNestedInput
+  flashcards?: Prisma.FlashcardUpdateManyWithoutTopicNestedInput
+}
+
+export type TopicUncheckedUpdateWithoutQuizAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  chapterId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  questions?: Prisma.QuestionUncheckedUpdateManyWithoutTopicNestedInput
+  flashcards?: Prisma.FlashcardUncheckedUpdateManyWithoutTopicNestedInput
+}
+
 export type TopicCreateWithoutChapterInput = {
   id?: string
   title: string
@@ -480,6 +568,7 @@ export type TopicCreateWithoutChapterInput = {
   createdAt?: Date | string
   questions?: Prisma.QuestionCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardCreateNestedManyWithoutTopicInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutTopicInput
 }
 
 export type TopicUncheckedCreateWithoutChapterInput = {
@@ -490,6 +579,7 @@ export type TopicUncheckedCreateWithoutChapterInput = {
   createdAt?: Date | string
   questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardUncheckedCreateNestedManyWithoutTopicInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
 }
 
 export type TopicCreateOrConnectWithoutChapterInput = {
@@ -538,6 +628,7 @@ export type TopicCreateWithoutQuestionsInput = {
   createdAt?: Date | string
   chapter: Prisma.ChapterCreateNestedOneWithoutTopicsInput
   flashcards?: Prisma.FlashcardCreateNestedManyWithoutTopicInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutTopicInput
 }
 
 export type TopicUncheckedCreateWithoutQuestionsInput = {
@@ -548,6 +639,7 @@ export type TopicUncheckedCreateWithoutQuestionsInput = {
   order?: number
   createdAt?: Date | string
   flashcards?: Prisma.FlashcardUncheckedCreateNestedManyWithoutTopicInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
 }
 
 export type TopicCreateOrConnectWithoutQuestionsInput = {
@@ -574,6 +666,7 @@ export type TopicUpdateWithoutQuestionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chapter?: Prisma.ChapterUpdateOneRequiredWithoutTopicsNestedInput
   flashcards?: Prisma.FlashcardUpdateManyWithoutTopicNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutTopicNestedInput
 }
 
 export type TopicUncheckedUpdateWithoutQuestionsInput = {
@@ -584,6 +677,7 @@ export type TopicUncheckedUpdateWithoutQuestionsInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   flashcards?: Prisma.FlashcardUncheckedUpdateManyWithoutTopicNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
 }
 
 export type TopicCreateWithoutFlashcardsInput = {
@@ -594,6 +688,7 @@ export type TopicCreateWithoutFlashcardsInput = {
   createdAt?: Date | string
   chapter: Prisma.ChapterCreateNestedOneWithoutTopicsInput
   questions?: Prisma.QuestionCreateNestedManyWithoutTopicInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutTopicInput
 }
 
 export type TopicUncheckedCreateWithoutFlashcardsInput = {
@@ -604,6 +699,7 @@ export type TopicUncheckedCreateWithoutFlashcardsInput = {
   order?: number
   createdAt?: Date | string
   questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutTopicInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
 }
 
 export type TopicCreateOrConnectWithoutFlashcardsInput = {
@@ -630,6 +726,7 @@ export type TopicUpdateWithoutFlashcardsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chapter?: Prisma.ChapterUpdateOneRequiredWithoutTopicsNestedInput
   questions?: Prisma.QuestionUpdateManyWithoutTopicNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutTopicNestedInput
 }
 
 export type TopicUncheckedUpdateWithoutFlashcardsInput = {
@@ -640,6 +737,7 @@ export type TopicUncheckedUpdateWithoutFlashcardsInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   questions?: Prisma.QuestionUncheckedUpdateManyWithoutTopicNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
 }
 
 export type TopicCreateManyChapterInput = {
@@ -658,6 +756,7 @@ export type TopicUpdateWithoutChapterInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   questions?: Prisma.QuestionUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUpdateManyWithoutTopicNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutTopicNestedInput
 }
 
 export type TopicUncheckedUpdateWithoutChapterInput = {
@@ -668,6 +767,7 @@ export type TopicUncheckedUpdateWithoutChapterInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   questions?: Prisma.QuestionUncheckedUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUncheckedUpdateManyWithoutTopicNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
 }
 
 export type TopicUncheckedUpdateManyWithoutChapterInput = {
@@ -686,11 +786,13 @@ export type TopicUncheckedUpdateManyWithoutChapterInput = {
 export type TopicCountOutputType = {
   questions: number
   flashcards: number
+  quizAttempts: number
 }
 
 export type TopicCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   questions?: boolean | TopicCountOutputTypeCountQuestionsArgs
   flashcards?: boolean | TopicCountOutputTypeCountFlashcardsArgs
+  quizAttempts?: boolean | TopicCountOutputTypeCountQuizAttemptsArgs
 }
 
 /**
@@ -717,6 +819,13 @@ export type TopicCountOutputTypeCountFlashcardsArgs<ExtArgs extends runtime.Type
   where?: Prisma.FlashcardWhereInput
 }
 
+/**
+ * TopicCountOutputType without action
+ */
+export type TopicCountOutputTypeCountQuizAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.QuizAttemptWhereInput
+}
+
 
 export type TopicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -728,6 +837,7 @@ export type TopicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   chapter?: boolean | Prisma.ChapterDefaultArgs<ExtArgs>
   questions?: boolean | Prisma.Topic$questionsArgs<ExtArgs>
   flashcards?: boolean | Prisma.Topic$flashcardsArgs<ExtArgs>
+  quizAttempts?: boolean | Prisma.Topic$quizAttemptsArgs<ExtArgs>
   _count?: boolean | Prisma.TopicCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["topic"]>
 
@@ -765,6 +875,7 @@ export type TopicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   chapter?: boolean | Prisma.ChapterDefaultArgs<ExtArgs>
   questions?: boolean | Prisma.Topic$questionsArgs<ExtArgs>
   flashcards?: boolean | Prisma.Topic$flashcardsArgs<ExtArgs>
+  quizAttempts?: boolean | Prisma.Topic$quizAttemptsArgs<ExtArgs>
   _count?: boolean | Prisma.TopicCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TopicIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -780,6 +891,7 @@ export type $TopicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     chapter: Prisma.$ChapterPayload<ExtArgs>
     questions: Prisma.$QuestionPayload<ExtArgs>[]
     flashcards: Prisma.$FlashcardPayload<ExtArgs>[]
+    quizAttempts: Prisma.$QuizAttemptPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1185,6 +1297,7 @@ export interface Prisma__TopicClient<T, Null = never, ExtArgs extends runtime.Ty
   chapter<T extends Prisma.ChapterDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChapterDefaultArgs<ExtArgs>>): Prisma.Prisma__ChapterClient<runtime.Types.Result.GetResult<Prisma.$ChapterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   questions<T extends Prisma.Topic$questionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$questionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   flashcards<T extends Prisma.Topic$flashcardsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$flashcardsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FlashcardPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  quizAttempts<T extends Prisma.Topic$quizAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$quizAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuizAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1666,6 +1779,30 @@ export type Topic$flashcardsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.FlashcardScalarFieldEnum | Prisma.FlashcardScalarFieldEnum[]
+}
+
+/**
+ * Topic.quizAttempts
+ */
+export type Topic$quizAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the QuizAttempt
+   */
+  select?: Prisma.QuizAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the QuizAttempt
+   */
+  omit?: Prisma.QuizAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuizAttemptInclude<ExtArgs> | null
+  where?: Prisma.QuizAttemptWhereInput
+  orderBy?: Prisma.QuizAttemptOrderByWithRelationInput | Prisma.QuizAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.QuizAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.QuizAttemptScalarFieldEnum | Prisma.QuizAttemptScalarFieldEnum[]
 }
 
 /**
