@@ -29,10 +29,10 @@ function getVideoEmbedHtml(rawUrl: string): string | null {
 
     if (host === "youtube.com" || host === "m.youtube.com") {
         const id = url.searchParams.get("v") ?? url.pathname.split("/").filter(Boolean).at(-1);
-        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}`;
+        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}?enablejsapi=1`;
     } else if (host === "youtu.be") {
         const id = url.pathname.split("/").filter(Boolean)[0];
-        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}`;
+        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}?enablejsapi=1`;
     } else if (host === "vimeo.com" || host === "player.vimeo.com") {
         const id = url.pathname.split("/").filter(Boolean).at(-1);
         if (id) embedUrl = `https://player.vimeo.com/video/${encodeURIComponent(id)}`;

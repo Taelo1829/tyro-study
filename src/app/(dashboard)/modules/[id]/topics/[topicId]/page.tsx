@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -13,10 +12,7 @@ import {
     BookOpen,
     Clock,
     Trophy,
-    Calendar,
-    User,
     CheckCircle,
-    XCircle,
     AlertCircle,
     Loader2,
     ArrowLeft,
@@ -24,7 +20,6 @@ import {
     FileQuestion,
     Sparkles
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
@@ -68,10 +63,41 @@ interface UserProgress {
     lastAttemptAt: string | null
 }
 
+type YouTubePlayer = {
+    getCurrentTime: () => number
+    seekTo: (seconds: number, allowSeekAhead: boolean) => void
+    destroy: () => void
+}
+
+type YouTubePlayerEvent = {
+    target: YouTubePlayer
+    data?: number
+}
+
+type YouTubeApi = {
+    Player: new (
+        element: HTMLIFrameElement,
+        options: {
+            events: {
+                onReady: (event: YouTubePlayerEvent) => void
+                onStateChange: (event: YouTubePlayerEvent) => void
+            }
+        }
+    ) => YouTubePlayer
+}
+
+declare global {
+    interface Window {
+        YT?: YouTubeApi
+        onYouTubeIframeAPIReady?: () => void
+    }
+}
+
 export default function TopicPage() {
     const params = useParams()
     const router = useRouter()
     const { data: session } = useSession()
+    const contentRef = useRef<HTMLDivElement>(null)
     const [topic, setTopic] = useState<Topic | null>(null)
     const [progress, setProgress] = useState<UserProgress | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -114,6 +140,15 @@ export default function TopicPage() {
         }
     }, [topicId])
 
+    useEffect(() => {
+        if (!topic?.content || activeTab !== "content" || !contentRef.current) {
+            return
+        }
+
+        const cleanup = bindVideoProgress(contentRef.current, topic.id)
+        return cleanup
+    }, [activeTab, topic?.content, topic?.id])
+
     const handleStartQuiz = async () => {
         if (!topic?.questions?.length) {
             toast.warning("No Questions", "This topic doesn't have any questions yet.")
@@ -134,7 +169,7 @@ export default function TopicPage() {
 
             if (!response.ok) throw new Error("Failed to start quiz")
 
-            const data = await response.json()
+            await response.json()
             // Navigate to quiz page
             router.push(`/modules/${topic.chapter.module.id}/topics/${topic.id}/quiz`)
         } catch (error) {
@@ -220,7 +255,10 @@ export default function TopicPage() {
                             <CardContent>
                                 <div className="prose prose-slate dark:prose-invert max-w-none">
                                     {topic.content ? (
-                                        <div dangerouslySetInnerHTML={{ __html: formatContent(topic.content) }} />
+                                        <div
+                                            ref={contentRef}
+                                            dangerouslySetInnerHTML={{ __html: formatContent(topic.content) }}
+                                        />
                                     ) : (
                                         <p className="text-muted-foreground italic">
                                             No content available for this topic yet.
@@ -240,7 +278,7 @@ export default function TopicPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <ul className="space-y-2">
-                                        {topic.questions.slice(0, 5).map((question, index) => (
+                                        {topic.questions.slice(0, 5).map((question) => (
                                             <li key={question.id} className="flex items-start gap-2">
                                                 <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                                                 <span className="text-sm">{extractKeyPoint(question.question)}</span>
@@ -401,6 +439,216 @@ function TopicSkeleton() {
 }
 
 // Helper Functions
+let youtubeApiPromise: Promise<YouTubeApi> | null = null
+
+function getProgressKey(topicId: string, videoId: string) {
+    return `topic-video-progress:${topicId}:${videoId}`
+}
+
+function getSavedSeconds(topicId: string, videoId: string) {
+    const value = window.localStorage.getItem(getProgressKey(topicId, videoId))
+    const seconds = value ? Number(value) : 0
+    return Number.isFinite(seconds) ? seconds : 0
+}
+
+function saveSeconds(topicId: string, videoId: string, seconds: number) {
+    if (!Number.isFinite(seconds) || seconds < 1) return
+    window.localStorage.setItem(getProgressKey(topicId, videoId), String(Math.floor(seconds)))
+}
+
+function clearSavedSeconds(topicId: string, videoId: string) {
+    window.localStorage.removeItem(getProgressKey(topicId, videoId))
+}
+
+function ensureUrlParam(src: string, key: string, value: string) {
+    const url = new URL(src)
+    url.searchParams.set(key, value)
+    return url.href
+}
+
+function loadYouTubeApi() {
+    if (window.YT?.Player) {
+        return Promise.resolve(window.YT)
+    }
+
+    youtubeApiPromise ??= new Promise<YouTubeApi>((resolve) => {
+        const existingCallback = window.onYouTubeIframeAPIReady
+        window.onYouTubeIframeAPIReady = () => {
+            existingCallback?.()
+            if (window.YT) resolve(window.YT)
+        }
+
+        if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+            const script = document.createElement("script")
+            script.src = "https://www.youtube.com/iframe_api"
+            document.body.appendChild(script)
+        }
+    })
+
+    return youtubeApiPromise
+}
+
+function bindDirectVideoProgress(root: HTMLElement, topicId: string) {
+    return Array.from(root.querySelectorAll("video")).map((video) => {
+        const videoId = video.currentSrc || video.src
+        const restore = () => {
+            const savedSeconds = getSavedSeconds(topicId, videoId)
+            if (savedSeconds > 0 && (!video.duration || savedSeconds < video.duration - 2)) {
+                video.currentTime = savedSeconds
+            }
+        }
+        const save = () => saveSeconds(topicId, videoId, video.currentTime)
+        const clear = () => clearSavedSeconds(topicId, videoId)
+
+        video.addEventListener("loadedmetadata", restore)
+        video.addEventListener("timeupdate", save)
+        video.addEventListener("pause", save)
+        video.addEventListener("ended", clear)
+
+        if (video.readyState >= 1) restore()
+
+        return () => {
+            if (!video.ended) save()
+            video.removeEventListener("loadedmetadata", restore)
+            video.removeEventListener("timeupdate", save)
+            video.removeEventListener("pause", save)
+            video.removeEventListener("ended", clear)
+        }
+    })
+}
+
+function bindYouTubeProgress(root: HTMLElement, topicId: string, onCleanup: (cleanup: () => void) => void) {
+    const frames = Array.from(
+        root.querySelectorAll<HTMLIFrameElement>('iframe[src*="youtube.com/embed"]')
+    )
+    if (frames.length === 0) return
+
+    let cancelled = false
+
+    loadYouTubeApi().then((api) => {
+        if (cancelled) return
+
+        frames.forEach((frame) => {
+            frame.src = ensureUrlParam(frame.src, "enablejsapi", "1")
+            const videoId = frame.src
+            let saveInterval: number | null = null
+
+            const player = new api.Player(frame, {
+                events: {
+                    onReady: (event) => {
+                        const savedSeconds = getSavedSeconds(topicId, videoId)
+                        if (savedSeconds > 0) {
+                            event.target.seekTo(savedSeconds, true)
+                        }
+                    },
+                    onStateChange: (event) => {
+                        if (event.data === 1 && saveInterval === null) {
+                            saveInterval = window.setInterval(() => {
+                                saveSeconds(topicId, videoId, event.target.getCurrentTime())
+                            }, 5000)
+                        }
+
+                        if (event.data === 2) {
+                            saveSeconds(topicId, videoId, event.target.getCurrentTime())
+                            if (saveInterval !== null) {
+                                window.clearInterval(saveInterval)
+                                saveInterval = null
+                            }
+                        }
+
+                        if (event.data === 0) {
+                            clearSavedSeconds(topicId, videoId)
+                            if (saveInterval !== null) {
+                                window.clearInterval(saveInterval)
+                                saveInterval = null
+                            }
+                        }
+                    },
+                },
+            })
+
+            onCleanup(() => {
+                if (saveInterval !== null) {
+                    window.clearInterval(saveInterval)
+                }
+                saveSeconds(topicId, videoId, player.getCurrentTime())
+                player.destroy()
+            })
+        })
+    })
+
+    onCleanup(() => {
+        cancelled = true
+    })
+}
+
+function bindVimeoProgress(root: HTMLElement, topicId: string, onCleanup: (cleanup: () => void) => void) {
+    const frames = Array.from(
+        root.querySelectorAll<HTMLIFrameElement>('iframe[src*="player.vimeo.com/video"]')
+    )
+    if (frames.length === 0) return
+
+    const send = (frame: HTMLIFrameElement, method: string, value?: string | number) => {
+        const origin = new URL(frame.src).origin
+        frame.contentWindow?.postMessage(JSON.stringify({ method, value }), origin)
+    }
+
+    frames.forEach((frame, index) => {
+        const playerId = `topic-vimeo-${topicId}-${index}`
+        frame.src = ensureUrlParam(ensureUrlParam(frame.src, "api", "1"), "player_id", playerId)
+        const videoId = frame.src
+
+        const handleMessage = (event: MessageEvent) => {
+            if (event.source !== frame.contentWindow || !String(event.origin).includes("vimeo.com")) {
+                return
+            }
+
+            let payload: {
+                event?: string
+                data?: { seconds?: number }
+            }
+
+            try {
+                payload = typeof event.data === "string" ? JSON.parse(event.data) : event.data
+            } catch {
+                return
+            }
+
+            if (payload.event === "ready") {
+                send(frame, "addEventListener", "playProgress")
+                send(frame, "addEventListener", "pause")
+                send(frame, "addEventListener", "ended")
+
+                const savedSeconds = getSavedSeconds(topicId, videoId)
+                if (savedSeconds > 0) {
+                    send(frame, "setCurrentTime", savedSeconds)
+                }
+            }
+
+            if (payload.event === "playProgress" && typeof payload.data?.seconds === "number") {
+                saveSeconds(topicId, videoId, payload.data.seconds)
+            }
+
+            if (payload.event === "ended") {
+                clearSavedSeconds(topicId, videoId)
+            }
+        }
+
+        window.addEventListener("message", handleMessage)
+        onCleanup(() => window.removeEventListener("message", handleMessage))
+    })
+}
+
+function bindVideoProgress(root: HTMLElement, topicId: string) {
+    const cleanup = bindDirectVideoProgress(root, topicId)
+    bindYouTubeProgress(root, topicId, (item) => cleanup.push(item))
+    bindVimeoProgress(root, topicId, (item) => cleanup.push(item))
+
+    return () => {
+        cleanup.forEach((item) => item())
+    }
+}
+
 function getVideoEmbedHtml(rawUrl: string): string | null {
     const trimmed = rawUrl.trim()
     if (!trimmed) return null
@@ -421,10 +669,10 @@ function getVideoEmbedHtml(rawUrl: string): string | null {
 
     if (host === "youtube.com" || host === "m.youtube.com") {
         const id = url.searchParams.get("v") ?? url.pathname.split("/").filter(Boolean).at(-1)
-        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}`
+        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}?enablejsapi=1`
     } else if (host === "youtu.be") {
         const id = url.pathname.split("/").filter(Boolean)[0]
-        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}`
+        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}?enablejsapi=1`
     } else if (host === "vimeo.com" || host === "player.vimeo.com") {
         const id = url.pathname.split("/").filter(Boolean).at(-1)
         if (id) embedUrl = `https://player.vimeo.com/video/${encodeURIComponent(id)}`
