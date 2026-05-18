@@ -24,6 +24,8 @@ import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import FlashcardDeck from "@/components/modules/flash-card-decks"
+import { Modal } from "@/components/admin/modal"
+import { Input } from "@/components/ui/input"
 
 interface Topic {
     id: string
@@ -54,6 +56,7 @@ interface Topic {
         front: string
         back: string
     }>
+    assignment?: string
 }
 
 interface UserProgress {
@@ -103,6 +106,10 @@ export default function TopicPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isStartingQuiz, setIsStartingQuiz] = useState(false)
     const [activeTab, setActiveTab] = useState("content")
+    const [isOpen, setIsOpen] = useState(false)
+    const [file, setFile] = useState<File | null>(null)
+    const [code, setCode] = useState<string | null>(null)
+    const [result, setResult] = useState<string | null>(null)
 
     const topicId = params.topicId as string
 
@@ -207,6 +214,59 @@ export default function TopicPage() {
 
     const hasQuestions = topic.questions?.length > 0
     const hasFlashcards = topic.flashcards?.length > 0
+
+    const toggle = () => {
+        setIsOpen(!isOpen)
+    }
+
+
+    async function loadFile(f: File) {
+        // Accept .cpp, .c, .h, .hpp, .txt, or plain text
+        const allowed = ['.cpp', '.c', '.h', '.hpp', '.cc', '.cxx', '.txt']
+        const ext = '.' + f.name.split('.').pop()?.toLowerCase()
+        if (!allowed.includes(ext)) {
+            alert(`Unsupported file type "${ext}". Please upload a C/C++ source file.`)
+            return
+        }
+        const text = await f.text()
+        setFile(f)
+        setCode(text)
+        setResult(null)
+    }
+
+    function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const f = e.target.files?.[0]
+        if (f) loadFile(f)
+        e.target.value = ''
+    }
+
+    async function handleSubmit() {
+        if (!code?.trim()) return
+        // setLoading(true)
+        // setError(null)
+
+        try {
+            const res = await fetch('/api/assignment/grade', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topicId, code, filename: file?.name ?? 'submission.cpp' }),
+            })
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}))
+                throw new Error(data.error ?? `Server error ${res.status}`)
+            }
+
+            const data = await res.json()
+            console.log(data)
+            setResult(data)
+            //   onGraded?.(data)
+        } catch (err: any) {
+            //   setError(err.message ?? 'Something went wrong. Please try again.')
+        } finally {
+            //   setLoading(false)
+        }
+    }
 
     return (
         <div>
@@ -412,6 +472,20 @@ export default function TopicPage() {
                         </Card>
                     </TabsContent>
                 </Tabs>
+                {topic.assignment && <Button className="float-end" onClick={toggle}>Attempt Assignment</Button>}
+                <Modal open={isOpen} onClose={toggle} size="lg">
+                    <Card className="h-full">
+                        <div dangerouslySetInnerHTML={{ __html: topic.assignment || "" }}></div>
+                        <div className="py-4">
+                            <div>Add Submission</div>
+                            {!file ? <Input type="file" onChange={onFileChange} /> : <div>{file.name}</div>}
+                        </div>
+                        <div>
+                            <Button className="float-end" onClick={toggle}>Close</Button>
+                            <Button onClick={handleSubmit}>Submit</Button>
+                        </div>
+                    </Card>
+                </Modal>
             </div>
         </div>
     )
