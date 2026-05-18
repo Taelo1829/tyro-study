@@ -120,11 +120,9 @@ Grade this submission.`
         const cleaned = raw.replace(/```json|```/g, '').trim()
         const result: GradeResult = JSON.parse(cleaned)
 
-        // Clamp percentage just in case
         result.percentage = Math.max(0, Math.min(100, Math.round(result.percentage)))
         result.passed = result.percentage >= 60
 
-        // Persist the attempt
         await prisma.assignment_Attempt.create({
             data: {
                 topicId,
