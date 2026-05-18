@@ -68,6 +68,11 @@ export type Chapter = Prisma.ChapterModel
  */
 export type Topic = Prisma.TopicModel
 /**
+ * Model Assignment_Attempt
+ * 
+ */
+export type Assignment_Attempt = Prisma.Assignment_AttemptModel
+/**
  * Model Question
  * 
  */

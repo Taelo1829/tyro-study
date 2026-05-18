@@ -120,6 +120,35 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.QuizAttemptScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  topicId: 'topicId',
+  moduleId: 'moduleId',
+  totalQuestions: 'totalQuestions',
+  questionsData: 'questionsData',
+  settings: 'settings',
+  status: 'status',
+  score: 'score',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.QuestionAttemptScalarFieldEnum = {
+  id: 'id',
+  quizAttemptId: 'quizAttemptId',
+  questionId: 'questionId',
+  selectedAnswerId: 'selectedAnswerId',
+  isCorrect: 'isCorrect',
+  order: 'order',
+  status: 'status',
+  answeredAt: 'answeredAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -129,6 +158,7 @@ exports.Prisma.UserScalarFieldEnum = {
   password: 'password',
   role: 'role',
   streakDays: 'streakDays',
+  lastVisitDate: 'lastVisitDate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -189,6 +219,16 @@ exports.Prisma.TopicScalarFieldEnum = {
   title: 'title',
   content: 'content',
   order: 'order',
+  createdAt: 'createdAt',
+  assignment: 'assignment'
+};
+
+exports.Prisma.Assignment_AttemptScalarFieldEnum = {
+  id: 'id',
+  topicId: 'topicId',
+  userId: 'userId',
+  percentage: 'percentage',
+  passed: 'passed',
   createdAt: 'createdAt'
 };
 
@@ -257,12 +297,28 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
+exports.QuizStatus = exports.$Enums.QuizStatus = {
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  EXPIRED: 'EXPIRED',
+  ABANDONED: 'ABANDONED'
+};
+
+exports.AnswerStatus = exports.$Enums.AnswerStatus = {
+  PENDING: 'PENDING',
+  ANSWERED: 'ANSWERED',
+  SKIPPED: 'SKIPPED',
+  REVIEWING: 'REVIEWING'
+};
+
 exports.Role = exports.$Enums.Role = {
   STUDENT: 'STUDENT',
   ADMIN: 'ADMIN'
 };
 
 exports.Prisma.ModelName = {
+  QuizAttempt: 'QuizAttempt',
+  QuestionAttempt: 'QuestionAttempt',
   User: 'User',
   Account: 'Account',
   Session: 'Session',
@@ -271,6 +327,7 @@ exports.Prisma.ModelName = {
   ModuleEnrollment: 'ModuleEnrollment',
   Chapter: 'Chapter',
   Topic: 'Topic',
+  Assignment_Attempt: 'Assignment_Attempt',
   Question: 'Question',
   Answer: 'Answer',
   UserAnswer: 'UserAnswer',

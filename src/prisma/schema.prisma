@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/prisma"
+  provider        = "prisma-client-js"
+  output          = "../src/prisma"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -12,6 +13,72 @@ enum Role {
   ADMIN
 }
 
+enum QuizStatus {
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+  ABANDONED
+}
+
+enum AnswerStatus {
+  PENDING
+  ANSWERED
+  SKIPPED
+  REVIEWING
+}
+
+model QuizAttempt {
+  id             String     @id @default(cuid())
+  userId         String
+  topicId        String?
+  moduleId       String?
+  totalQuestions Int
+  questionsData  String // JSON string of questions
+  settings       String // JSON string of quiz settings
+  status         QuizStatus @default(IN_PROGRESS)
+  score          Int?
+  startedAt      DateTime   @default(now())
+  completedAt    DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic            Topic?            @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  module           Module?           @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  questionAttempts QuestionAttempt[]
+
+  @@index([userId])
+  @@index([topicId])
+  @@index([moduleId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("quiz_attempts") // Map to match your naming convention (snake_case)
+}
+
+model QuestionAttempt {
+  id               String       @id @default(cuid())
+  quizAttemptId    String
+  questionId       String
+  selectedAnswerId String?
+  isCorrect        Boolean?     @default(false)
+  order            Int
+  status           AnswerStatus @default(PENDING)
+  answeredAt       DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  quizAttempt    QuizAttempt @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade)
+  question       Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedAnswer Answer?     @relation(fields: [selectedAnswerId], references: [id], onDelete: SetNull)
+
+  @@unique([quizAttemptId, questionId])
+  @@index([quizAttemptId])
+  @@index([questionId])
+  @@index([status])
+  @@index([answeredAt])
+  @@map("question_attempts") // Map to match your naming convention (snake_case)
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -21,6 +88,7 @@ model User {
   password      String?
   role          Role      @default(STUDENT)
   streakDays    Int       @default(0)
+  lastVisitDate DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -30,6 +98,7 @@ model User {
   timetables    Timetable[]
   notifications Notification[]
   enrollments   ModuleEnrollment[]
+  quizAttempts  QuizAttempt[]
 
   @@map("users")
 }
@@ -80,9 +149,10 @@ model Module {
   description String?
   createdAt   DateTime @default(now())
 
-  chapters    Chapter[]
-  timetables  Timetable[]
-  enrollments ModuleEnrollment[]
+  chapters     Chapter[]
+  timetables   Timetable[]
+  enrollments  ModuleEnrollment[]
+  quizAttempts QuizAttempt[]
 
   @@map("modules")
 }
@@ -117,19 +187,30 @@ model Chapter {
 }
 
 model Topic {
-  id        String   @id @default(cuid())
-  chapterId String
-  title     String
-  content   String?  @db.Text
-  order     Int      @default(0)
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  chapterId  String
+  title      String
+  content    String?  @db.Text
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  assignment String?  @db.Text
 
-  chapter    Chapter     @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  questions  Question[]
-  flashcards Flashcard[]
+  chapter      Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  questions    Question[]
+  flashcards   Flashcard[]
+  quizAttempts QuizAttempt[]
 
   @@index([chapterId])
   @@map("topics")
+}
+
+model Assignment_Attempt {
+  id         String   @id @default(cuid())
+  topicId    String
+  userId     String
+  percentage Int
+  passed     Boolean
+  createdAt  DateTime @default(now())
 }
 
 model Question {
@@ -139,9 +220,10 @@ model Question {
   difficulty String   @default("medium")
   createdAt  DateTime @default(now())
 
-  topic       Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  answers     Answer[]
-  userAnswers UserAnswer[]
+  topic            Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  answers          Answer[]
+  userAnswers      UserAnswer[]
+  questionAttempts QuestionAttempt[]
 
   @@index([topicId])
   @@map("questions")
@@ -153,8 +235,9 @@ model Answer {
   answer     String  @db.Text
   isCorrect  Boolean @default(false)
 
-  question    Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  userAnswers UserAnswer[]
+  question         Question          @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userAnswers      UserAnswer[]
+  questionAttempts QuestionAttempt[]
 
   @@index([questionId])
   @@map("answers")

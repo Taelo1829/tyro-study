@@ -41,6 +41,7 @@ export type TopicMinAggregateOutputType = {
   content: string | null
   order: number | null
   createdAt: Date | null
+  assignment: string | null
 }
 
 export type TopicMaxAggregateOutputType = {
@@ -50,6 +51,7 @@ export type TopicMaxAggregateOutputType = {
   content: string | null
   order: number | null
   createdAt: Date | null
+  assignment: string | null
 }
 
 export type TopicCountAggregateOutputType = {
@@ -59,6 +61,7 @@ export type TopicCountAggregateOutputType = {
   content: number
   order: number
   createdAt: number
+  assignment: number
   _all: number
 }
 
@@ -78,6 +81,7 @@ export type TopicMinAggregateInputType = {
   content?: true
   order?: true
   createdAt?: true
+  assignment?: true
 }
 
 export type TopicMaxAggregateInputType = {
@@ -87,6 +91,7 @@ export type TopicMaxAggregateInputType = {
   content?: true
   order?: true
   createdAt?: true
+  assignment?: true
 }
 
 export type TopicCountAggregateInputType = {
@@ -96,6 +101,7 @@ export type TopicCountAggregateInputType = {
   content?: true
   order?: true
   createdAt?: true
+  assignment?: true
   _all?: true
 }
 
@@ -192,6 +198,7 @@ export type TopicGroupByOutputType = {
   content: string | null
   order: number
   createdAt: Date
+  assignment: string | null
   _count: TopicCountAggregateOutputType | null
   _avg: TopicAvgAggregateOutputType | null
   _sum: TopicSumAggregateOutputType | null
@@ -224,6 +231,7 @@ export type TopicWhereInput = {
   content?: Prisma.StringNullableFilter<"Topic"> | string | null
   order?: Prisma.IntFilter<"Topic"> | number
   createdAt?: Prisma.DateTimeFilter<"Topic"> | Date | string
+  assignment?: Prisma.StringNullableFilter<"Topic"> | string | null
   chapter?: Prisma.XOR<Prisma.ChapterScalarRelationFilter, Prisma.ChapterWhereInput>
   questions?: Prisma.QuestionListRelationFilter
   flashcards?: Prisma.FlashcardListRelationFilter
@@ -237,6 +245,7 @@ export type TopicOrderByWithRelationInput = {
   content?: Prisma.SortOrderInput | Prisma.SortOrder
   order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  assignment?: Prisma.SortOrderInput | Prisma.SortOrder
   chapter?: Prisma.ChapterOrderByWithRelationInput
   questions?: Prisma.QuestionOrderByRelationAggregateInput
   flashcards?: Prisma.FlashcardOrderByRelationAggregateInput
@@ -253,6 +262,7 @@ export type TopicWhereUniqueInput = Prisma.AtLeast<{
   content?: Prisma.StringNullableFilter<"Topic"> | string | null
   order?: Prisma.IntFilter<"Topic"> | number
   createdAt?: Prisma.DateTimeFilter<"Topic"> | Date | string
+  assignment?: Prisma.StringNullableFilter<"Topic"> | string | null
   chapter?: Prisma.XOR<Prisma.ChapterScalarRelationFilter, Prisma.ChapterWhereInput>
   questions?: Prisma.QuestionListRelationFilter
   flashcards?: Prisma.FlashcardListRelationFilter
@@ -266,6 +276,7 @@ export type TopicOrderByWithAggregationInput = {
   content?: Prisma.SortOrderInput | Prisma.SortOrder
   order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  assignment?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TopicCountOrderByAggregateInput
   _avg?: Prisma.TopicAvgOrderByAggregateInput
   _max?: Prisma.TopicMaxOrderByAggregateInput
@@ -283,6 +294,7 @@ export type TopicScalarWhereWithAggregatesInput = {
   content?: Prisma.StringNullableWithAggregatesFilter<"Topic"> | string | null
   order?: Prisma.IntWithAggregatesFilter<"Topic"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Topic"> | Date | string
+  assignment?: Prisma.StringNullableWithAggregatesFilter<"Topic"> | string | null
 }
 
 export type TopicCreateInput = {
@@ -291,6 +303,7 @@ export type TopicCreateInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   chapter: Prisma.ChapterCreateNestedOneWithoutTopicsInput
   questions?: Prisma.QuestionCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardCreateNestedManyWithoutTopicInput
@@ -304,6 +317,7 @@ export type TopicUncheckedCreateInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardUncheckedCreateNestedManyWithoutTopicInput
   quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
@@ -315,6 +329,7 @@ export type TopicUpdateInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chapter?: Prisma.ChapterUpdateOneRequiredWithoutTopicsNestedInput
   questions?: Prisma.QuestionUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUpdateManyWithoutTopicNestedInput
@@ -328,6 +343,7 @@ export type TopicUncheckedUpdateInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   questions?: Prisma.QuestionUncheckedUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUncheckedUpdateManyWithoutTopicNestedInput
   quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
@@ -340,6 +356,7 @@ export type TopicCreateManyInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
 }
 
 export type TopicUpdateManyMutationInput = {
@@ -348,6 +365,7 @@ export type TopicUpdateManyMutationInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TopicUncheckedUpdateManyInput = {
@@ -357,6 +375,7 @@ export type TopicUncheckedUpdateManyInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TopicNullableScalarRelationFilter = {
@@ -381,6 +400,7 @@ export type TopicCountOrderByAggregateInput = {
   content?: Prisma.SortOrder
   order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  assignment?: Prisma.SortOrder
 }
 
 export type TopicAvgOrderByAggregateInput = {
@@ -394,6 +414,7 @@ export type TopicMaxOrderByAggregateInput = {
   content?: Prisma.SortOrder
   order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  assignment?: Prisma.SortOrder
 }
 
 export type TopicMinOrderByAggregateInput = {
@@ -403,6 +424,7 @@ export type TopicMinOrderByAggregateInput = {
   content?: Prisma.SortOrder
   order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  assignment?: Prisma.SortOrder
 }
 
 export type TopicSumOrderByAggregateInput = {
@@ -506,6 +528,7 @@ export type TopicCreateWithoutQuizAttemptsInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   chapter: Prisma.ChapterCreateNestedOneWithoutTopicsInput
   questions?: Prisma.QuestionCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardCreateNestedManyWithoutTopicInput
@@ -518,6 +541,7 @@ export type TopicUncheckedCreateWithoutQuizAttemptsInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardUncheckedCreateNestedManyWithoutTopicInput
 }
@@ -544,6 +568,7 @@ export type TopicUpdateWithoutQuizAttemptsInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chapter?: Prisma.ChapterUpdateOneRequiredWithoutTopicsNestedInput
   questions?: Prisma.QuestionUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUpdateManyWithoutTopicNestedInput
@@ -556,6 +581,7 @@ export type TopicUncheckedUpdateWithoutQuizAttemptsInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   questions?: Prisma.QuestionUncheckedUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUncheckedUpdateManyWithoutTopicNestedInput
 }
@@ -566,6 +592,7 @@ export type TopicCreateWithoutChapterInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   questions?: Prisma.QuestionCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardCreateNestedManyWithoutTopicInput
   quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutTopicInput
@@ -577,6 +604,7 @@ export type TopicUncheckedCreateWithoutChapterInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutTopicInput
   flashcards?: Prisma.FlashcardUncheckedCreateNestedManyWithoutTopicInput
   quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
@@ -618,6 +646,7 @@ export type TopicScalarWhereInput = {
   content?: Prisma.StringNullableFilter<"Topic"> | string | null
   order?: Prisma.IntFilter<"Topic"> | number
   createdAt?: Prisma.DateTimeFilter<"Topic"> | Date | string
+  assignment?: Prisma.StringNullableFilter<"Topic"> | string | null
 }
 
 export type TopicCreateWithoutQuestionsInput = {
@@ -626,6 +655,7 @@ export type TopicCreateWithoutQuestionsInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   chapter: Prisma.ChapterCreateNestedOneWithoutTopicsInput
   flashcards?: Prisma.FlashcardCreateNestedManyWithoutTopicInput
   quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutTopicInput
@@ -638,6 +668,7 @@ export type TopicUncheckedCreateWithoutQuestionsInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   flashcards?: Prisma.FlashcardUncheckedCreateNestedManyWithoutTopicInput
   quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
 }
@@ -664,6 +695,7 @@ export type TopicUpdateWithoutQuestionsInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chapter?: Prisma.ChapterUpdateOneRequiredWithoutTopicsNestedInput
   flashcards?: Prisma.FlashcardUpdateManyWithoutTopicNestedInput
   quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutTopicNestedInput
@@ -676,6 +708,7 @@ export type TopicUncheckedUpdateWithoutQuestionsInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   flashcards?: Prisma.FlashcardUncheckedUpdateManyWithoutTopicNestedInput
   quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
 }
@@ -686,6 +719,7 @@ export type TopicCreateWithoutFlashcardsInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   chapter: Prisma.ChapterCreateNestedOneWithoutTopicsInput
   questions?: Prisma.QuestionCreateNestedManyWithoutTopicInput
   quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutTopicInput
@@ -698,6 +732,7 @@ export type TopicUncheckedCreateWithoutFlashcardsInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
   questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutTopicInput
   quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
 }
@@ -724,6 +759,7 @@ export type TopicUpdateWithoutFlashcardsInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chapter?: Prisma.ChapterUpdateOneRequiredWithoutTopicsNestedInput
   questions?: Prisma.QuestionUpdateManyWithoutTopicNestedInput
   quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutTopicNestedInput
@@ -736,6 +772,7 @@ export type TopicUncheckedUpdateWithoutFlashcardsInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   questions?: Prisma.QuestionUncheckedUpdateManyWithoutTopicNestedInput
   quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
 }
@@ -746,6 +783,7 @@ export type TopicCreateManyChapterInput = {
   content?: string | null
   order?: number
   createdAt?: Date | string
+  assignment?: string | null
 }
 
 export type TopicUpdateWithoutChapterInput = {
@@ -754,6 +792,7 @@ export type TopicUpdateWithoutChapterInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   questions?: Prisma.QuestionUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUpdateManyWithoutTopicNestedInput
   quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutTopicNestedInput
@@ -765,6 +804,7 @@ export type TopicUncheckedUpdateWithoutChapterInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   questions?: Prisma.QuestionUncheckedUpdateManyWithoutTopicNestedInput
   flashcards?: Prisma.FlashcardUncheckedUpdateManyWithoutTopicNestedInput
   quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
@@ -776,6 +816,7 @@ export type TopicUncheckedUpdateManyWithoutChapterInput = {
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assignment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -834,6 +875,7 @@ export type TopicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   content?: boolean
   order?: boolean
   createdAt?: boolean
+  assignment?: boolean
   chapter?: boolean | Prisma.ChapterDefaultArgs<ExtArgs>
   questions?: boolean | Prisma.Topic$questionsArgs<ExtArgs>
   flashcards?: boolean | Prisma.Topic$flashcardsArgs<ExtArgs>
@@ -848,6 +890,7 @@ export type TopicSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   content?: boolean
   order?: boolean
   createdAt?: boolean
+  assignment?: boolean
   chapter?: boolean | Prisma.ChapterDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["topic"]>
 
@@ -858,6 +901,7 @@ export type TopicSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   content?: boolean
   order?: boolean
   createdAt?: boolean
+  assignment?: boolean
   chapter?: boolean | Prisma.ChapterDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["topic"]>
 
@@ -868,9 +912,10 @@ export type TopicSelectScalar = {
   content?: boolean
   order?: boolean
   createdAt?: boolean
+  assignment?: boolean
 }
 
-export type TopicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "chapterId" | "title" | "content" | "order" | "createdAt", ExtArgs["result"]["topic"]>
+export type TopicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "chapterId" | "title" | "content" | "order" | "createdAt" | "assignment", ExtArgs["result"]["topic"]>
 export type TopicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chapter?: boolean | Prisma.ChapterDefaultArgs<ExtArgs>
   questions?: boolean | Prisma.Topic$questionsArgs<ExtArgs>
@@ -900,6 +945,7 @@ export type $TopicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     content: string | null
     order: number
     createdAt: Date
+    assignment: string | null
   }, ExtArgs["result"]["topic"]>
   composites: {}
 }
@@ -1333,6 +1379,7 @@ export interface TopicFieldRefs {
   readonly content: Prisma.FieldRef<"Topic", 'String'>
   readonly order: Prisma.FieldRef<"Topic", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Topic", 'DateTime'>
+  readonly assignment: Prisma.FieldRef<"Topic", 'String'>
 }
     
 

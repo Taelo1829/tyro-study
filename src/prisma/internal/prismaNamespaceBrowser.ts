@@ -61,6 +61,7 @@ export const ModelName = {
   ModuleEnrollment: 'ModuleEnrollment',
   Chapter: 'Chapter',
   Topic: 'Topic',
+  Assignment_Attempt: 'Assignment_Attempt',
   Question: 'Question',
   Answer: 'Answer',
   UserAnswer: 'UserAnswer',
@@ -129,6 +130,7 @@ export const UserScalarFieldEnum = {
   password: 'password',
   role: 'role',
   streakDays: 'streakDays',
+  lastVisitDate: 'lastVisitDate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -210,10 +212,23 @@ export const TopicScalarFieldEnum = {
   title: 'title',
   content: 'content',
   order: 'order',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  assignment: 'assignment'
 } as const
 
 export type TopicScalarFieldEnum = (typeof TopicScalarFieldEnum)[keyof typeof TopicScalarFieldEnum]
+
+
+export const Assignment_AttemptScalarFieldEnum = {
+  id: 'id',
+  topicId: 'topicId',
+  userId: 'userId',
+  percentage: 'percentage',
+  passed: 'passed',
+  createdAt: 'createdAt'
+} as const
+
+export type Assignment_AttemptScalarFieldEnum = (typeof Assignment_AttemptScalarFieldEnum)[keyof typeof Assignment_AttemptScalarFieldEnum]
 
 
 export const QuestionScalarFieldEnum = {

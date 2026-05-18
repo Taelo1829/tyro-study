@@ -33,10 +33,11 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const { id } = await params
   const body = await request.json()
-  const { title, content, order } = body as {
+  const { title, content, order, assignment } = body as {
     title?: string
     content?: string
     order?: number
+    assignment?: string
   }
 
   const topic = await prisma.topic.update({
@@ -45,6 +46,7 @@ export async function PATCH(request: Request, { params }: Params) {
       ...(title !== undefined && { title: title.trim() }),
       ...(content !== undefined && { content: content?.trim() || null }),
       ...(order !== undefined && { order }),
+      ...(assignment !== undefined && { assignment }),
     },
   })
 

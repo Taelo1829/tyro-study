@@ -417,27 +417,6 @@ export default function TopicPage() {
     )
 }
 
-// Flashcard Deck Component
-
-
-// Loading Skeleton
-function TopicSkeleton() {
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-            <div className="container max-w-4xl mx-auto px-4 py-8">
-                <Skeleton className="h-8 w-32 mb-8" />
-                <Skeleton className="h-12 w-3/4 mb-4" />
-                <div className="flex gap-4 mb-8">
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-6 w-32" />
-                </div>
-                <Skeleton className="h-64 w-full mb-6" />
-                <Skeleton className="h-48 w-full" />
-            </div>
-        </div>
-    )
-}
-
 // Helper Functions
 let youtubeApiPromise: Promise<YouTubeApi> | null = null
 

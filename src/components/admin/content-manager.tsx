@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import NeumorphicEditor from "./rich-text-editor"
+import { Modal, ModalFooter } from "./modal"
 
 interface ContentManagerProps {
   topicId: string
@@ -19,7 +20,9 @@ export function ContentManager({
   const [content, setContent] = useState(initialContent)
   const [loading, setLoading] = useState(false)
   const [flashLoading, setFlashLoading] = useState(false)
+  const [toggle, setToggle] = useState(false)
   const [message, setMessage] = useState("")
+  const [assignment, setAssignment] = useState("")
 
   async function saveContent() {
     setLoading(true)
@@ -63,6 +66,26 @@ export function ContentManager({
     }
   }
 
+  async function addAssignmentToggle() {
+    setToggle(!toggle)
+  }
+
+  async function saveAssignment() {
+    try {
+      setLoading(true)
+      await fetch(`/api/topics/${topicId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignment }),
+      })
+
+      setLoading(false)
+      addAssignmentToggle()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -88,11 +111,34 @@ export function ContentManager({
           >
             {flashLoading ? "Generating…" : "AI flashcards"}
           </Button>
+          <Button
+            variant="default"
+            onClick={addAssignmentToggle}
+          >
+            Add Assignment
+          </Button>
         </div>
         {message && (
           <p className="text-sm text-muted-foreground">{message}</p>
         )}
       </CardContent>
+      <Modal open={toggle} onClose={addAssignmentToggle}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Assignment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <NeumorphicEditor
+              value={assignment}
+              setHtml={(e) => setAssignment(e)}
+            />
+          </CardContent>
+
+          <div className="py-4">
+            <Button variant="default" className="float-end" onClick={saveAssignment}>Save Assignment</Button>
+          </div>
+        </Card>
+      </Modal>
     </Card>
   )
 }

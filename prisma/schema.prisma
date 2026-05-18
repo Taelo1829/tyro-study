@@ -1,5 +1,5 @@
 generator client {
-  provider        = "prisma-client"
+  provider        = "prisma-client-js"
   output          = "../src/prisma"
   previewFeatures = ["driverAdapters"]
 }
@@ -193,6 +193,7 @@ model Topic {
   content   String?  @db.Text
   order     Int      @default(0)
   createdAt DateTime @default(now())
+  assignment String? @db.Text
 
   chapter      Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   questions    Question[]
@@ -202,6 +203,16 @@ model Topic {
   @@index([chapterId])
   @@map("topics")
 }
+
+model Assignment_Attempt {
+  id         String   @id @default(cuid())
+  topicId    String
+  userId     String
+  percentage Int
+  passed     Boolean 
+  createdAt  DateTime @default(now())
+}
+
 
 model Question {
   id         String   @id @default(cuid())
