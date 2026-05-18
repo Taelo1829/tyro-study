@@ -181,7 +181,7 @@ export default function TopicPage() {
     }
 
     if (isLoading) {
-        return <TopicSkeleton />
+        return <div>Loading...</div>
     }
 
     if (!topic) {
@@ -544,12 +544,12 @@ function bindYouTubeProgress(root: HTMLElement, topicId: string, onCleanup: (cle
                     onStateChange: (event) => {
                         if (event.data === 1 && saveInterval === null) {
                             saveInterval = window.setInterval(() => {
-                                saveSeconds(topicId, videoId, event.target.getCurrentTime())
+                                saveSeconds(topicId, videoId, event.target?.getCurrentTime())
                             }, 5000)
                         }
 
                         if (event.data === 2) {
-                            saveSeconds(topicId, videoId, event.target.getCurrentTime())
+                            saveSeconds(topicId, videoId, event.target?.getCurrentTime())
                             if (saveInterval !== null) {
                                 window.clearInterval(saveInterval)
                                 saveInterval = null
@@ -571,7 +571,8 @@ function bindYouTubeProgress(root: HTMLElement, topicId: string, onCleanup: (cle
                 if (saveInterval !== null) {
                     window.clearInterval(saveInterval)
                 }
-                saveSeconds(topicId, videoId, player.getCurrentTime())
+                if (player?.getCurrentTime)
+                    saveSeconds(topicId, videoId, player?.getCurrentTime())
                 player.destroy()
             })
         })

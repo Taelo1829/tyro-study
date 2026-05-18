@@ -40,7 +40,7 @@ const page = () => {
             </div>
 
             {chapter?.topics.map((tp) => (
-                <li key={tp.id}>
+                <div key={tp.id} className='my-3'>
                     <Card>
                         <CardContent onClick={() => router.push(`/modules/${id}/topics/${tp.id}`)} className="flex items-center justify-between py-4">
                             <div>
@@ -49,7 +49,7 @@ const page = () => {
                             <ChevronRight className="h-5 w-5 text-muted-foreground" />
                         </CardContent>
                     </Card>
-                </li>
+                </div>
             ))}
         </>
     )
