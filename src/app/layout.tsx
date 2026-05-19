@@ -32,7 +32,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <script src="https://www.youtube.com/iframe_api"></script>
       <body className={inter.className}>
         <ThemeProvider>
           <AuthProvider>

@@ -274,6 +274,8 @@ export default function TopicPage() {
         }
     }
 
+    console.log(topic)
+
     return (
         <div>
             <Header title={topic.title} subtitle="" />
@@ -304,10 +306,10 @@ export default function TopicPage() {
                                 <span>Flashcards</span>
                             </TabsTrigger>
                         )}
-                        <TabsTrigger value="quiz-prep" className="space-x-2">
+                        {topic?.questions?.length > 0 && <TabsTrigger value="quiz-prep" className="space-x-2">
                             <PlayCircle className="h-4 w-4" />
                             <span>Quiz Preparation</span>
-                        </TabsTrigger>
+                        </TabsTrigger>}
                     </TabsList>
 
                     <TabsContent value="content" className="space-y-6">
