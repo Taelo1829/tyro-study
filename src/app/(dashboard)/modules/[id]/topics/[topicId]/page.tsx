@@ -267,6 +267,7 @@ export default function TopicPage() {
             setIsOpen(false)
             setAssignmentIsOpen(true)
             setAssignmentSubmissionLoading(false)
+            setFile(null)
         } catch (err: any) {
             //   setError(err.message ?? 'Something went wrong. Please try again.')
         } finally {
