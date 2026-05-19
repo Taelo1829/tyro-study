@@ -482,12 +482,13 @@ export default function TopicPage() {
                 {topic.assignment && <Button className="float-end" onClick={toggle}>Attempt Assignment</Button>}
                 <Modal open={isOpen} onClose={toggle} size="lg">
                     <Card className="h-full">
+                        <div className="text-2xl pb-5">Assignment</div>
                         {assignmentSubmissionLoading ? <div>
                             <div>PLEASE WAIT WHILE WE PROCESS YOUR SUBMISSION...</div>
                         </div> : <div>
                             <div dangerouslySetInnerHTML={{ __html: topic.assignment || "" }}></div>
                             <div className="py-4">
-                                <div>Add Submission</div>
+                                <div>Add C++ Submission (Please only upload .cpp files e.g main.cpp)</div>
                                 {!file ? <Input type="file" onChange={onFileChange} /> : <div>{file.name}</div>}
                             </div>
                             <div>
