@@ -26,7 +26,6 @@ import { Header } from "@/components/layout/header"
 import FlashcardDeck from "@/components/modules/flash-card-decks"
 import { Modal } from "@/components/admin/modal"
 import { Input } from "@/components/ui/input"
-import { loadYouTubeApi } from "@/app/helper"
 import { YouTubeApi } from "@/app/types"
 
 interface Topic {
@@ -67,13 +66,6 @@ interface UserProgress {
     quizAttempts: number
     bestScore: number
     lastAttemptAt: string | null
-}
-
-declare global {
-    interface Window {
-        YT?: YouTubeApi
-        onYouTubeIframeAPIReady?: () => void
-    }
 }
 
 export default function TopicPage() {
@@ -127,14 +119,6 @@ export default function TopicPage() {
             fetchProgress()
         }
     }, [topicId])
-
-    useEffect(() => {
-        if (!topic?.content || activeTab !== "content" || !contentRef.current) {
-            return
-        }
-        const cleanup = bindVideoProgress(contentRef.current, topic.id)
-        return cleanup
-    }, [activeTab, topic?.content, topic?.id])
 
     const handleStartQuiz = async () => {
         if (!topic?.questions?.length) {
@@ -530,175 +514,6 @@ function clearSavedSeconds(topicId: string, videoId: string) {
     window.localStorage.removeItem(getProgressKey(topicId, videoId))
 }
 
-function ensureUrlParam(src: string, key: string, value: string) {
-    const url = new URL(src)
-    url.searchParams.set(key, value)
-    return url.href
-}
-
-
-
-function bindDirectVideoProgress(root: HTMLElement, topicId: string) {
-    return Array.from(root.querySelectorAll("video")).map((video) => {
-        const videoId = video.currentSrc || video.src
-        const restore = () => {
-            const savedSeconds = getSavedSeconds(topicId, videoId)
-            if (savedSeconds > 0 && (!video.duration || savedSeconds < video.duration - 2)) {
-                video.currentTime = savedSeconds
-            }
-        }
-        const save = () => saveSeconds(topicId, videoId, video.currentTime)
-        const clear = () => clearSavedSeconds(topicId, videoId)
-
-        video.addEventListener("loadedmetadata", restore)
-        video.addEventListener("timeupdate", save)
-        video.addEventListener("pause", save)
-        video.addEventListener("ended", clear)
-
-        if (video.readyState >= 1) restore()
-
-        return () => {
-            if (!video.ended) save()
-            video.removeEventListener("loadedmetadata", restore)
-            video.removeEventListener("timeupdate", save)
-            video.removeEventListener("pause", save)
-            video.removeEventListener("ended", clear)
-        }
-    })
-}
-
-function bindYouTubeProgress(root: HTMLElement, topicId: string, onCleanup: (cleanup: () => void) => void) {
-    const frames = Array.from(
-        root.querySelectorAll<HTMLIFrameElement>('iframe[src*="youtube.com/embed"]')
-    )
-    if (frames.length === 0) return
-
-    let cancelled = false
-    loadYouTubeApi().then((api) => {
-        if (cancelled) return
-
-        frames.forEach((frame) => {
-            frame.src = ensureUrlParam(frame.src, "enablejsapi", "1")
-            const videoId = frame.src
-            let saveInterval: number | null = null
-
-            const player = new api.Player(frame, {
-                events: {
-                    onReady: (event) => {
-                        const savedSeconds = getSavedSeconds(topicId, videoId)
-                        if (savedSeconds > 0) {
-                            event.target.seekTo(savedSeconds, true)
-                        }
-                    },
-                    onStateChange: (event) => {
-                        if (event.data === 1 && saveInterval === null) {
-                            saveInterval = window.setInterval(() => {
-                                saveSeconds(topicId, videoId, event.target?.getCurrentTime())
-                            }, 2000)
-                        }
-
-                        if (event.data === 2) {
-                            saveSeconds(topicId, videoId, event.target?.getCurrentTime())
-                            if (saveInterval !== null) {
-                                window.clearInterval(saveInterval)
-                                saveInterval = null
-                            }
-                        }
-
-                        if (event.data === 0) {
-                            clearSavedSeconds(topicId, videoId)
-                            if (saveInterval !== null) {
-                                window.clearInterval(saveInterval)
-                                saveInterval = null
-                            }
-                        }
-                    },
-                },
-            })
-
-            onCleanup(() => {
-                if (saveInterval !== null) {
-                    window.clearInterval(saveInterval)
-                }
-                if (player?.getCurrentTime)
-                    saveSeconds(topicId, videoId, player?.getCurrentTime())
-                player.destroy()
-            })
-        })
-    })
-
-    onCleanup(() => {
-        cancelled = true
-    })
-}
-
-function bindVimeoProgress(root: HTMLElement, topicId: string, onCleanup: (cleanup: () => void) => void) {
-    const frames = Array.from(
-        root.querySelectorAll<HTMLIFrameElement>('iframe[src*="player.vimeo.com/video"]')
-    )
-    if (frames.length === 0) return
-
-    const send = (frame: HTMLIFrameElement, method: string, value?: string | number) => {
-        const origin = new URL(frame.src).origin
-        frame.contentWindow?.postMessage(JSON.stringify({ method, value }), origin)
-    }
-
-    frames.forEach((frame, index) => {
-        const playerId = `topic-vimeo-${topicId}-${index}`
-        frame.src = ensureUrlParam(ensureUrlParam(frame.src, "api", "1"), "player_id", playerId)
-        const videoId = frame.src
-
-        const handleMessage = (event: MessageEvent) => {
-            if (event.source !== frame.contentWindow || !String(event.origin).includes("vimeo.com")) {
-                return
-            }
-
-            let payload: {
-                event?: string
-                data?: { seconds?: number }
-            }
-
-            try {
-                payload = typeof event.data === "string" ? JSON.parse(event.data) : event.data
-            } catch {
-                return
-            }
-
-            if (payload.event === "ready") {
-                send(frame, "addEventListener", "playProgress")
-                send(frame, "addEventListener", "pause")
-                send(frame, "addEventListener", "ended")
-
-                const savedSeconds = getSavedSeconds(topicId, videoId)
-                if (savedSeconds > 0) {
-                    send(frame, "setCurrentTime", savedSeconds)
-                }
-            }
-
-            if (payload.event === "playProgress" && typeof payload.data?.seconds === "number") {
-                saveSeconds(topicId, videoId, payload.data.seconds)
-            }
-
-            if (payload.event === "ended") {
-                clearSavedSeconds(topicId, videoId)
-            }
-        }
-
-        window.addEventListener("message", handleMessage)
-        onCleanup(() => window.removeEventListener("message", handleMessage))
-    })
-}
-
-function bindVideoProgress(root: HTMLElement, topicId: string) {
-    const cleanup = bindDirectVideoProgress(root, topicId)
-    bindYouTubeProgress(root, topicId, (item) => cleanup.push(item))
-    bindVimeoProgress(root, topicId, (item) => cleanup.push(item))
-
-    return () => {
-        cleanup.forEach((item) => item())
-    }
-}
-
 function getVideoEmbedHtml(rawUrl: string): string | null {
     const trimmed = rawUrl.trim()
     if (!trimmed) return null
@@ -723,9 +538,6 @@ function getVideoEmbedHtml(rawUrl: string): string | null {
     } else if (host === "youtu.be") {
         const id = url.pathname.split("/").filter(Boolean)[0]
         if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}?enablejsapi=1`
-    } else if (host === "vimeo.com" || host === "player.vimeo.com") {
-        const id = url.pathname.split("/").filter(Boolean).at(-1)
-        if (id) embedUrl = `https://player.vimeo.com/video/${encodeURIComponent(id)}`
     }
 
     if (embedUrl) {
