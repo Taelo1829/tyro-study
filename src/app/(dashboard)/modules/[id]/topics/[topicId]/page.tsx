@@ -258,7 +258,6 @@ export default function TopicPage() {
         router.push(`/modules/${topic?.chapter.module.id}/topics/${topic?.nextTopic}`)
     }
 
-    console.log(topic)
     return (
         <div>
             <Header title={topic.title} subtitle="" />
