@@ -107,10 +107,11 @@ export default function TopicPage() {
     const [isStartingQuiz, setIsStartingQuiz] = useState(false)
     const [activeTab, setActiveTab] = useState("content")
     const [isOpen, setIsOpen] = useState(false)
+    const [assignmentIsOpen, setAssignmentIsOpen] = useState(false)
     const [file, setFile] = useState<File | null>(null)
     const [code, setCode] = useState<string | null>(null)
-    const [result, setResult] = useState<string | null>(null)
-
+    const [result, setResult] = useState<any | null>(null)
+    const [assignmentSubmissionLoading, setAssignmentSubmissionLoading] = useState(false)
     const topicId = params.topicId as string
 
     // Fetch topic data
@@ -219,6 +220,9 @@ export default function TopicPage() {
         setIsOpen(!isOpen)
     }
 
+    const toggleAssignment = () => {
+        setAssignmentIsOpen(!assignmentIsOpen)
+    }
 
     async function loadFile(f: File) {
         // Accept .cpp, .c, .h, .hpp, .txt, or plain text
@@ -246,6 +250,7 @@ export default function TopicPage() {
         // setError(null)
 
         try {
+            setAssignmentSubmissionLoading(true)
             const res = await fetch('/api/assignment/grade', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -258,9 +263,10 @@ export default function TopicPage() {
             }
 
             const data = await res.json()
-            console.log(data)
             setResult(data)
-            //   onGraded?.(data)
+            setIsOpen(false)
+            setAssignmentIsOpen(true)
+            setAssignmentSubmissionLoading(false)
         } catch (err: any) {
             //   setError(err.message ?? 'Something went wrong. Please try again.')
         } finally {
@@ -475,18 +481,40 @@ export default function TopicPage() {
                 {topic.assignment && <Button className="float-end" onClick={toggle}>Attempt Assignment</Button>}
                 <Modal open={isOpen} onClose={toggle} size="lg">
                     <Card className="h-full">
-                        <div dangerouslySetInnerHTML={{ __html: topic.assignment || "" }}></div>
-                        <div className="py-4">
-                            <div>Add Submission</div>
-                            {!file ? <Input type="file" onChange={onFileChange} /> : <div>{file.name}</div>}
-                        </div>
-                        <div>
-                            <Button className="float-end" onClick={toggle}>Close</Button>
-                            <Button onClick={handleSubmit}>Submit</Button>
-                        </div>
+                        {assignmentSubmissionLoading ? <div>
+                            <div>PLEASE WAIT WHILE WE PROCESS YOUR SUBMISSION...</div>
+                        </div> : <div>
+                            <div dangerouslySetInnerHTML={{ __html: topic.assignment || "" }}></div>
+                            <div className="py-4">
+                                <div>Add Submission</div>
+                                {!file ? <Input type="file" onChange={onFileChange} /> : <div>{file.name}</div>}
+                            </div>
+                            <div>
+                                <Button className="float-end" onClick={toggle}>Close</Button>
+                                <Button onClick={handleSubmit}>Submit</Button>
+                            </div>
+                        </div>}
                     </Card>
                 </Modal>
             </div>
+            <Modal open={assignmentIsOpen} onClose={toggleAssignment} size="md" >
+                <Card className="p-4">
+                    <div className="text-3xl">You have {result?.passed ? "passed" : "failed"} the assignment.</div>
+                    <div className="text-2xl py-2">Score: {result?.percentage}%</div>
+                    <div>{result?.summary}</div>
+                    <div className="text-xl pt-4">YOU SHOULD WORK ON </div>
+                    <div className="px-4 pt-1">
+                        {result?.suggestions?.map((item: string, index: number) => {
+                            return <li key={index}>
+                                <div>{item}</div>
+                            </li>
+                        })}
+                    </div>
+                    <div className="py-4">
+                        <Button className="float-end" onClick={toggleAssignment}>Close</Button>
+                    </div>
+                </Card>
+            </Modal>
         </div>
     )
 }
