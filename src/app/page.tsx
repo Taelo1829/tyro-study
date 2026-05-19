@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-// import { useSession } from "next-auth/react"
+import { useSession } from "next-auth/react"
 // import { Button } from "@/components/ui/button"
 // import { Card } from "@/components/ui/card"
 import {
@@ -22,26 +22,27 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export default function HomePage() {
-  // const { data: session, status } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
 
-  // useEffect(() => {
-  //   if (status === "authenticated") {
-  //     router.push("/dashboard")
-  //   }
-  // }, [status, router])
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard")
+    } else if (status !== "loading") {
+      router.push("/login")
+    }
+  }, [status, router])
 
-  // if (status === "loading") {
-  //   return (
-  //     <div className="flex items-center justify-center min-h-screen">
-  //       <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-  //     </div>
-  //   )
-  // }
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen">
-      {/* Navigation */}
       <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
