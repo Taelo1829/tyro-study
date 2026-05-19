@@ -274,8 +274,6 @@ export default function TopicPage() {
         }
     }
 
-    console.log(topic)
-
     return (
         <div>
             <Header title={topic.title} subtitle="" />
@@ -492,7 +490,10 @@ export default function TopicPage() {
                                 {!file ? <Input type="file" onChange={onFileChange} /> : <div>{file.name}</div>}
                             </div>
                             <div>
-                                <Button className="float-end" onClick={toggle}>Close</Button>
+                                <Button className="float-end" onClick={() => {
+                                    setFile(null)
+                                    toggle()
+                                }}>Close</Button>
                                 <Button onClick={handleSubmit}>Submit</Button>
                             </div>
                         </div>}
