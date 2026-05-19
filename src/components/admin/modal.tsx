@@ -75,6 +75,7 @@ export function Modal({ open, onClose, children, size = 'md', persistent = false
 
     return (
         <div
+            style={{ maxHeight: "100vh", overflowY: "auto" }}
             ref={overlayRef}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={e => {

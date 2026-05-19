@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { redirect, useParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,6 +26,8 @@ import { Header } from "@/components/layout/header"
 import FlashcardDeck from "@/components/modules/flash-card-decks"
 import { Modal } from "@/components/admin/modal"
 import { Input } from "@/components/ui/input"
+import { loadYouTubeApi } from "@/app/helper"
+import { YouTubeApi } from "@/app/types"
 
 interface Topic {
     id: string
@@ -57,6 +59,7 @@ interface Topic {
         back: string
     }>
     assignment?: string
+    nextTopic?: string
 }
 
 interface UserProgress {
@@ -64,29 +67,6 @@ interface UserProgress {
     quizAttempts: number
     bestScore: number
     lastAttemptAt: string | null
-}
-
-type YouTubePlayer = {
-    getCurrentTime: () => number
-    seekTo: (seconds: number, allowSeekAhead: boolean) => void
-    destroy: () => void
-}
-
-type YouTubePlayerEvent = {
-    target: YouTubePlayer
-    data?: number
-}
-
-type YouTubeApi = {
-    Player: new (
-        element: HTMLIFrameElement,
-        options: {
-            events: {
-                onReady: (event: YouTubePlayerEvent) => void
-                onStateChange: (event: YouTubePlayerEvent) => void
-            }
-        }
-    ) => YouTubePlayer
 }
 
 declare global {
@@ -152,7 +132,6 @@ export default function TopicPage() {
         if (!topic?.content || activeTab !== "content" || !contentRef.current) {
             return
         }
-
         const cleanup = bindVideoProgress(contentRef.current, topic.id)
         return cleanup
     }, [activeTab, topic?.content, topic?.id])
@@ -275,6 +254,11 @@ export default function TopicPage() {
         }
     }
 
+    async function navigateToNextTopic() {
+        router.push(`/modules/${topic?.chapter.module.id}/topics/${topic?.nextTopic}`)
+    }
+
+    console.log(topic)
     return (
         <div>
             <Header title={topic.title} subtitle="" />
@@ -517,6 +501,7 @@ export default function TopicPage() {
                     </div>
                     <div className="py-4">
                         <Button className="float-end" onClick={toggleAssignment}>Close</Button>
+                        {result?.passed && <Button className="float-end" onClick={navigateToNextTopic}>Next Topic</Button>}
                     </div>
                 </Card>
             </Modal>
@@ -525,7 +510,7 @@ export default function TopicPage() {
 }
 
 // Helper Functions
-let youtubeApiPromise: Promise<YouTubeApi> | null = null
+
 
 function getProgressKey(topicId: string, videoId: string) {
     return `topic-video-progress:${topicId}:${videoId}`
@@ -552,27 +537,7 @@ function ensureUrlParam(src: string, key: string, value: string) {
     return url.href
 }
 
-function loadYouTubeApi() {
-    if (window.YT?.Player) {
-        return Promise.resolve(window.YT)
-    }
 
-    youtubeApiPromise ??= new Promise<YouTubeApi>((resolve) => {
-        const existingCallback = window.onYouTubeIframeAPIReady
-        window.onYouTubeIframeAPIReady = () => {
-            existingCallback?.()
-            if (window.YT) resolve(window.YT)
-        }
-
-        if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
-            const script = document.createElement("script")
-            script.src = "https://www.youtube.com/iframe_api"
-            document.body.appendChild(script)
-        }
-    })
-
-    return youtubeApiPromise
-}
 
 function bindDirectVideoProgress(root: HTMLElement, topicId: string) {
     return Array.from(root.querySelectorAll("video")).map((video) => {
@@ -610,7 +575,6 @@ function bindYouTubeProgress(root: HTMLElement, topicId: string, onCleanup: (cle
     if (frames.length === 0) return
 
     let cancelled = false
-
     loadYouTubeApi().then((api) => {
         if (cancelled) return
 
@@ -631,7 +595,7 @@ function bindYouTubeProgress(root: HTMLElement, topicId: string, onCleanup: (cle
                         if (event.data === 1 && saveInterval === null) {
                             saveInterval = window.setInterval(() => {
                                 saveSeconds(topicId, videoId, event.target?.getCurrentTime())
-                            }, 5000)
+                            }, 2000)
                         }
 
                         if (event.data === 2) {

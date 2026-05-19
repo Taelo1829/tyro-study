@@ -6,11 +6,18 @@ type Params = { params: Promise<{ id: string }> }
 
 export async function GET(_request: Request, { params }: Params) {
   const { id } = await params
+
   const topic = await prisma.topic.findUnique({
     where: { id },
     include: {
       chapter: {
-        include: { module: { select: { id: true, title: true } } },
+        include: {
+          module: { select: { id: true, title: true } },
+          topics: {
+            select: { id: true, order: true },
+            orderBy: { order: "asc" },
+          },
+        },
       },
       questions: {
         include: { answers: true },
@@ -24,9 +31,17 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({ error: "Topic not found" }, { status: 404 })
   }
 
-  return NextResponse.json(topic)
-}
+  const currentIndex = topic.chapter.topics.findIndex(
+    (t) => t.id === topic.id
+  )
 
+  const nextTopic = topic.chapter.topics[currentIndex + 1]
+
+  return NextResponse.json({
+    ...topic,
+    nextTopic: nextTopic?.id ?? null,
+  })
+}
 export async function PATCH(request: Request, { params }: Params) {
   const { error } = await requireAdmin()
   if (error) return error
