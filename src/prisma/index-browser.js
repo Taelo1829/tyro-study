@@ -283,6 +283,44 @@ exports.Prisma.NotificationScalarFieldEnum = {
   isSent: 'isSent'
 };
 
+exports.Prisma.FriendshipScalarFieldEnum = {
+  id: 'id',
+  senderId: 'senderId',
+  receiverId: 'receiverId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ConversationScalarFieldEnum = {
+  id: 'id',
+  user1Id: 'user1Id',
+  user2Id: 'user2Id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  senderId: 'senderId',
+  type: 'type',
+  content: 'content',
+  mediaUrl: 'mediaUrl',
+  mediaDuration: 'mediaDuration',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PushSubscriptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -316,6 +354,18 @@ exports.Role = exports.$Enums.Role = {
   ADMIN: 'ADMIN'
 };
 
+exports.FriendshipStatus = exports.$Enums.FriendshipStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  DECLINED: 'DECLINED'
+};
+
+exports.MessageType = exports.$Enums.MessageType = {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  VOICE: 'VOICE'
+};
+
 exports.Prisma.ModelName = {
   QuizAttempt: 'QuizAttempt',
   QuestionAttempt: 'QuestionAttempt',
@@ -333,7 +383,11 @@ exports.Prisma.ModelName = {
   UserAnswer: 'UserAnswer',
   Flashcard: 'Flashcard',
   Timetable: 'Timetable',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  Friendship: 'Friendship',
+  Conversation: 'Conversation',
+  Message: 'Message',
+  PushSubscription: 'PushSubscription'
 };
 
 /**
