@@ -38,7 +38,6 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
   return (
     <div className="flex h-full overflow-hidden rounded-xl border border-border bg-card">
 
-      {/* ── Left panel ──────────────────────────────────────────────────────── */}
       <div className={cn(
         'flex flex-col border-r border-border',
         'w-full lg:w-80 shrink-0',
@@ -66,7 +65,6 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
           })}
         </div>
 
-        {/* Tab content */}
         <div className="flex-1 overflow-hidden flex flex-col">
           {tab === 'chats' && (
             <ConversationList
@@ -90,14 +88,12 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
         </div>
       </div>
 
-      {/* ── Right panel: message thread ─────────────────────────────────────── */}
       <div className={cn(
         'flex-1 flex flex-col min-w-0',
         mobileShowThread ? 'flex' : 'hidden lg:flex',
       )}>
         {selected ? (
           <>
-            {/* Thread header */}
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border shrink-0">
               <button
                 onClick={() => setMobileShowThread(false)}

@@ -1,67 +1,49 @@
-// app/api/pusher/auth/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { pusherServer } from "@/lib/pusher/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server'
+import { authOptions } from '@/lib/auth'
+import { pusherServer } from '@/lib/pusher'
+import { getServerSession } from 'next-auth'
 
 export async function POST(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    console.log(session);
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true, name: true, email: true },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    const body = await req.json();
-    const { socket_id, channel_name } = body;
-
-    // Validate channel name format
-    if (!channel_name.match(/^(private-|presence-)/)) {
-      return NextResponse.json(
-        { error: "Invalid channel name. Channel must be private or presence." },
-        { status: 400 }
-      );
-    }
-
-    // For presence channels, provide user info
-    if (channel_name.startsWith('presence-')) {
-      const presenceData = {
-        user_id: user.id,
-        user_info: {
-          name: user.name,
-          email: user.email,
-        },
-      };
-      
-      const auth = pusherServer.authorizeChannel(socket_id, channel_name, presenceData);
-      return NextResponse.json(auth);
-    }
-
-    // For private channels
-    const auth = pusherServer.authorizeChannel(socket_id, channel_name);
-    return NextResponse.json(auth);
-    
-  } catch (error) {
-    console.error("Pusher auth error:", error);
-    return NextResponse.json(
-      { error: "Authentication failed" },
-      { status: 500 }
-    );
+  const session = await getServerSession(authOptions)
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const body = await req.text()
+  const params = new URLSearchParams(body)
+  const socketId = params.get('socket_id')
+  const channelName = params.get('channel_name')
+
+  if (!socketId || !channelName) {
+    return NextResponse.json({ error: 'Missing socket_id or channel_name' }, { status: 400 })
+  }
+
+  // Only allow users to auth channels they belong to
+  const userId = session.user.id
+
+  // private-user-{userId} — only the owner
+  if (channelName.startsWith('private-user-')) {
+    const channelUserId = channelName.replace('private-user-', '')
+    if (channelUserId !== userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
+
+  // private-conversation-{id} — verify user is in the conversation
+  if (channelName.startsWith('private-conversation-')) {
+    const { prisma } = await import('@/lib/prisma')
+    const conversationId = channelName.replace('private-conversation-', '')
+    const conv = await prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        OR: [{ user1Id: userId }, { user2Id: userId }],
+      },
+    })
+    if (!conv) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
+
+  const authResponse = pusherServer.authorizeChannel(socketId, channelName)
+  return NextResponse.json(authResponse)
 }

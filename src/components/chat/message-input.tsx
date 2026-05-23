@@ -13,24 +13,19 @@ interface MessageInputProps {
     mediaUrl?: string
     mediaDuration?: number
   }) => void
-  onTyping: (isTyping: boolean) => void
   disabled?: boolean
 }
 
-export function MessageInput({ conversationId, onSend, onTyping, disabled }: MessageInputProps) {
+export function MessageInput({ conversationId, onSend, disabled }: MessageInputProps) {
   const [text, setText] = useState('')
   const [showVoice, setShowVoice] = useState(false)
   const [imagePreview, setImagePreview] = useState<{ url: string; file: File } | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
-  const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Typing indicator ───────────────────────────────────────────────────────
   function handleTextChange(val: string) {
     setText(val)
-    onTyping(true)
-    typingTimer.current && clearTimeout(typingTimer.current)
-    typingTimer.current = setTimeout(() => onTyping(false), 2000)
   }
 
   // ── Send text ──────────────────────────────────────────────────────────────
@@ -39,8 +34,6 @@ export function MessageInput({ conversationId, onSend, onTyping, disabled }: Mes
     if (!trimmed || disabled) return
     onSend({ type: 'TEXT', content: trimmed })
     setText('')
-    onTyping(false)
-    typingTimer.current && clearTimeout(typingTimer.current)
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -129,7 +122,7 @@ export function MessageInput({ conversationId, onSend, onTyping, disabled }: Mes
           />
           <button
             onClick={() => { URL.revokeObjectURL(imagePreview.url); setImagePreview(null) }}
-            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-white flex items-center justify-center"
+            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center"
           >
             <X className="w-3 h-3" />
           </button>
@@ -138,7 +131,7 @@ export function MessageInput({ conversationId, onSend, onTyping, disabled }: Mes
           <button
             onClick={handleSendImage}
             disabled={uploading}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl gradient-primary text-white text-sm font-semibold disabled:opacity-60"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl gradient-primary text-sm font-semibold disabled:opacity-60"
           >
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             Send image
@@ -198,11 +191,10 @@ export function MessageInput({ conversationId, onSend, onTyping, disabled }: Mes
           }}
         />
 
-        {/* Send */}
         <button
           onClick={handleSendText}
           disabled={!text.trim() || disabled}
-          className="p-2.5 rounded-xl gradient-primary text-white disabled:opacity-40 transition-opacity shrink-0"
+          className="p-2.5 rounded-xl gradient-primary disabled:opacity-40 transition-opacity shrink-0"
           title="Send"
         >
           <Send className="w-4 h-4" />

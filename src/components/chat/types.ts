@@ -17,7 +17,8 @@ export interface ChatMessage {
   mediaDuration: number | null
   readAt: string | null
   createdAt: string
-  sender: ChatUser
+  sender: ChatUser,
+  pending?: boolean
 }
 
 export interface Conversation {

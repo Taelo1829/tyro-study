@@ -70,9 +70,10 @@ function MessageBubble({ msg, isMine }: { msg: ChatMessage; isMine: boolean }) {
         )}>
           <span className="text-[10px] text-muted-foreground">{formatTime(msg.createdAt)}</span>
           {isMine && (
-            msg.readAt
-              ? <CheckCheck className="w-3 h-3 text-primary" />
-              : <Check      className="w-3 h-3 text-muted-foreground" />
+            msg.pending ? <span className="text-[10px] text-muted-foreground">Sending...</span> :
+              msg.readAt
+                ? <CheckCheck className="w-3 h-3 text-primary" />
+                : <Check className="w-3 h-3 text-muted-foreground" />
           )}
         </div>
       </div>
@@ -92,7 +93,6 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isFirstLoad = useRef(true)
 
-  // ── Load initial messages ──────────────────────────────────────────────────
   useEffect(() => {
     fetch(`/api/chat/messages?conversationId=${conversationId}`)
       .then(r => r.json())
@@ -104,7 +104,6 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
         isFirstLoad.current = false
       })
 
-    // Mark as read
     fetch('/api/chat/read', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -112,7 +111,6 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
     })
   }, [conversationId])
 
-  // ── Pusher subscriptions ───────────────────────────────────────────────────
   useEffect(() => {
     const pusher = getPusherClient()
     const channel = pusher.subscribe(conversationChannel(conversationId))
@@ -124,7 +122,6 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
       })
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
 
-      // Mark read if message is from other user
       if (msg.senderId !== currentUser.id) {
         fetch('/api/chat/read', {
           method: 'POST',
@@ -160,7 +157,6 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
     }
   }, [conversationId, currentUser.id])
 
-  // ── Load more (scroll to top) ──────────────────────────────────────────────
   async function loadMore() {
     if (!hasMore || loadingMore || !nextCursor) return
     setLoadingMore(true)
@@ -181,13 +177,32 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
     })
   }
 
-  // ── Send message ───────────────────────────────────────────────────────────
   async function handleSend(payload: {
     type: 'TEXT' | 'IMAGE' | 'VOICE'
     content?: string
     mediaUrl?: string
     mediaDuration?: number
   }) {
+    const temporaryMessage: ChatMessage = {
+      content: payload.content!,
+      conversationId: conversationId,
+      createdAt: new Date().toISOString(),
+      id: "temporaryId" + new Date(),
+      mediaDuration: payload.mediaDuration!,
+      mediaUrl: payload.mediaUrl!,
+      readAt: null,
+      pending: true,
+      type: payload.type,
+      senderId: currentUser.id,
+      sender: {
+        id: currentUser.id,
+        name: currentUser.name,
+        image: currentUser.image,
+        email: currentUser.email
+      }
+    }
+
+    setMessages(prev => [...prev, temporaryMessage])
     setSending(true)
     try {
       await fetch('/api/chat/messages', {
@@ -196,20 +211,11 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
         body: JSON.stringify({ conversationId, ...payload }),
       })
     } finally {
+      setMessages(prev => prev.filter(m => !m.pending))
       setSending(false)
     }
   }
 
-  // ── Typing ─────────────────────────────────────────────────────────────────
-  function handleTyping(isTyping: boolean) {
-    fetch('/api/chat/typing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId, isTyping }),
-    })
-  }
-
-  // ── Group messages by date ─────────────────────────────────────────────────
   const grouped: Array<ChatMessage | string> = []
   let lastDate = ''
   for (const msg of messages) {
@@ -220,7 +226,6 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
 
   return (
     <div className="flex flex-col h-full">
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
         <div ref={topRef} />
 
@@ -247,7 +252,6 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
           )
         })}
 
-        {/* Typing indicator */}
         {typingName && (
           <div className="flex items-center gap-2 px-1">
             <div className="flex gap-1">
@@ -266,11 +270,9 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <MessageInput
         conversationId={conversationId}
         onSend={handleSend}
-        onTyping={handleTyping}
         disabled={sending}
       />
     </div>

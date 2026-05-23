@@ -23,12 +23,13 @@ export async function POST(req: NextRequest) {
 
   const isImage = type === 'image'
   const isVoice = type === 'voice'
-
-  if (isImage && !ALLOWED_IMAGE_TYPES.includes(file.type)) {
+  const fileType = file.type?.split(";")[0]
+  if (isImage && !ALLOWED_IMAGE_TYPES.includes(fileType)) {
     return NextResponse.json({ error: 'Invalid image type' }, { status: 400 })
   }
-  if (isVoice && !ALLOWED_VOICE_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: 'Invalid audio type' }, { status: 400 })
+
+  if (isVoice && !ALLOWED_VOICE_TYPES.includes(fileType)) {
+    return NextResponse.json({ error: 'Invalid audio type, you supplied a ' + fileType }, { status: 400 })
   }
 
   const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_VOICE_SIZE

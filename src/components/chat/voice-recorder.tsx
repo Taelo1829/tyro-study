@@ -46,8 +46,8 @@ export function VoiceRecorder({ onSend, onCancel, disabled }: VoiceRecorderProps
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
         : MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')
-        ? 'audio/ogg;codecs=opus'
-        : 'audio/webm'
+          ? 'audio/ogg;codecs=opus'
+          : 'audio/webm'
 
       const recorder = new MediaRecorder(stream, { mimeType })
       mediaRef.current = recorder
@@ -86,7 +86,7 @@ export function VoiceRecorder({ onSend, onCancel, disabled }: VoiceRecorderProps
   function stopRecording() {
     timerRef.current && clearInterval(timerRef.current)
     setDuration(elapsed + 1)
-    if (mediaRef.current?.state === 'recording') {
+    if (mediaRef.current) {
       mediaRef.current.stop()
     }
   }
@@ -168,7 +168,7 @@ export function VoiceRecorder({ onSend, onCancel, disabled }: VoiceRecorderProps
     <div className="flex items-center gap-3 px-4 py-3 bg-card border border-primary/30 rounded-xl">
       <button
         onClick={togglePlay}
-        className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center text-white shrink-0"
+        className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center shrink-0"
       >
         {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
       </button>
@@ -195,7 +195,7 @@ export function VoiceRecorder({ onSend, onCancel, disabled }: VoiceRecorderProps
       <button
         onClick={handleSend}
         disabled={disabled}
-        className="p-2 rounded-lg gradient-primary text-white disabled:opacity-60 shrink-0"
+        className="p-2 rounded-lg gradient-primary  disabled:opacity-60 shrink-0"
         title="Send voice note"
       >
         <Send className="w-4 h-4" />
