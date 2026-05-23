@@ -1,0 +1,39 @@
+import PusherServer from 'pusher'
+import PusherClient from 'pusher-js'
+
+export const pusherServer = new PusherServer({
+  appId:   process.env.PUSHER_APP_ID!,
+  key:     process.env.PUSHER_KEY!,
+  secret:  process.env.PUSHER_SECRET!,
+  cluster: process.env.PUSHER_CLUSTER!,
+  useTLS:  true,
+})
+
+let _client: PusherClient | null = null
+
+export function getPusherClient(): PusherClient {
+  if (typeof window === 'undefined') throw new Error('getPusherClient called on server')
+  if (!_client) {
+    _client = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    })
+  }
+  return _client
+}
+
+export function conversationChannel(conversationId: string) {
+  return `private-conversation-${conversationId}`
+}
+
+export function userChannel(userId: string) {
+  return `private-user-${userId}`
+}
+
+export const EVENTS = {
+  NEW_MESSAGE:          'new-message',
+  MESSAGE_READ:         'message-read',
+  FRIEND_REQUEST:       'friend-request',
+  FRIEND_ACCEPTED:      'friend-accepted',
+  TYPING_START:         'typing-start',
+  TYPING_STOP:          'typing-stop',
+} as const

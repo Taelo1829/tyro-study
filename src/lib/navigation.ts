@@ -7,6 +7,7 @@ import {
   Settings,
   Shield,
   type LucideIcon,
+  MessageSquare,
 } from "lucide-react"
 
 export interface NavItem {
@@ -21,7 +22,8 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Modules", href: "/modules", icon: BookOpen },
   { label: "Timetable", href: "/timetable", icon: Calendar },
   { label: "Flashcards", href: "/flashcards", icon: Layers },
-  { label: "Assignments", href: "/assignments", icon: ClipboardList },
+  // { label: "Assignments", href: "/assignments", icon: ClipboardList },
+  { href: '/chat', label: 'Chat', icon: MessageSquare },
   { label: "Settings", href: "/settings", icon: Settings },
   { label: "Admin", href: "/admin", icon: Shield, adminOnly: true },
 ]
