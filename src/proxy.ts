@@ -21,6 +21,7 @@ export const config = {
     "/timetable/:path*",
     "/flashcards/:path*",
     "/assignments/:path*",
+    "/chat/:path*",
     "/settings/:path*",
     "/admin/:path*",
   ],
