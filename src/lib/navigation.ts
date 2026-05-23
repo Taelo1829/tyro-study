@@ -8,13 +8,16 @@ import {
   Shield,
   type LucideIcon,
   MessageCircle,
+  LogOut,
 } from "lucide-react"
 
 export interface NavItem {
   label: string
-  href: string
+  href?: string
   icon: LucideIcon
-  adminOnly?: boolean
+  adminOnly?: boolean,
+  action?: "logout"
+
 }
 
 export const MAIN_NAV: NavItem[] = [
@@ -26,4 +29,5 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Assignments", href: "/assignments", icon: ClipboardList },
   { label: "Settings", href: "/settings", icon: Settings },
   { label: "Admin", href: "/admin", icon: Shield, adminOnly: true },
+  { label: "Logout", href: "/", icon: LogOut, action: "logout" },
 ]

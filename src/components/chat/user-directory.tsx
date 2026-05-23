@@ -13,7 +13,7 @@ interface UserDirectoryProps {
 function Avatar({ user, size = 'md' }: { user: { name?: string | null; image?: string | null }; size?: 'sm' | 'md' }) {
   const s = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'
   return (
-    <div className={cn('rounded-full gradient-primary flex items-center justify-center text-white font-bold shrink-0 overflow-hidden', s)}>
+    <div className={cn('rounded-full gradient-primary flex items-center justify-center font-bold shrink-0 overflow-hidden', s)}>
       {user.image
         ? <img src={user.image} alt="" className="w-full h-full object-cover" />
         : (user.name?.charAt(0) ?? '?').toUpperCase()
@@ -123,10 +123,10 @@ export function UserDirectory({ currentUserId, onRequestSent }: UserDirectoryPro
                     <button
                       onClick={() => sendRequest(user.id)}
                       disabled={isLoading}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg gradient-primary text-white text-xs font-medium disabled:opacity-60 shrink-0"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg gradient-primary text-xs font-medium disabled:opacity-60 shrink-0"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
-                      Add
+                      {isLoading ? "...loading" : "Add"}
                     </button>
                   )}
 

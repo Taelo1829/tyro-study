@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { pusherServer, userChannel, EVENTS } from '@/lib/pusher'
+import { authOptions } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
 
 // GET /api/chat/friends  — list friends + pending requests
 export async function GET(req: NextRequest) {
-  const session = await auth()
+    const session = await getServerSession(authOptions)
+  
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const userId = session.user.id
@@ -73,7 +75,7 @@ export async function GET(req: NextRequest) {
 
 // POST /api/chat/friends — send a friend request
 export async function POST(req: NextRequest) {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { receiverId } = await req.json()
@@ -113,7 +115,7 @@ export async function POST(req: NextRequest) {
 
 // PATCH /api/chat/friends — accept or decline
 export async function PATCH(req: NextRequest) {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { friendshipId, action } = await req.json() as {
@@ -171,7 +173,7 @@ export async function PATCH(req: NextRequest) {
 
 // DELETE /api/chat/friends — unfriend / cancel request
 export async function DELETE(req: NextRequest) {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { friendshipId } = await req.json()

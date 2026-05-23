@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { put } from '@vercel/blob'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024  // 5 MB
 const MAX_VOICE_SIZE = 10 * 1024 * 1024 // 10 MB
@@ -9,7 +10,7 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp
 const ALLOWED_VOICE_TYPES = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/mpeg', 'audio/wav']
 
 export async function POST(req: NextRequest) {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const formData = await req.formData()

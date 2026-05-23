@@ -93,7 +93,7 @@ export function FriendRequests({ currentUserId, onAccepted }: FriendRequestsProp
               <p className="text-sm font-medium truncate">{req.sender.name ?? 'Unknown'}</p>
               <p className="text-xs text-muted-foreground truncate">{req.sender.email}</p>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            {isProcessing ? "...loading" : <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => handleAction(req.id, 'accept')}
                 disabled={isProcessing}
@@ -110,7 +110,7 @@ export function FriendRequests({ currentUserId, onAccepted }: FriendRequestsProp
               >
                 <X className="w-4 h-4" />
               </button>
-            </div>
+            </div>}
           </div>
         )
       })}
