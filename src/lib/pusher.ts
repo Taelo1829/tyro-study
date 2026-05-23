@@ -1,10 +1,7 @@
 import PusherServer from 'pusher'
 import PusherClient from 'pusher-js'
 
-<<<<<<< HEAD
-=======
 // ── Server (used in API routes only) ─────────────────────────────────────────
->>>>>>> revert
 export const pusherServer = new PusherServer({
   appId:   process.env.PUSHER_APP_ID!,
   key:     process.env.PUSHER_KEY!,
@@ -13,10 +10,7 @@ export const pusherServer = new PusherServer({
   useTLS:  true,
 })
 
-<<<<<<< HEAD
-=======
 // ── Client (used in browser) ──────────────────────────────────────────────────
->>>>>>> revert
 let _client: PusherClient | null = null
 
 export function getPusherClient(): PusherClient {
@@ -29,20 +23,14 @@ export function getPusherClient(): PusherClient {
   return _client
 }
 
-<<<<<<< HEAD
-=======
 // ── Channel name helpers ──────────────────────────────────────────────────────
 
 /** Deterministic channel name for a conversation between two users */
->>>>>>> revert
 export function conversationChannel(conversationId: string) {
   return `private-conversation-${conversationId}`
 }
 
-<<<<<<< HEAD
-=======
 /** Channel for a user's personal notifications (friend requests, etc.) */
->>>>>>> revert
 export function userChannel(userId: string) {
   return `private-user-${userId}`
 }
