@@ -3,11 +3,11 @@ import PusherClient from 'pusher-js'
 
 // ── Server (used in API routes only) ─────────────────────────────────────────
 export const pusherServer = new PusherServer({
-  appId:   process.env.PUSHER_APP_ID!,
-  key:     process.env.NEXT_PUBLIC_PUSHER_KEY!,
-  secret:  process.env.PUSHER_SECRET!,
+  appId: process.env.PUSHER_APP_ID!,
+  key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
+  secret: process.env.PUSHER_SECRET!,
   cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-  useTLS:  true,
+  useTLS: true,
 })
 
 // ── Client (used in browser) ──────────────────────────────────────────────────
@@ -39,11 +39,17 @@ export function userChannel(userId: string) {
   return `private-user-${userId}`
 }
 
+
+
+export function newMessageChannel(userId: string) {
+  return `all-conversation-${userId}`
+}
+
 export const EVENTS = {
-  NEW_MESSAGE:          'new-message',
-  MESSAGE_READ:         'message-read',
-  FRIEND_REQUEST:       'friend-request',
-  FRIEND_ACCEPTED:      'friend-accepted',
-  TYPING_START:         'typing-start',
-  TYPING_STOP:          'typing-stop',
+  NEW_MESSAGE: 'new-message',
+  MESSAGE_READ: 'message-read',
+  FRIEND_REQUEST: 'friend-request',
+  FRIEND_ACCEPTED: 'friend-accepted',
+  TYPING_START: 'typing-start',
+  TYPING_STOP: 'typing-stop',
 } as const

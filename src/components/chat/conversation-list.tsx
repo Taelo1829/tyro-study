@@ -134,7 +134,6 @@ export function ConversationList({ currentUser, selectedId, onSelect }: Conversa
           >
             <div className="relative">
               <Avatar user={conv.other} />
-              {/* Online dot placeholder */}
               <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-background" />
             </div>
 
@@ -152,7 +151,7 @@ export function ConversationList({ currentUser, selectedId, onSelect }: Conversa
                   {preview}
                 </p>
                 {conv.unreadCount > 0 && (
-                  <span className="shrink-0 min-w-[18px] h-[18px] rounded-full gradient-primary text-white text-[10px] font-bold flex items-center justify-center px-1">
+                  <span className="shrink-0 min-w-[18px] h-[18px] rounded-full gradient-primary bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
                     {conv.unreadCount > 99 ? '99+' : conv.unreadCount}
                   </span>
                 )}

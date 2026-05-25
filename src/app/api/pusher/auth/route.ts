@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth'
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
+  console.log(session)
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -43,7 +44,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
   }
-
+  console.log("channelname", channelName)
+  if (channelName.startsWith('all-conversation-')) {
+    const { prisma } = await import('@/lib/prisma')
+    const userId = channelName.replace('all-conversation-', '')
+    console.log(userId)
+    const conv = await prisma.message.findMany({
+      where: {
+        readAt: null,
+      },
+    })
+    if (!conv) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
   const authResponse = pusherServer.authorizeChannel(socketId, channelName)
   return NextResponse.json(authResponse)
 }

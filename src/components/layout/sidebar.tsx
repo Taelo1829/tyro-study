@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils"
 import { MAIN_NAV } from "@/lib/navigation"
 import { useThemeStore } from "@/store/theme-store"
 import { Button } from "@/components/ui/button"
+import { useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { EVENTS, getPusherClient, newMessageChannel, userChannel } from "@/lib/pusher"
+import { ChatUser } from "../chat/types"
 
 interface SidebarProps {
   isAdmin?: boolean
@@ -14,12 +18,32 @@ interface SidebarProps {
 
 export function Sidebar({ isAdmin = false }: SidebarProps) {
   const pathname = usePathname()
+  const { data: session, status } = useSession()
   const { mode, toggle } = useThemeStore()
-
   const items = MAIN_NAV.filter((item) => !item.adminOnly || isAdmin)
+  const currentUser = session?.user
+  useEffect(() => {
+    if (currentUser?.id) {
+      const pusher = getPusherClient()
+      const channel = pusher.subscribe(userChannel(currentUser.id))
+
+      channel.bind(EVENTS.NEW_MESSAGE, (data: { friend: ChatUser; conversationId: string }) => {
+        // Reload conversations to get the new one
+        console.log("HERE")
+        fetch('/api/chat/conversations')
+          .then(r => r.json())
+          .then(console.log)
+      })
+      return () => {
+        // channel.unbind_all()
+        // pusher.unsubscribe(userChannel(currentUser.id))
+      }
+
+    }
+  }, [currentUser?.id])
 
   return (
-    <aside className="neo-flat hidden h-full w-64 shrink-0 flex-col rounded-[var(--neo-radius-xl)] p-4 lg:flex">
+    <aside className="neoNo active session-flat hidden h-full w-64 shrink-0 flex-col rounded-[var(--neo-radius-xl)] p-4 lg:flex">
       <div className="mb-8 flex items-center gap-2 px-2">
         <div className="neo-pressed flex h-10 w-10 items-center justify-center rounded-full">
           <Brain className="h-5 w-5 text-primary" />

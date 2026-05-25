@@ -13,10 +13,11 @@ import {
 
 export interface NavItem {
   label: string
-  href?: string
+  href: string
   icon: LucideIcon
   adminOnly?: boolean,
-  action?: "logout"
+  action?: "logout",
+  badge?: boolean
 
 }
 
@@ -25,7 +26,7 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Modules", href: "/modules", icon: BookOpen },
   { label: "Timetable", href: "/timetable", icon: Calendar },
   // { label: "Flashcards", href: "/flashcards", icon: Layers },
-  { label: "Chats", href: "/chat", icon: MessageCircle },
+  { label: "Chats", href: "/chat", icon: MessageCircle, badge: true },
   { label: "Assignments", href: "/assignments", icon: ClipboardList },
   { label: "Settings", href: "/settings", icon: Settings },
   { label: "Admin", href: "/admin", icon: Shield, adminOnly: true },

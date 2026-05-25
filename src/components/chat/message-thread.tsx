@@ -152,8 +152,8 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
     })
 
     return () => {
-      channel.unbind_all()
-      pusher.unsubscribe(conversationChannel(conversationId))
+      // channel.unbind_all()
+      // pusher.unsubscribe(conversationChannel(conversationId))
     }
   }, [conversationId, currentUser.id])
 

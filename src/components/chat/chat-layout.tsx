@@ -43,7 +43,6 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
         'w-full lg:w-80 shrink-0',
         mobileShowThread ? 'hidden lg:flex' : 'flex',
       )}>
-        {/* Tabs */}
         <div className="flex border-b border-border">
           {tabs.map(t => {
             const Icon = t.icon
