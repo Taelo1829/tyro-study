@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { pusherServer, conversationChannel, EVENTS, userChannel } from '@/lib/pusher'
 import { getServerSession } from 'next-auth'
+import { sendChatPushNotifications } from '@/lib/web-push'
 
 // GET /api/chat/messages?conversationId=xxx&cursor=xxx
 export async function GET(req: NextRequest) {
@@ -102,6 +103,8 @@ export async function POST(req: NextRequest) {
     EVENTS.NEW_MESSAGE,
     { conversationId, message }
   )
+
+  await sendChatPushNotifications(recipientId)
 
   return NextResponse.json(message, { status: 201 })
 }
