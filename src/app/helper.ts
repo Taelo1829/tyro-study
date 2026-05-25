@@ -3,7 +3,7 @@ import { YouTubeApi } from "./types";
 let youtubeApiPromise: Promise<YouTubeApi> | null = null
 
 function loadYouTubeApi() {
-    if (window.YT?.Player) {
+    if (window?.YT?.Player) {
         return Promise.resolve(window.YT)
     }
 
