@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { pusherServer, conversationChannel, EVENTS } from '@/lib/pusher'
+import { pusherServer, conversationChannel, EVENTS, userChannel } from '@/lib/pusher'
 import { getServerSession } from 'next-auth'
 
 // GET /api/chat/messages?conversationId=xxx&cursor=xxx
@@ -92,6 +92,15 @@ export async function POST(req: NextRequest) {
     conversationChannel(conversationId),
     EVENTS.NEW_MESSAGE,
     message
+  )
+
+  const recipientId =
+    conversation.user1Id === session.user.id ? conversation.user2Id : conversation.user1Id
+
+  await pusherServer.trigger(
+    userChannel(recipientId),
+    EVENTS.NEW_MESSAGE,
+    { conversationId, message }
   )
 
   return NextResponse.json(message, { status: 201 })

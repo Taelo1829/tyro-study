@@ -7,10 +7,7 @@ import { cn } from "@/lib/utils"
 import { MAIN_NAV } from "@/lib/navigation"
 import { useThemeStore } from "@/store/theme-store"
 import { Button } from "@/components/ui/button"
-import { useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { EVENTS, getPusherClient, newMessageChannel, userChannel } from "@/lib/pusher"
-import { ChatUser } from "../chat/types"
+import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
 
 interface SidebarProps {
   isAdmin?: boolean
@@ -18,32 +15,12 @@ interface SidebarProps {
 
 export function Sidebar({ isAdmin = false }: SidebarProps) {
   const pathname = usePathname()
-  const { data: session, status } = useSession()
   const { mode, toggle } = useThemeStore()
+  const unreadChats = useChatUnreadCount()
   const items = MAIN_NAV.filter((item) => !item.adminOnly || isAdmin)
-  const currentUser = session?.user
-  useEffect(() => {
-    if (currentUser?.id) {
-      const pusher = getPusherClient()
-      const channel = pusher.subscribe(userChannel(currentUser.id))
-
-      channel.bind(EVENTS.NEW_MESSAGE, (data: { friend: ChatUser; conversationId: string }) => {
-        // Reload conversations to get the new one
-        console.log("HERE")
-        fetch('/api/chat/conversations')
-          .then(r => r.json())
-          .then(console.log)
-      })
-      return () => {
-        // channel.unbind_all()
-        // pusher.unsubscribe(userChannel(currentUser.id))
-      }
-
-    }
-  }, [currentUser?.id])
 
   return (
-    <aside className="neoNo active session-flat hidden h-full w-64 shrink-0 flex-col rounded-[var(--neo-radius-xl)] p-4 lg:flex">
+    <aside className="neo-flat hidden h-full w-64 shrink-0 flex-col rounded-[var(--neo-radius-xl)] p-4 lg:flex">
       <div className="mb-8 flex items-center gap-2 px-2">
         <div className="neo-pressed flex h-10 w-10 items-center justify-center rounded-full">
           <Brain className="h-5 w-5 text-primary" />
@@ -67,8 +44,15 @@ export function Sidebar({ isAdmin = false }: SidebarProps) {
                   : "text-muted-foreground hover:neo-flat hover:text-foreground"
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" />
-              {item.label}
+              <span className="relative">
+                <Icon className="h-4 w-4 shrink-0" />
+                {item.badge && unreadChats > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                    {unreadChats > 99 ? "99+" : unreadChats}
+                  </span>
+                )}
+              </span>
+              <span className="flex-1">{item.label}</span>
             </Link>
           )
         })}

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { MAIN_NAV } from "@/lib/navigation"
+import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
 
 interface MobileNavProps {
   isAdmin?: boolean
@@ -11,6 +12,7 @@ interface MobileNavProps {
 
 export function MobileNav({ isAdmin = false }: MobileNavProps) {
   const pathname = usePathname()
+  const unreadChats = useChatUnreadCount()
   const items = MAIN_NAV.filter((item) => !item.adminOnly || isAdmin).slice(
     0,
     5
@@ -32,7 +34,14 @@ export function MobileNav({ isAdmin = false }: MobileNavProps) {
                   active ? "text-primary" : "text-muted-foreground"
                 )}
               >
-                <Icon className={cn("h-5 w-5", active && "scale-110")} />
+                <span className="relative">
+                  <Icon className={cn("h-5 w-5", active && "scale-110")} />
+                  {item.badge && unreadChats > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                      {unreadChats > 99 ? "99+" : unreadChats}
+                    </span>
+                  )}
+                </span>
                 <span>{item.label}</span>
               </Link>
             </li>

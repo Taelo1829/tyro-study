@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { pusherServer, conversationChannel, EVENTS } from '@/lib/pusher'
+import { pusherServer, conversationChannel, EVENTS, userChannel } from '@/lib/pusher'
 import { getServerSession } from 'next-auth'
 
 export async function POST(req: NextRequest) {
@@ -24,6 +24,12 @@ export async function POST(req: NextRequest) {
     conversationChannel(conversationId),
     EVENTS.MESSAGE_READ,
     { userId: session.user.id, conversationId }
+  )
+
+  await pusherServer.trigger(
+    userChannel(session.user.id),
+    EVENTS.MESSAGE_READ,
+    { conversationId }
   )
 
   return NextResponse.json({ success: true })
