@@ -24,6 +24,34 @@ async function fetchConversationUnreadState() {
   }
 }
 
+function getMessagePreview(message: ChatMessage) {
+  if (message.type === "VOICE") return "Sent a voice note"
+  if (message.type === "IMAGE") return "Sent an image"
+  return message.content ?? "Sent a message"
+}
+
+function showChatNotification(message: ChatMessage, conversationId: string, pathname: string | null) {
+  if (typeof window === "undefined" || !("Notification" in window)) return
+  if (Notification.permission !== "granted") return
+  if (pathname?.startsWith("/chat") && document.visibilityState === "visible") return
+
+  const storageKey = `shown-chat-notification:${message.id}`
+  if (window.sessionStorage.getItem(storageKey)) return
+  window.sessionStorage.setItem(storageKey, "true")
+
+  const notification = new Notification(message.sender?.name ?? "New chat message", {
+    body: getMessagePreview(message),
+    icon: "/icons/icon-192.png",
+    tag: `chat-${conversationId}`,
+  })
+
+  notification.onclick = () => {
+    window.focus()
+    window.location.href = "/chat"
+    notification.close()
+  }
+}
+
 export function useChatUnreadCount() {
   const pathname = usePathname()
   const { data: session } = useSession()
@@ -96,6 +124,8 @@ export function useChatUnreadCount() {
       const handleNewMessage = (message: ChatMessage) => {
         if (message.senderId === userId) return
 
+        showChatNotification(message, conversationId, pathname)
+
         setUnreadConversationIds((current) => {
           const unreadIds = new Set(current)
           unreadIds.add(conversationId)
@@ -126,7 +156,7 @@ export function useChatUnreadCount() {
     return () => {
       unsubs.forEach((unsubscribe) => unsubscribe())
     }
-  }, [conversationIds, userId])
+  }, [conversationIds, pathname, userId])
 
   return unreadConversationIds.length
 }
