@@ -1,5 +1,12 @@
 import { YouTubeApi } from "./types";
 
+declare global {
+    interface Window {
+        YT?: YouTubeApi
+        onYouTubeIframeAPIReady?: () => void
+    }
+}
+
 let youtubeApiPromise: Promise<YouTubeApi> | null = null
 
 function loadYouTubeApi() {
