@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { Check, X, UserCheck } from 'lucide-react'
-import { getPusherClient, userChannel, EVENTS } from '@/lib/pusher'
-import type { PendingRequest } from './types'
-import { cn } from '@/lib/utils'
+import {
+  EVENTS,
+  subscribeToPusherChannel,
+  unsubscribeFromPusherChannel,
+  userChannel,
+} from '@/lib/pusher'
+import type { ChatUser, PendingRequest } from './types'
 
 interface FriendRequestsProps {
   currentUserId: string
@@ -24,19 +28,21 @@ export function FriendRequests({ currentUserId, onAccepted }: FriendRequestsProp
 
   // Real-time: new friend requests
   useEffect(() => {
-    const pusher = getPusherClient()
-    const channel = pusher.subscribe(userChannel(currentUserId))
+    const channelName = userChannel(currentUserId)
+    const channel = subscribeToPusherChannel(channelName)
 
-    channel.bind(EVENTS.FRIEND_REQUEST, (data: { friendship: PendingRequest; sender: any }) => {
+    const handleFriendRequest = (data: { friendship: PendingRequest; sender: ChatUser }) => {
       setRequests(prev => {
         if (prev.find(r => r.id === data.friendship.id)) return prev
         return [{ ...data.friendship, sender: data.sender }, ...prev]
       })
-    })
+    }
+
+    channel.bind(EVENTS.FRIEND_REQUEST, handleFriendRequest)
 
     return () => {
-      channel.unbind_all()
-      pusher.unsubscribe(userChannel(currentUserId))
+      channel.unbind(EVENTS.FRIEND_REQUEST, handleFriendRequest)
+      unsubscribeFromPusherChannel(channelName)
     }
   }, [currentUserId])
 

@@ -1,10 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { formatDistanceToNowStrict } from 'date-fns'
-import { MessageSquare, Volume2 } from 'lucide-react'
-import { getPusherClient, userChannel, EVENTS } from '@/lib/pusher'
-import type { Conversation, ChatUser } from './types'
+import { MessageSquare } from 'lucide-react'
+import {
+  conversationChannel,
+  EVENTS,
+  subscribeToPusherChannel,
+  unsubscribeFromPusherChannel,
+  userChannel,
+} from '@/lib/pusher'
+import type { Conversation, ChatMessage, ChatUser } from './types'
 import { cn } from '@/lib/utils'
 
 interface ConversationListProps {
@@ -45,24 +51,26 @@ export function ConversationList({ currentUser, selectedId, onSelect }: Conversa
 
   // Real-time: when a friend accepts, add conversation
   useEffect(() => {
-    const pusher = getPusherClient()
-    const channel = pusher.subscribe(userChannel(currentUser.id))
+    const channelName = userChannel(currentUser.id)
+    const channel = subscribeToPusherChannel(channelName)
 
-    channel.bind(EVENTS.FRIEND_ACCEPTED, (data: { friend: ChatUser; conversationId: string }) => {
+    const handleFriendAccepted = () => {
       // Reload conversations to get the new one
       fetch('/api/chat/conversations')
         .then(r => r.json())
         .then(setConversations)
-    })
+    }
+
+    channel.bind(EVENTS.FRIEND_ACCEPTED, handleFriendAccepted)
 
     return () => {
-      channel.unbind_all()
-      pusher.unsubscribe(userChannel(currentUser.id))
+      channel.unbind(EVENTS.FRIEND_ACCEPTED, handleFriendAccepted)
+      unsubscribeFromPusherChannel(channelName)
     }
   }, [currentUser.id])
 
   // Bump conversation to top and update last message on new message
-  function handleNewMessage(conversationId: string, message: any) {
+  const handleNewMessage = useCallback((conversationId: string, message: ChatMessage) => {
     setConversations(prev => {
       const existing = prev.find(c => c.id === conversationId)
       if (!existing) return prev
@@ -77,21 +85,29 @@ export function ConversationList({ currentUser, selectedId, onSelect }: Conversa
       }
       return [updated, ...prev.filter(c => c.id !== conversationId)]
     })
-  }
+  }, [currentUser.id, selectedId])
+
+  const conversationKey = conversations.map(c => c.id).join(',')
 
   // Subscribe to all conversation channels for sidebar updates
   useEffect(() => {
-    if (conversations.length === 0) return
-    const pusher = getPusherClient()
+    if (!conversationKey) return
 
-    const unsubs = conversations.map(conv => {
-      const ch = pusher.subscribe(`private-conversation-${conv.id}`)
-      ch.bind(EVENTS.NEW_MESSAGE, (msg: any) => handleNewMessage(conv.id, msg))
-      return () => pusher.unsubscribe(`private-conversation-${conv.id}`)
+    const unsubs = conversationKey.split(',').map(conversationId => {
+      const channelName = conversationChannel(conversationId)
+      const channel = subscribeToPusherChannel(channelName)
+      const handleMessage = (msg: ChatMessage) => handleNewMessage(conversationId, msg)
+
+      channel.bind(EVENTS.NEW_MESSAGE, handleMessage)
+
+      return () => {
+        channel.unbind(EVENTS.NEW_MESSAGE, handleMessage)
+        unsubscribeFromPusherChannel(channelName)
+      }
     })
 
     return () => unsubs.forEach(fn => fn())
-  }, [conversations.map(c => c.id).join(',')])
+  }, [conversationKey, handleNewMessage])
 
   // Clear unread when selecting
   function handleSelect(conv: Conversation) {

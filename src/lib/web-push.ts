@@ -96,7 +96,8 @@ export async function sendPushNotification(subscription: StoredPushSubscription)
     method: "POST",
     headers: {
       Authorization: authorization,
-      TTL: "60",
+      TTL: "86400",
+      Urgency: "high",
       "Content-Length": "0",
     },
   })

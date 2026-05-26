@@ -1,11 +1,16 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { format, isToday, isYesterday } from 'date-fns'
 import { Check, CheckCheck } from 'lucide-react'
 import { VoiceNote } from './voice-note'
 import { MessageInput } from './message-input'
-import { getPusherClient, conversationChannel, EVENTS } from '@/lib/pusher'
+import {
+  conversationChannel,
+  EVENTS,
+  subscribeToPusherChannel,
+  unsubscribeFromPusherChannel,
+} from '@/lib/pusher'
 import type { ChatMessage, ChatUser } from './types'
 import { cn } from '@/lib/utils'
 
@@ -81,7 +86,7 @@ function MessageBubble({ msg, isMine }: { msg: ChatMessage; isMine: boolean }) {
   )
 }
 
-export function MessageThread({ conversationId, currentUser, otherUser }: MessageThreadProps) {
+export function MessageThread({ conversationId, currentUser }: MessageThreadProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [hasMore, setHasMore] = useState(false)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
@@ -112,10 +117,10 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
   }, [conversationId])
 
   useEffect(() => {
-    const pusher = getPusherClient()
-    const channel = pusher.subscribe(conversationChannel(conversationId))
+    const channelName = conversationChannel(conversationId)
+    const channel = subscribeToPusherChannel(channelName)
 
-    channel.bind(EVENTS.NEW_MESSAGE, (msg: ChatMessage) => {
+    const handleNewMessage = (msg: ChatMessage) => {
       setMessages(prev => {
         if (prev.find(m => m.id === msg.id)) return prev
         return [...prev, msg]
@@ -129,31 +134,40 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
           body: JSON.stringify({ conversationId }),
         })
       }
-    })
+    }
 
-    channel.bind(EVENTS.TYPING_START, (data: { userId: string; name: string }) => {
+    const handleTypingStart = (data: { userId: string; name: string }) => {
       if (data.userId !== currentUser.id) {
         setTypingName(data.name)
-        typingTimer.current && clearTimeout(typingTimer.current)
+        if (typingTimer.current) clearTimeout(typingTimer.current)
         typingTimer.current = setTimeout(() => setTypingName(null), 3000)
       }
-    })
+    }
 
-    channel.bind(EVENTS.TYPING_STOP, (data: { userId: string }) => {
+    const handleTypingStop = (data: { userId: string }) => {
       if (data.userId !== currentUser.id) setTypingName(null)
-    })
+    }
 
-    channel.bind(EVENTS.MESSAGE_READ, () => {
+    const handleMessageRead = () => {
       setMessages(prev => prev.map(m =>
         m.senderId === currentUser.id && !m.readAt
           ? { ...m, readAt: new Date().toISOString() }
           : m
       ))
-    })
+    }
+
+    channel.bind(EVENTS.NEW_MESSAGE, handleNewMessage)
+    channel.bind(EVENTS.TYPING_START, handleTypingStart)
+    channel.bind(EVENTS.TYPING_STOP, handleTypingStop)
+    channel.bind(EVENTS.MESSAGE_READ, handleMessageRead)
 
     return () => {
-      // channel.unbind_all()
-      // pusher.unsubscribe(conversationChannel(conversationId))
+      channel.unbind(EVENTS.NEW_MESSAGE, handleNewMessage)
+      channel.unbind(EVENTS.TYPING_START, handleTypingStart)
+      channel.unbind(EVENTS.TYPING_STOP, handleTypingStop)
+      channel.unbind(EVENTS.MESSAGE_READ, handleMessageRead)
+      if (typingTimer.current) clearTimeout(typingTimer.current)
+      unsubscribeFromPusherChannel(channelName)
     }
   }, [conversationId, currentUser.id])
 
@@ -241,7 +255,7 @@ export function MessageThread({ conversationId, currentUser, otherUser }: Messag
           </div>
         )}
 
-        {grouped.map((item, i) => {
+        {grouped.map((item) => {
           if (typeof item === 'string') return <DateDivider key={item} date={item + 'T00:00:00'} />
           return (
             <MessageBubble

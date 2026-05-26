@@ -1,11 +1,16 @@
 self.addEventListener("push", (event) => {
+  const tag =
+    self.crypto?.randomUUID?.() ??
+    `chat-message-${Date.now()}-${Math.random().toString(36).slice(2)}`
+
   event.waitUntil(
     self.registration.showNotification("New chat message", {
       body: "Open Tyro Study to read your latest message.",
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-192.png",
-      tag: "chat-message",
+      tag,
       data: { url: "/chat" },
+      renotify: true,
     })
   )
 })

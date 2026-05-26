@@ -3,12 +3,23 @@
 import { useCallback, useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { conversationChannel, EVENTS, getPusherClient, userChannel } from "@/lib/pusher"
+import {
+  conversationChannel,
+  EVENTS,
+  subscribeToPusherChannel,
+  unsubscribeFromPusherChannel,
+  userChannel,
+} from "@/lib/pusher"
 import type { ChatMessage } from "@/components/chat/types"
 
 interface ConversationUnreadState {
   id: string
   unreadCount: number
+}
+
+interface UserMessagePayload {
+  conversationId: string
+  message: ChatMessage
 }
 
 async function fetchConversationUnreadState() {
@@ -30,10 +41,9 @@ function getMessagePreview(message: ChatMessage) {
   return message.content ?? "Sent a message"
 }
 
-function showChatNotification(message: ChatMessage, conversationId: string, pathname: string | null) {
+function showChatNotification(message: ChatMessage) {
   if (typeof window === "undefined" || !("Notification" in window)) return
   if (Notification.permission !== "granted") return
-  if (pathname?.startsWith("/chat") && document.visibilityState === "visible") return
 
   const storageKey = `shown-chat-notification:${message.id}`
   if (window.sessionStorage.getItem(storageKey)) return
@@ -42,7 +52,7 @@ function showChatNotification(message: ChatMessage, conversationId: string, path
   const notification = new Notification(message.sender?.name ?? "New chat message", {
     body: getMessagePreview(message),
     icon: "/icons/icon-192.png",
-    tag: `chat-${conversationId}`,
+    tag: `chat-message-${message.id}`,
   })
 
   notification.onclick = () => {
@@ -95,36 +105,50 @@ export function useChatUnreadCount() {
   useEffect(() => {
     if (!userId) return
 
-    const pusher = getPusherClient()
     const channelName = userChannel(userId)
-    const channel = pusher.subscribe(channelName)
+    const channel = subscribeToPusherChannel(channelName)
 
-    channel.bind(EVENTS.NEW_MESSAGE, refresh)
+    const handleNewMessage = (payload: UserMessagePayload) => {
+      void refresh()
+
+      const message = payload?.message
+      const conversationId = payload?.conversationId ?? message?.conversationId
+
+      if (!message || !conversationId || message.senderId === userId) return
+
+      showChatNotification(message)
+      setUnreadConversationIds((current) => {
+        const unreadIds = new Set(current)
+        unreadIds.add(conversationId)
+        return Array.from(unreadIds)
+      })
+    }
+
+    channel.bind(EVENTS.NEW_MESSAGE, handleNewMessage)
     channel.bind(EVENTS.MESSAGE_READ, refresh)
     channel.bind(EVENTS.FRIEND_ACCEPTED, refresh)
 
     return () => {
-      channel.unbind(EVENTS.NEW_MESSAGE, refresh)
+      channel.unbind(EVENTS.NEW_MESSAGE, handleNewMessage)
       channel.unbind(EVENTS.MESSAGE_READ, refresh)
       channel.unbind(EVENTS.FRIEND_ACCEPTED, refresh)
-      pusher.unsubscribe(channelName)
+      unsubscribeFromPusherChannel(channelName)
     }
   }, [refresh, userId])
 
   useEffect(() => {
     if (!userId || conversationIds.length === 0) return
 
-    const pusher = getPusherClient()
     const uniqueConversationIds = Array.from(new Set(conversationIds))
 
     const unsubs = uniqueConversationIds.map((conversationId) => {
       const channelName = conversationChannel(conversationId)
-      const channel = pusher.subscribe(channelName)
+      const channel = subscribeToPusherChannel(channelName)
 
       const handleNewMessage = (message: ChatMessage) => {
         if (message.senderId === userId) return
 
-        showChatNotification(message, conversationId, pathname)
+        showChatNotification(message)
 
         setUnreadConversationIds((current) => {
           const unreadIds = new Set(current)
@@ -149,14 +173,14 @@ export function useChatUnreadCount() {
       return () => {
         channel.unbind(EVENTS.NEW_MESSAGE, handleNewMessage)
         channel.unbind(EVENTS.MESSAGE_READ, handleRead)
-        pusher.unsubscribe(channelName)
+        unsubscribeFromPusherChannel(channelName)
       }
     })
 
     return () => {
       unsubs.forEach((unsubscribe) => unsubscribe())
     }
-  }, [conversationIds, pathname, userId])
+  }, [conversationIds, userId])
 
   return unreadConversationIds.length
 }

@@ -12,6 +12,7 @@ export const pusherServer = new PusherServer({
 
 // ── Client (used in browser) ──────────────────────────────────────────────────
 let _client: PusherClient | null = null
+const _channelRefs = new Map<string, number>()
 
 export function getPusherClient(): PusherClient {
   if (typeof window === 'undefined') throw new Error('getPusherClient called on server')
@@ -25,6 +26,25 @@ export function getPusherClient(): PusherClient {
     })
   }
   return _client
+}
+
+export function subscribeToPusherChannel(channelName: string) {
+  const client = getPusherClient()
+  const currentRefs = _channelRefs.get(channelName) ?? 0
+  _channelRefs.set(channelName, currentRefs + 1)
+  return client.subscribe(channelName)
+}
+
+export function unsubscribeFromPusherChannel(channelName: string) {
+  const currentRefs = _channelRefs.get(channelName) ?? 0
+
+  if (currentRefs <= 1) {
+    _channelRefs.delete(channelName)
+    getPusherClient().unsubscribe(channelName)
+    return
+  }
+
+  _channelRefs.set(channelName, currentRefs - 1)
 }
 
 // ── Channel name helpers ──────────────────────────────────────────────────────
