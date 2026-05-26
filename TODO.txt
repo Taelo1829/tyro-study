@@ -11,3 +11,4 @@ Ability to rewind voice notes
 Add sounds when message comes through
 Reactions
 ability to edit sent messages
+message disappearing

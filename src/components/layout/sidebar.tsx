@@ -8,7 +8,7 @@ import { MAIN_NAV } from "@/lib/navigation"
 import { useThemeStore } from "@/store/theme-store"
 import { Button } from "@/components/ui/button"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
-
+import { signOut } from "next-auth/react"
 interface SidebarProps {
   isAdmin?: boolean
 }
@@ -33,6 +33,24 @@ export function Sidebar({ isAdmin = false }: SidebarProps) {
           const active =
             pathname === item.href || pathname?.startsWith(`${item.href}/`)
           const Icon = item.icon
+          if (item.action == "logout") return <span
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className={cn(
+              "flex items-center gap-3 rounded-[var(--neo-radius)] px-3 py-2.5 text-sm font-medium transition-all",
+              active
+                ? "neo-pressed text-primary"
+                : "text-muted-foreground hover:neo-flat hover:text-foreground"
+            )}>
+            <span className="relative">
+              <Icon className="h-4 w-4 shrink-0" />
+              {item.badge && unreadChats > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                  {unreadChats > 99 ? "99+" : unreadChats}
+                </span>
+              )}
+            </span>
+            <span className="flex-1">{item.label}</span>
+          </span>
           return (
             <Link
               key={item.href}
