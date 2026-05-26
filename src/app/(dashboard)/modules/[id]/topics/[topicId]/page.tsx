@@ -1,13 +1,12 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { redirect, useParams, useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
     BookOpen,
     Clock,
@@ -24,9 +23,9 @@ import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import FlashcardDeck from "@/components/modules/flash-card-decks"
+import { TopicPdfReader } from "@/components/modules/topic-pdf-reader"
 import { Modal } from "@/components/admin/modal"
 import { Input } from "@/components/ui/input"
-import { YouTubeApi } from "@/app/types"
 
 interface Topic {
     id: string
@@ -68,6 +67,13 @@ interface UserProgress {
     lastAttemptAt: string | null
 }
 
+interface AssignmentResult {
+    passed: boolean
+    percentage: number
+    summary: string
+    suggestions?: string[]
+}
+
 export default function TopicPage() {
     const params = useParams()
     const router = useRouter()
@@ -82,7 +88,7 @@ export default function TopicPage() {
     const [assignmentIsOpen, setAssignmentIsOpen] = useState(false)
     const [file, setFile] = useState<File | null>(null)
     const [code, setCode] = useState<string | null>(null)
-    const [result, setResult] = useState<any | null>(null)
+    const [result, setResult] = useState<AssignmentResult | null>(null)
     const [assignmentSubmissionLoading, setAssignmentSubmissionLoading] = useState(false)
     const topicId = params.topicId as string
 
@@ -231,10 +237,13 @@ export default function TopicPage() {
             setAssignmentIsOpen(true)
             setAssignmentSubmissionLoading(false)
             setFile(null)
-        } catch (err: any) {
-            //   setError(err.message ?? 'Something went wrong. Please try again.')
+        } catch (err) {
+            toast.error(
+                "Submission failed",
+                err instanceof Error ? err.message : "Something went wrong. Please try again."
+            )
         } finally {
-            //   setLoading(false)
+            setAssignmentSubmissionLoading(false)
         }
     }
 
@@ -299,6 +308,7 @@ export default function TopicPage() {
                                         </p>
                                     )}
                                 </div>
+                                <TopicPdfReader topicId={topic.id} />
                             </CardContent>
                         </Card>
 
@@ -494,25 +504,6 @@ export default function TopicPage() {
 
 // Helper Functions
 
-
-function getProgressKey(topicId: string, videoId: string) {
-    return `topic-video-progress:${topicId}:${videoId}`
-}
-
-function getSavedSeconds(topicId: string, videoId: string) {
-    const value = window.localStorage.getItem(getProgressKey(topicId, videoId))
-    const seconds = value ? Number(value) : 0
-    return Number.isFinite(seconds) ? seconds : 0
-}
-
-function saveSeconds(topicId: string, videoId: string, seconds: number) {
-    if (!Number.isFinite(seconds) || seconds < 1) return
-    window.localStorage.setItem(getProgressKey(topicId, videoId), String(Math.floor(seconds)))
-}
-
-function clearSavedSeconds(topicId: string, videoId: string) {
-    window.localStorage.removeItem(getProgressKey(topicId, videoId))
-}
 
 function getVideoEmbedHtml(rawUrl: string): string | null {
     const trimmed = rawUrl.trim()

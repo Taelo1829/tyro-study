@@ -64,6 +64,11 @@ export type Chapter = $Result.DefaultSelection<Prisma.$ChapterPayload>
  */
 export type Topic = $Result.DefaultSelection<Prisma.$TopicPayload>
 /**
+ * Model TopicPdf
+ * 
+ */
+export type TopicPdf = $Result.DefaultSelection<Prisma.$TopicPdfPayload>
+/**
  * Model Assignment_Attempt
  * 
  */
@@ -410,6 +415,16 @@ export class PrismaClient<
     * ```
     */
   get topic(): Prisma.TopicDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.topicPdf`: Exposes CRUD operations for the **TopicPdf** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more TopicPdfs
+    * const topicPdfs = await prisma.topicPdf.findMany()
+    * ```
+    */
+  get topicPdf(): Prisma.TopicPdfDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.assignment_Attempt`: Exposes CRUD operations for the **Assignment_Attempt** model.
@@ -964,6 +979,7 @@ export namespace Prisma {
     ModuleEnrollment: 'ModuleEnrollment',
     Chapter: 'Chapter',
     Topic: 'Topic',
+    TopicPdf: 'TopicPdf',
     Assignment_Attempt: 'Assignment_Attempt',
     Question: 'Question',
     Answer: 'Answer',
@@ -990,7 +1006,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "quizAttempt" | "questionAttempt" | "user" | "account" | "session" | "verificationToken" | "module" | "moduleEnrollment" | "chapter" | "topic" | "assignment_Attempt" | "question" | "answer" | "userAnswer" | "flashcard" | "timetable" | "notification" | "friendship" | "conversation" | "message" | "pushSubscription"
+      modelProps: "quizAttempt" | "questionAttempt" | "user" | "account" | "session" | "verificationToken" | "module" | "moduleEnrollment" | "chapter" | "topic" | "topicPdf" | "assignment_Attempt" | "question" | "answer" | "userAnswer" | "flashcard" | "timetable" | "notification" | "friendship" | "conversation" | "message" | "pushSubscription"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1731,6 +1747,80 @@ export namespace Prisma {
           count: {
             args: Prisma.TopicCountArgs<ExtArgs>
             result: $Utils.Optional<TopicCountAggregateOutputType> | number
+          }
+        }
+      }
+      TopicPdf: {
+        payload: Prisma.$TopicPdfPayload<ExtArgs>
+        fields: Prisma.TopicPdfFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TopicPdfFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TopicPdfFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload>
+          }
+          findFirst: {
+            args: Prisma.TopicPdfFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TopicPdfFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload>
+          }
+          findMany: {
+            args: Prisma.TopicPdfFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload>[]
+          }
+          create: {
+            args: Prisma.TopicPdfCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload>
+          }
+          createMany: {
+            args: Prisma.TopicPdfCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TopicPdfCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload>[]
+          }
+          delete: {
+            args: Prisma.TopicPdfDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload>
+          }
+          update: {
+            args: Prisma.TopicPdfUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload>
+          }
+          deleteMany: {
+            args: Prisma.TopicPdfDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TopicPdfUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.TopicPdfUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload>[]
+          }
+          upsert: {
+            args: Prisma.TopicPdfUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicPdfPayload>
+          }
+          aggregate: {
+            args: Prisma.TopicPdfAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTopicPdf>
+          }
+          groupBy: {
+            args: Prisma.TopicPdfGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TopicPdfGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TopicPdfCountArgs<ExtArgs>
+            result: $Utils.Optional<TopicPdfCountAggregateOutputType> | number
           }
         }
       }
@@ -2666,6 +2756,7 @@ export namespace Prisma {
     moduleEnrollment?: ModuleEnrollmentOmit
     chapter?: ChapterOmit
     topic?: TopicOmit
+    topicPdf?: TopicPdfOmit
     assignment_Attempt?: Assignment_AttemptOmit
     question?: QuestionOmit
     answer?: AnswerOmit
@@ -3010,12 +3101,14 @@ export namespace Prisma {
     questions: number
     flashcards: number
     quizAttempts: number
+    pdfs: number
   }
 
   export type TopicCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     questions?: boolean | TopicCountOutputTypeCountQuestionsArgs
     flashcards?: boolean | TopicCountOutputTypeCountFlashcardsArgs
     quizAttempts?: boolean | TopicCountOutputTypeCountQuizAttemptsArgs
+    pdfs?: boolean | TopicCountOutputTypeCountPdfsArgs
   }
 
   // Custom InputTypes
@@ -3048,6 +3141,13 @@ export namespace Prisma {
    */
   export type TopicCountOutputTypeCountQuizAttemptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: QuizAttemptWhereInput
+  }
+
+  /**
+   * TopicCountOutputType without action
+   */
+  export type TopicCountOutputTypeCountPdfsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TopicPdfWhereInput
   }
 
 
@@ -13917,6 +14017,7 @@ export namespace Prisma {
     questions?: boolean | Topic$questionsArgs<ExtArgs>
     flashcards?: boolean | Topic$flashcardsArgs<ExtArgs>
     quizAttempts?: boolean | Topic$quizAttemptsArgs<ExtArgs>
+    pdfs?: boolean | Topic$pdfsArgs<ExtArgs>
     _count?: boolean | TopicCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["topic"]>
 
@@ -13958,6 +14059,7 @@ export namespace Prisma {
     questions?: boolean | Topic$questionsArgs<ExtArgs>
     flashcards?: boolean | Topic$flashcardsArgs<ExtArgs>
     quizAttempts?: boolean | Topic$quizAttemptsArgs<ExtArgs>
+    pdfs?: boolean | Topic$pdfsArgs<ExtArgs>
     _count?: boolean | TopicCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TopicIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13974,6 +14076,7 @@ export namespace Prisma {
       questions: Prisma.$QuestionPayload<ExtArgs>[]
       flashcards: Prisma.$FlashcardPayload<ExtArgs>[]
       quizAttempts: Prisma.$QuizAttemptPayload<ExtArgs>[]
+      pdfs: Prisma.$TopicPdfPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -14381,6 +14484,7 @@ export namespace Prisma {
     questions<T extends Topic$questionsArgs<ExtArgs> = {}>(args?: Subset<T, Topic$questionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$QuestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     flashcards<T extends Topic$flashcardsArgs<ExtArgs> = {}>(args?: Subset<T, Topic$flashcardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FlashcardPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     quizAttempts<T extends Topic$quizAttemptsArgs<ExtArgs> = {}>(args?: Subset<T, Topic$quizAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$QuizAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    pdfs<T extends Topic$pdfsArgs<ExtArgs> = {}>(args?: Subset<T, Topic$pdfsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -14890,6 +14994,30 @@ export namespace Prisma {
   }
 
   /**
+   * Topic.pdfs
+   */
+  export type Topic$pdfsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    where?: TopicPdfWhereInput
+    orderBy?: TopicPdfOrderByWithRelationInput | TopicPdfOrderByWithRelationInput[]
+    cursor?: TopicPdfWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TopicPdfScalarFieldEnum | TopicPdfScalarFieldEnum[]
+  }
+
+  /**
    * Topic without action
    */
   export type TopicDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14905,6 +15033,1082 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: TopicInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model TopicPdf
+   */
+
+  export type AggregateTopicPdf = {
+    _count: TopicPdfCountAggregateOutputType | null
+    _min: TopicPdfMinAggregateOutputType | null
+    _max: TopicPdfMaxAggregateOutputType | null
+  }
+
+  export type TopicPdfMinAggregateOutputType = {
+    id: string | null
+    topicId: string | null
+    title: string | null
+    url: string | null
+    pathname: string | null
+    createdAt: Date | null
+  }
+
+  export type TopicPdfMaxAggregateOutputType = {
+    id: string | null
+    topicId: string | null
+    title: string | null
+    url: string | null
+    pathname: string | null
+    createdAt: Date | null
+  }
+
+  export type TopicPdfCountAggregateOutputType = {
+    id: number
+    topicId: number
+    title: number
+    url: number
+    pathname: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type TopicPdfMinAggregateInputType = {
+    id?: true
+    topicId?: true
+    title?: true
+    url?: true
+    pathname?: true
+    createdAt?: true
+  }
+
+  export type TopicPdfMaxAggregateInputType = {
+    id?: true
+    topicId?: true
+    title?: true
+    url?: true
+    pathname?: true
+    createdAt?: true
+  }
+
+  export type TopicPdfCountAggregateInputType = {
+    id?: true
+    topicId?: true
+    title?: true
+    url?: true
+    pathname?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type TopicPdfAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TopicPdf to aggregate.
+     */
+    where?: TopicPdfWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TopicPdfs to fetch.
+     */
+    orderBy?: TopicPdfOrderByWithRelationInput | TopicPdfOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TopicPdfWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TopicPdfs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TopicPdfs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned TopicPdfs
+    **/
+    _count?: true | TopicPdfCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TopicPdfMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TopicPdfMaxAggregateInputType
+  }
+
+  export type GetTopicPdfAggregateType<T extends TopicPdfAggregateArgs> = {
+        [P in keyof T & keyof AggregateTopicPdf]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTopicPdf[P]>
+      : GetScalarType<T[P], AggregateTopicPdf[P]>
+  }
+
+
+
+
+  export type TopicPdfGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TopicPdfWhereInput
+    orderBy?: TopicPdfOrderByWithAggregationInput | TopicPdfOrderByWithAggregationInput[]
+    by: TopicPdfScalarFieldEnum[] | TopicPdfScalarFieldEnum
+    having?: TopicPdfScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TopicPdfCountAggregateInputType | true
+    _min?: TopicPdfMinAggregateInputType
+    _max?: TopicPdfMaxAggregateInputType
+  }
+
+  export type TopicPdfGroupByOutputType = {
+    id: string
+    topicId: string
+    title: string
+    url: string
+    pathname: string | null
+    createdAt: Date
+    _count: TopicPdfCountAggregateOutputType | null
+    _min: TopicPdfMinAggregateOutputType | null
+    _max: TopicPdfMaxAggregateOutputType | null
+  }
+
+  type GetTopicPdfGroupByPayload<T extends TopicPdfGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TopicPdfGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TopicPdfGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TopicPdfGroupByOutputType[P]>
+            : GetScalarType<T[P], TopicPdfGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TopicPdfSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    url?: boolean
+    pathname?: boolean
+    createdAt?: boolean
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["topicPdf"]>
+
+  export type TopicPdfSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    url?: boolean
+    pathname?: boolean
+    createdAt?: boolean
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["topicPdf"]>
+
+  export type TopicPdfSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    url?: boolean
+    pathname?: boolean
+    createdAt?: boolean
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["topicPdf"]>
+
+  export type TopicPdfSelectScalar = {
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    url?: boolean
+    pathname?: boolean
+    createdAt?: boolean
+  }
+
+  export type TopicPdfOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "topicId" | "title" | "url" | "pathname" | "createdAt", ExtArgs["result"]["topicPdf"]>
+  export type TopicPdfInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }
+  export type TopicPdfIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }
+  export type TopicPdfIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }
+
+  export type $TopicPdfPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "TopicPdf"
+    objects: {
+      topic: Prisma.$TopicPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      topicId: string
+      title: string
+      url: string
+      pathname: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["topicPdf"]>
+    composites: {}
+  }
+
+  type TopicPdfGetPayload<S extends boolean | null | undefined | TopicPdfDefaultArgs> = $Result.GetResult<Prisma.$TopicPdfPayload, S>
+
+  type TopicPdfCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<TopicPdfFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TopicPdfCountAggregateInputType | true
+    }
+
+  export interface TopicPdfDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['TopicPdf'], meta: { name: 'TopicPdf' } }
+    /**
+     * Find zero or one TopicPdf that matches the filter.
+     * @param {TopicPdfFindUniqueArgs} args - Arguments to find a TopicPdf
+     * @example
+     * // Get one TopicPdf
+     * const topicPdf = await prisma.topicPdf.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TopicPdfFindUniqueArgs>(args: SelectSubset<T, TopicPdfFindUniqueArgs<ExtArgs>>): Prisma__TopicPdfClient<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one TopicPdf that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TopicPdfFindUniqueOrThrowArgs} args - Arguments to find a TopicPdf
+     * @example
+     * // Get one TopicPdf
+     * const topicPdf = await prisma.topicPdf.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TopicPdfFindUniqueOrThrowArgs>(args: SelectSubset<T, TopicPdfFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TopicPdfClient<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TopicPdf that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicPdfFindFirstArgs} args - Arguments to find a TopicPdf
+     * @example
+     * // Get one TopicPdf
+     * const topicPdf = await prisma.topicPdf.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TopicPdfFindFirstArgs>(args?: SelectSubset<T, TopicPdfFindFirstArgs<ExtArgs>>): Prisma__TopicPdfClient<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TopicPdf that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicPdfFindFirstOrThrowArgs} args - Arguments to find a TopicPdf
+     * @example
+     * // Get one TopicPdf
+     * const topicPdf = await prisma.topicPdf.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TopicPdfFindFirstOrThrowArgs>(args?: SelectSubset<T, TopicPdfFindFirstOrThrowArgs<ExtArgs>>): Prisma__TopicPdfClient<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more TopicPdfs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicPdfFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TopicPdfs
+     * const topicPdfs = await prisma.topicPdf.findMany()
+     * 
+     * // Get first 10 TopicPdfs
+     * const topicPdfs = await prisma.topicPdf.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const topicPdfWithIdOnly = await prisma.topicPdf.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TopicPdfFindManyArgs>(args?: SelectSubset<T, TopicPdfFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a TopicPdf.
+     * @param {TopicPdfCreateArgs} args - Arguments to create a TopicPdf.
+     * @example
+     * // Create one TopicPdf
+     * const TopicPdf = await prisma.topicPdf.create({
+     *   data: {
+     *     // ... data to create a TopicPdf
+     *   }
+     * })
+     * 
+     */
+    create<T extends TopicPdfCreateArgs>(args: SelectSubset<T, TopicPdfCreateArgs<ExtArgs>>): Prisma__TopicPdfClient<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many TopicPdfs.
+     * @param {TopicPdfCreateManyArgs} args - Arguments to create many TopicPdfs.
+     * @example
+     * // Create many TopicPdfs
+     * const topicPdf = await prisma.topicPdf.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TopicPdfCreateManyArgs>(args?: SelectSubset<T, TopicPdfCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many TopicPdfs and returns the data saved in the database.
+     * @param {TopicPdfCreateManyAndReturnArgs} args - Arguments to create many TopicPdfs.
+     * @example
+     * // Create many TopicPdfs
+     * const topicPdf = await prisma.topicPdf.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many TopicPdfs and only return the `id`
+     * const topicPdfWithIdOnly = await prisma.topicPdf.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TopicPdfCreateManyAndReturnArgs>(args?: SelectSubset<T, TopicPdfCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a TopicPdf.
+     * @param {TopicPdfDeleteArgs} args - Arguments to delete one TopicPdf.
+     * @example
+     * // Delete one TopicPdf
+     * const TopicPdf = await prisma.topicPdf.delete({
+     *   where: {
+     *     // ... filter to delete one TopicPdf
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TopicPdfDeleteArgs>(args: SelectSubset<T, TopicPdfDeleteArgs<ExtArgs>>): Prisma__TopicPdfClient<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one TopicPdf.
+     * @param {TopicPdfUpdateArgs} args - Arguments to update one TopicPdf.
+     * @example
+     * // Update one TopicPdf
+     * const topicPdf = await prisma.topicPdf.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TopicPdfUpdateArgs>(args: SelectSubset<T, TopicPdfUpdateArgs<ExtArgs>>): Prisma__TopicPdfClient<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more TopicPdfs.
+     * @param {TopicPdfDeleteManyArgs} args - Arguments to filter TopicPdfs to delete.
+     * @example
+     * // Delete a few TopicPdfs
+     * const { count } = await prisma.topicPdf.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TopicPdfDeleteManyArgs>(args?: SelectSubset<T, TopicPdfDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TopicPdfs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicPdfUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TopicPdfs
+     * const topicPdf = await prisma.topicPdf.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TopicPdfUpdateManyArgs>(args: SelectSubset<T, TopicPdfUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TopicPdfs and returns the data updated in the database.
+     * @param {TopicPdfUpdateManyAndReturnArgs} args - Arguments to update many TopicPdfs.
+     * @example
+     * // Update many TopicPdfs
+     * const topicPdf = await prisma.topicPdf.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more TopicPdfs and only return the `id`
+     * const topicPdfWithIdOnly = await prisma.topicPdf.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends TopicPdfUpdateManyAndReturnArgs>(args: SelectSubset<T, TopicPdfUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one TopicPdf.
+     * @param {TopicPdfUpsertArgs} args - Arguments to update or create a TopicPdf.
+     * @example
+     * // Update or create a TopicPdf
+     * const topicPdf = await prisma.topicPdf.upsert({
+     *   create: {
+     *     // ... data to create a TopicPdf
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TopicPdf we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TopicPdfUpsertArgs>(args: SelectSubset<T, TopicPdfUpsertArgs<ExtArgs>>): Prisma__TopicPdfClient<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of TopicPdfs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicPdfCountArgs} args - Arguments to filter TopicPdfs to count.
+     * @example
+     * // Count the number of TopicPdfs
+     * const count = await prisma.topicPdf.count({
+     *   where: {
+     *     // ... the filter for the TopicPdfs we want to count
+     *   }
+     * })
+    **/
+    count<T extends TopicPdfCountArgs>(
+      args?: Subset<T, TopicPdfCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TopicPdfCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a TopicPdf.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicPdfAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TopicPdfAggregateArgs>(args: Subset<T, TopicPdfAggregateArgs>): Prisma.PrismaPromise<GetTopicPdfAggregateType<T>>
+
+    /**
+     * Group by TopicPdf.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicPdfGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TopicPdfGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TopicPdfGroupByArgs['orderBy'] }
+        : { orderBy?: TopicPdfGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TopicPdfGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTopicPdfGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the TopicPdf model
+   */
+  readonly fields: TopicPdfFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TopicPdf.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TopicPdfClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    topic<T extends TopicDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TopicDefaultArgs<ExtArgs>>): Prisma__TopicClient<$Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the TopicPdf model
+   */
+  interface TopicPdfFieldRefs {
+    readonly id: FieldRef<"TopicPdf", 'String'>
+    readonly topicId: FieldRef<"TopicPdf", 'String'>
+    readonly title: FieldRef<"TopicPdf", 'String'>
+    readonly url: FieldRef<"TopicPdf", 'String'>
+    readonly pathname: FieldRef<"TopicPdf", 'String'>
+    readonly createdAt: FieldRef<"TopicPdf", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * TopicPdf findUnique
+   */
+  export type TopicPdfFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicPdf to fetch.
+     */
+    where: TopicPdfWhereUniqueInput
+  }
+
+  /**
+   * TopicPdf findUniqueOrThrow
+   */
+  export type TopicPdfFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicPdf to fetch.
+     */
+    where: TopicPdfWhereUniqueInput
+  }
+
+  /**
+   * TopicPdf findFirst
+   */
+  export type TopicPdfFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicPdf to fetch.
+     */
+    where?: TopicPdfWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TopicPdfs to fetch.
+     */
+    orderBy?: TopicPdfOrderByWithRelationInput | TopicPdfOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TopicPdfs.
+     */
+    cursor?: TopicPdfWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TopicPdfs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TopicPdfs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TopicPdfs.
+     */
+    distinct?: TopicPdfScalarFieldEnum | TopicPdfScalarFieldEnum[]
+  }
+
+  /**
+   * TopicPdf findFirstOrThrow
+   */
+  export type TopicPdfFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicPdf to fetch.
+     */
+    where?: TopicPdfWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TopicPdfs to fetch.
+     */
+    orderBy?: TopicPdfOrderByWithRelationInput | TopicPdfOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TopicPdfs.
+     */
+    cursor?: TopicPdfWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TopicPdfs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TopicPdfs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TopicPdfs.
+     */
+    distinct?: TopicPdfScalarFieldEnum | TopicPdfScalarFieldEnum[]
+  }
+
+  /**
+   * TopicPdf findMany
+   */
+  export type TopicPdfFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicPdfs to fetch.
+     */
+    where?: TopicPdfWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TopicPdfs to fetch.
+     */
+    orderBy?: TopicPdfOrderByWithRelationInput | TopicPdfOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing TopicPdfs.
+     */
+    cursor?: TopicPdfWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TopicPdfs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TopicPdfs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TopicPdfs.
+     */
+    distinct?: TopicPdfScalarFieldEnum | TopicPdfScalarFieldEnum[]
+  }
+
+  /**
+   * TopicPdf create
+   */
+  export type TopicPdfCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    /**
+     * The data needed to create a TopicPdf.
+     */
+    data: XOR<TopicPdfCreateInput, TopicPdfUncheckedCreateInput>
+  }
+
+  /**
+   * TopicPdf createMany
+   */
+  export type TopicPdfCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many TopicPdfs.
+     */
+    data: TopicPdfCreateManyInput | TopicPdfCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * TopicPdf createManyAndReturn
+   */
+  export type TopicPdfCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * The data used to create many TopicPdfs.
+     */
+    data: TopicPdfCreateManyInput | TopicPdfCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TopicPdf update
+   */
+  export type TopicPdfUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    /**
+     * The data needed to update a TopicPdf.
+     */
+    data: XOR<TopicPdfUpdateInput, TopicPdfUncheckedUpdateInput>
+    /**
+     * Choose, which TopicPdf to update.
+     */
+    where: TopicPdfWhereUniqueInput
+  }
+
+  /**
+   * TopicPdf updateMany
+   */
+  export type TopicPdfUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update TopicPdfs.
+     */
+    data: XOR<TopicPdfUpdateManyMutationInput, TopicPdfUncheckedUpdateManyInput>
+    /**
+     * Filter which TopicPdfs to update
+     */
+    where?: TopicPdfWhereInput
+    /**
+     * Limit how many TopicPdfs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * TopicPdf updateManyAndReturn
+   */
+  export type TopicPdfUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * The data used to update TopicPdfs.
+     */
+    data: XOR<TopicPdfUpdateManyMutationInput, TopicPdfUncheckedUpdateManyInput>
+    /**
+     * Filter which TopicPdfs to update
+     */
+    where?: TopicPdfWhereInput
+    /**
+     * Limit how many TopicPdfs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TopicPdf upsert
+   */
+  export type TopicPdfUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    /**
+     * The filter to search for the TopicPdf to update in case it exists.
+     */
+    where: TopicPdfWhereUniqueInput
+    /**
+     * In case the TopicPdf found by the `where` argument doesn't exist, create a new TopicPdf with this data.
+     */
+    create: XOR<TopicPdfCreateInput, TopicPdfUncheckedCreateInput>
+    /**
+     * In case the TopicPdf was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TopicPdfUpdateInput, TopicPdfUncheckedUpdateInput>
+  }
+
+  /**
+   * TopicPdf delete
+   */
+  export type TopicPdfDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
+    /**
+     * Filter which TopicPdf to delete.
+     */
+    where: TopicPdfWhereUniqueInput
+  }
+
+  /**
+   * TopicPdf deleteMany
+   */
+  export type TopicPdfDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TopicPdfs to delete
+     */
+    where?: TopicPdfWhereInput
+    /**
+     * Limit how many TopicPdfs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * TopicPdf without action
+   */
+  export type TopicPdfDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicPdf
+     */
+    select?: TopicPdfSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicPdf
+     */
+    omit?: TopicPdfOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicPdfInclude<ExtArgs> | null
   }
 
 
@@ -27118,6 +28322,18 @@ export namespace Prisma {
   export type TopicScalarFieldEnum = (typeof TopicScalarFieldEnum)[keyof typeof TopicScalarFieldEnum]
 
 
+  export const TopicPdfScalarFieldEnum: {
+    id: 'id',
+    topicId: 'topicId',
+    title: 'title',
+    url: 'url',
+    pathname: 'pathname',
+    createdAt: 'createdAt'
+  };
+
+  export type TopicPdfScalarFieldEnum = (typeof TopicPdfScalarFieldEnum)[keyof typeof TopicPdfScalarFieldEnum]
+
+
   export const Assignment_AttemptScalarFieldEnum: {
     id: 'id',
     topicId: 'topicId',
@@ -28103,6 +29319,7 @@ export namespace Prisma {
     questions?: QuestionListRelationFilter
     flashcards?: FlashcardListRelationFilter
     quizAttempts?: QuizAttemptListRelationFilter
+    pdfs?: TopicPdfListRelationFilter
   }
 
   export type TopicOrderByWithRelationInput = {
@@ -28117,6 +29334,7 @@ export namespace Prisma {
     questions?: QuestionOrderByRelationAggregateInput
     flashcards?: FlashcardOrderByRelationAggregateInput
     quizAttempts?: QuizAttemptOrderByRelationAggregateInput
+    pdfs?: TopicPdfOrderByRelationAggregateInput
   }
 
   export type TopicWhereUniqueInput = Prisma.AtLeast<{
@@ -28134,6 +29352,7 @@ export namespace Prisma {
     questions?: QuestionListRelationFilter
     flashcards?: FlashcardListRelationFilter
     quizAttempts?: QuizAttemptListRelationFilter
+    pdfs?: TopicPdfListRelationFilter
   }, "id">
 
   export type TopicOrderByWithAggregationInput = {
@@ -28162,6 +29381,66 @@ export namespace Prisma {
     order?: IntWithAggregatesFilter<"Topic"> | number
     createdAt?: DateTimeWithAggregatesFilter<"Topic"> | Date | string
     assignment?: StringNullableWithAggregatesFilter<"Topic"> | string | null
+  }
+
+  export type TopicPdfWhereInput = {
+    AND?: TopicPdfWhereInput | TopicPdfWhereInput[]
+    OR?: TopicPdfWhereInput[]
+    NOT?: TopicPdfWhereInput | TopicPdfWhereInput[]
+    id?: StringFilter<"TopicPdf"> | string
+    topicId?: StringFilter<"TopicPdf"> | string
+    title?: StringFilter<"TopicPdf"> | string
+    url?: StringFilter<"TopicPdf"> | string
+    pathname?: StringNullableFilter<"TopicPdf"> | string | null
+    createdAt?: DateTimeFilter<"TopicPdf"> | Date | string
+    topic?: XOR<TopicScalarRelationFilter, TopicWhereInput>
+  }
+
+  export type TopicPdfOrderByWithRelationInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    url?: SortOrder
+    pathname?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    topic?: TopicOrderByWithRelationInput
+  }
+
+  export type TopicPdfWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: TopicPdfWhereInput | TopicPdfWhereInput[]
+    OR?: TopicPdfWhereInput[]
+    NOT?: TopicPdfWhereInput | TopicPdfWhereInput[]
+    topicId?: StringFilter<"TopicPdf"> | string
+    title?: StringFilter<"TopicPdf"> | string
+    url?: StringFilter<"TopicPdf"> | string
+    pathname?: StringNullableFilter<"TopicPdf"> | string | null
+    createdAt?: DateTimeFilter<"TopicPdf"> | Date | string
+    topic?: XOR<TopicScalarRelationFilter, TopicWhereInput>
+  }, "id">
+
+  export type TopicPdfOrderByWithAggregationInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    url?: SortOrder
+    pathname?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: TopicPdfCountOrderByAggregateInput
+    _max?: TopicPdfMaxOrderByAggregateInput
+    _min?: TopicPdfMinOrderByAggregateInput
+  }
+
+  export type TopicPdfScalarWhereWithAggregatesInput = {
+    AND?: TopicPdfScalarWhereWithAggregatesInput | TopicPdfScalarWhereWithAggregatesInput[]
+    OR?: TopicPdfScalarWhereWithAggregatesInput[]
+    NOT?: TopicPdfScalarWhereWithAggregatesInput | TopicPdfScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"TopicPdf"> | string
+    topicId?: StringWithAggregatesFilter<"TopicPdf"> | string
+    title?: StringWithAggregatesFilter<"TopicPdf"> | string
+    url?: StringWithAggregatesFilter<"TopicPdf"> | string
+    pathname?: StringNullableWithAggregatesFilter<"TopicPdf"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"TopicPdf"> | Date | string
   }
 
   export type Assignment_AttemptWhereInput = {
@@ -29580,6 +30859,7 @@ export namespace Prisma {
     questions?: QuestionCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateInput = {
@@ -29593,6 +30873,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUpdateInput = {
@@ -29606,6 +30887,7 @@ export namespace Prisma {
     questions?: QuestionUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateInput = {
@@ -29619,6 +30901,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicCreateManyInput = {
@@ -29648,6 +30931,68 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type TopicPdfCreateInput = {
+    id?: string
+    title: string
+    url: string
+    pathname?: string | null
+    createdAt?: Date | string
+    topic: TopicCreateNestedOneWithoutPdfsInput
+  }
+
+  export type TopicPdfUncheckedCreateInput = {
+    id?: string
+    topicId: string
+    title: string
+    url: string
+    pathname?: string | null
+    createdAt?: Date | string
+  }
+
+  export type TopicPdfUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    pathname?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    topic?: TopicUpdateOneRequiredWithoutPdfsNestedInput
+  }
+
+  export type TopicPdfUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    topicId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    pathname?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicPdfCreateManyInput = {
+    id?: string
+    topicId: string
+    title: string
+    url: string
+    pathname?: string | null
+    createdAt?: Date | string
+  }
+
+  export type TopicPdfUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    pathname?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicPdfUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    topicId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    pathname?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type Assignment_AttemptCreateInput = {
@@ -31107,11 +32452,21 @@ export namespace Prisma {
     none?: FlashcardWhereInput
   }
 
+  export type TopicPdfListRelationFilter = {
+    every?: TopicPdfWhereInput
+    some?: TopicPdfWhereInput
+    none?: TopicPdfWhereInput
+  }
+
   export type QuestionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type FlashcardOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type TopicPdfOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -31151,6 +32506,38 @@ export namespace Prisma {
 
   export type TopicSumOrderByAggregateInput = {
     order?: SortOrder
+  }
+
+  export type TopicScalarRelationFilter = {
+    is?: TopicWhereInput
+    isNot?: TopicWhereInput
+  }
+
+  export type TopicPdfCountOrderByAggregateInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    url?: SortOrder
+    pathname?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type TopicPdfMaxOrderByAggregateInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    url?: SortOrder
+    pathname?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type TopicPdfMinOrderByAggregateInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    url?: SortOrder
+    pathname?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type BoolFilter<$PrismaModel = never> = {
@@ -31199,11 +32586,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
-  }
-
-  export type TopicScalarRelationFilter = {
-    is?: TopicWhereInput
-    isNot?: TopicWhereInput
   }
 
   export type AnswerListRelationFilter = {
@@ -32541,6 +33923,13 @@ export namespace Prisma {
     connect?: QuizAttemptWhereUniqueInput | QuizAttemptWhereUniqueInput[]
   }
 
+  export type TopicPdfCreateNestedManyWithoutTopicInput = {
+    create?: XOR<TopicPdfCreateWithoutTopicInput, TopicPdfUncheckedCreateWithoutTopicInput> | TopicPdfCreateWithoutTopicInput[] | TopicPdfUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: TopicPdfCreateOrConnectWithoutTopicInput | TopicPdfCreateOrConnectWithoutTopicInput[]
+    createMany?: TopicPdfCreateManyTopicInputEnvelope
+    connect?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+  }
+
   export type QuestionUncheckedCreateNestedManyWithoutTopicInput = {
     create?: XOR<QuestionCreateWithoutTopicInput, QuestionUncheckedCreateWithoutTopicInput> | QuestionCreateWithoutTopicInput[] | QuestionUncheckedCreateWithoutTopicInput[]
     connectOrCreate?: QuestionCreateOrConnectWithoutTopicInput | QuestionCreateOrConnectWithoutTopicInput[]
@@ -32560,6 +33949,13 @@ export namespace Prisma {
     connectOrCreate?: QuizAttemptCreateOrConnectWithoutTopicInput | QuizAttemptCreateOrConnectWithoutTopicInput[]
     createMany?: QuizAttemptCreateManyTopicInputEnvelope
     connect?: QuizAttemptWhereUniqueInput | QuizAttemptWhereUniqueInput[]
+  }
+
+  export type TopicPdfUncheckedCreateNestedManyWithoutTopicInput = {
+    create?: XOR<TopicPdfCreateWithoutTopicInput, TopicPdfUncheckedCreateWithoutTopicInput> | TopicPdfCreateWithoutTopicInput[] | TopicPdfUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: TopicPdfCreateOrConnectWithoutTopicInput | TopicPdfCreateOrConnectWithoutTopicInput[]
+    createMany?: TopicPdfCreateManyTopicInputEnvelope
+    connect?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
   }
 
   export type ChapterUpdateOneRequiredWithoutTopicsNestedInput = {
@@ -32612,6 +34008,20 @@ export namespace Prisma {
     deleteMany?: QuizAttemptScalarWhereInput | QuizAttemptScalarWhereInput[]
   }
 
+  export type TopicPdfUpdateManyWithoutTopicNestedInput = {
+    create?: XOR<TopicPdfCreateWithoutTopicInput, TopicPdfUncheckedCreateWithoutTopicInput> | TopicPdfCreateWithoutTopicInput[] | TopicPdfUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: TopicPdfCreateOrConnectWithoutTopicInput | TopicPdfCreateOrConnectWithoutTopicInput[]
+    upsert?: TopicPdfUpsertWithWhereUniqueWithoutTopicInput | TopicPdfUpsertWithWhereUniqueWithoutTopicInput[]
+    createMany?: TopicPdfCreateManyTopicInputEnvelope
+    set?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+    disconnect?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+    delete?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+    connect?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+    update?: TopicPdfUpdateWithWhereUniqueWithoutTopicInput | TopicPdfUpdateWithWhereUniqueWithoutTopicInput[]
+    updateMany?: TopicPdfUpdateManyWithWhereWithoutTopicInput | TopicPdfUpdateManyWithWhereWithoutTopicInput[]
+    deleteMany?: TopicPdfScalarWhereInput | TopicPdfScalarWhereInput[]
+  }
+
   export type QuestionUncheckedUpdateManyWithoutTopicNestedInput = {
     create?: XOR<QuestionCreateWithoutTopicInput, QuestionUncheckedCreateWithoutTopicInput> | QuestionCreateWithoutTopicInput[] | QuestionUncheckedCreateWithoutTopicInput[]
     connectOrCreate?: QuestionCreateOrConnectWithoutTopicInput | QuestionCreateOrConnectWithoutTopicInput[]
@@ -32652,6 +34062,34 @@ export namespace Prisma {
     update?: QuizAttemptUpdateWithWhereUniqueWithoutTopicInput | QuizAttemptUpdateWithWhereUniqueWithoutTopicInput[]
     updateMany?: QuizAttemptUpdateManyWithWhereWithoutTopicInput | QuizAttemptUpdateManyWithWhereWithoutTopicInput[]
     deleteMany?: QuizAttemptScalarWhereInput | QuizAttemptScalarWhereInput[]
+  }
+
+  export type TopicPdfUncheckedUpdateManyWithoutTopicNestedInput = {
+    create?: XOR<TopicPdfCreateWithoutTopicInput, TopicPdfUncheckedCreateWithoutTopicInput> | TopicPdfCreateWithoutTopicInput[] | TopicPdfUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: TopicPdfCreateOrConnectWithoutTopicInput | TopicPdfCreateOrConnectWithoutTopicInput[]
+    upsert?: TopicPdfUpsertWithWhereUniqueWithoutTopicInput | TopicPdfUpsertWithWhereUniqueWithoutTopicInput[]
+    createMany?: TopicPdfCreateManyTopicInputEnvelope
+    set?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+    disconnect?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+    delete?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+    connect?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+    update?: TopicPdfUpdateWithWhereUniqueWithoutTopicInput | TopicPdfUpdateWithWhereUniqueWithoutTopicInput[]
+    updateMany?: TopicPdfUpdateManyWithWhereWithoutTopicInput | TopicPdfUpdateManyWithWhereWithoutTopicInput[]
+    deleteMany?: TopicPdfScalarWhereInput | TopicPdfScalarWhereInput[]
+  }
+
+  export type TopicCreateNestedOneWithoutPdfsInput = {
+    create?: XOR<TopicCreateWithoutPdfsInput, TopicUncheckedCreateWithoutPdfsInput>
+    connectOrCreate?: TopicCreateOrConnectWithoutPdfsInput
+    connect?: TopicWhereUniqueInput
+  }
+
+  export type TopicUpdateOneRequiredWithoutPdfsNestedInput = {
+    create?: XOR<TopicCreateWithoutPdfsInput, TopicUncheckedCreateWithoutPdfsInput>
+    connectOrCreate?: TopicCreateOrConnectWithoutPdfsInput
+    upsert?: TopicUpsertWithoutPdfsInput
+    connect?: TopicWhereUniqueInput
+    update?: XOR<XOR<TopicUpdateToOneWithWhereWithoutPdfsInput, TopicUpdateWithoutPdfsInput>, TopicUncheckedUpdateWithoutPdfsInput>
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -33496,6 +34934,7 @@ export namespace Prisma {
     chapter: ChapterCreateNestedOneWithoutTopicsInput
     questions?: QuestionCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateWithoutQuizAttemptsInput = {
@@ -33508,6 +34947,7 @@ export namespace Prisma {
     assignment?: string | null
     questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicCreateOrConnectWithoutQuizAttemptsInput = {
@@ -33656,6 +35096,7 @@ export namespace Prisma {
     chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
     questions?: QuestionUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateWithoutQuizAttemptsInput = {
@@ -33668,6 +35109,7 @@ export namespace Prisma {
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
     questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type ModuleUpsertWithoutQuizAttemptsInput = {
@@ -35215,6 +36657,7 @@ export namespace Prisma {
     questions?: QuestionCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateWithoutChapterInput = {
@@ -35227,6 +36670,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicCreateOrConnectWithoutChapterInput = {
@@ -35416,6 +36860,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type TopicPdfCreateWithoutTopicInput = {
+    id?: string
+    title: string
+    url: string
+    pathname?: string | null
+    createdAt?: Date | string
+  }
+
+  export type TopicPdfUncheckedCreateWithoutTopicInput = {
+    id?: string
+    title: string
+    url: string
+    pathname?: string | null
+    createdAt?: Date | string
+  }
+
+  export type TopicPdfCreateOrConnectWithoutTopicInput = {
+    where: TopicPdfWhereUniqueInput
+    create: XOR<TopicPdfCreateWithoutTopicInput, TopicPdfUncheckedCreateWithoutTopicInput>
+  }
+
+  export type TopicPdfCreateManyTopicInputEnvelope = {
+    data: TopicPdfCreateManyTopicInput | TopicPdfCreateManyTopicInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ChapterUpsertWithoutTopicsInput = {
     update: XOR<ChapterUpdateWithoutTopicsInput, ChapterUncheckedUpdateWithoutTopicsInput>
     create: XOR<ChapterCreateWithoutTopicsInput, ChapterUncheckedCreateWithoutTopicsInput>
@@ -35513,6 +36983,102 @@ export namespace Prisma {
     data: XOR<QuizAttemptUpdateManyMutationInput, QuizAttemptUncheckedUpdateManyWithoutTopicInput>
   }
 
+  export type TopicPdfUpsertWithWhereUniqueWithoutTopicInput = {
+    where: TopicPdfWhereUniqueInput
+    update: XOR<TopicPdfUpdateWithoutTopicInput, TopicPdfUncheckedUpdateWithoutTopicInput>
+    create: XOR<TopicPdfCreateWithoutTopicInput, TopicPdfUncheckedCreateWithoutTopicInput>
+  }
+
+  export type TopicPdfUpdateWithWhereUniqueWithoutTopicInput = {
+    where: TopicPdfWhereUniqueInput
+    data: XOR<TopicPdfUpdateWithoutTopicInput, TopicPdfUncheckedUpdateWithoutTopicInput>
+  }
+
+  export type TopicPdfUpdateManyWithWhereWithoutTopicInput = {
+    where: TopicPdfScalarWhereInput
+    data: XOR<TopicPdfUpdateManyMutationInput, TopicPdfUncheckedUpdateManyWithoutTopicInput>
+  }
+
+  export type TopicPdfScalarWhereInput = {
+    AND?: TopicPdfScalarWhereInput | TopicPdfScalarWhereInput[]
+    OR?: TopicPdfScalarWhereInput[]
+    NOT?: TopicPdfScalarWhereInput | TopicPdfScalarWhereInput[]
+    id?: StringFilter<"TopicPdf"> | string
+    topicId?: StringFilter<"TopicPdf"> | string
+    title?: StringFilter<"TopicPdf"> | string
+    url?: StringFilter<"TopicPdf"> | string
+    pathname?: StringNullableFilter<"TopicPdf"> | string | null
+    createdAt?: DateTimeFilter<"TopicPdf"> | Date | string
+  }
+
+  export type TopicCreateWithoutPdfsInput = {
+    id?: string
+    title: string
+    content?: string | null
+    order?: number
+    createdAt?: Date | string
+    assignment?: string | null
+    chapter: ChapterCreateNestedOneWithoutTopicsInput
+    questions?: QuestionCreateNestedManyWithoutTopicInput
+    flashcards?: FlashcardCreateNestedManyWithoutTopicInput
+    quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
+  }
+
+  export type TopicUncheckedCreateWithoutPdfsInput = {
+    id?: string
+    chapterId: string
+    title: string
+    content?: string | null
+    order?: number
+    createdAt?: Date | string
+    assignment?: string | null
+    questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
+    flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
+    quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
+  }
+
+  export type TopicCreateOrConnectWithoutPdfsInput = {
+    where: TopicWhereUniqueInput
+    create: XOR<TopicCreateWithoutPdfsInput, TopicUncheckedCreateWithoutPdfsInput>
+  }
+
+  export type TopicUpsertWithoutPdfsInput = {
+    update: XOR<TopicUpdateWithoutPdfsInput, TopicUncheckedUpdateWithoutPdfsInput>
+    create: XOR<TopicCreateWithoutPdfsInput, TopicUncheckedCreateWithoutPdfsInput>
+    where?: TopicWhereInput
+  }
+
+  export type TopicUpdateToOneWithWhereWithoutPdfsInput = {
+    where?: TopicWhereInput
+    data: XOR<TopicUpdateWithoutPdfsInput, TopicUncheckedUpdateWithoutPdfsInput>
+  }
+
+  export type TopicUpdateWithoutPdfsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
+    questions?: QuestionUpdateManyWithoutTopicNestedInput
+    flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
+    quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
+  }
+
+  export type TopicUncheckedUpdateWithoutPdfsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    chapterId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
+    flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
+    quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
+  }
+
   export type TopicCreateWithoutQuestionsInput = {
     id?: string
     title: string
@@ -35523,6 +37089,7 @@ export namespace Prisma {
     chapter: ChapterCreateNestedOneWithoutTopicsInput
     flashcards?: FlashcardCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateWithoutQuestionsInput = {
@@ -35535,6 +37102,7 @@ export namespace Prisma {
     assignment?: string | null
     flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicCreateOrConnectWithoutQuestionsInput = {
@@ -35649,6 +37217,7 @@ export namespace Prisma {
     chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
     flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateWithoutQuestionsInput = {
@@ -35661,6 +37230,7 @@ export namespace Prisma {
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
     flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type AnswerUpsertWithWhereUniqueWithoutQuestionInput = {
@@ -36099,6 +37669,7 @@ export namespace Prisma {
     chapter: ChapterCreateNestedOneWithoutTopicsInput
     questions?: QuestionCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateWithoutFlashcardsInput = {
@@ -36111,6 +37682,7 @@ export namespace Prisma {
     assignment?: string | null
     questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicCreateOrConnectWithoutFlashcardsInput = {
@@ -36139,6 +37711,7 @@ export namespace Prisma {
     chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
     questions?: QuestionUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateWithoutFlashcardsInput = {
@@ -36151,6 +37724,7 @@ export namespace Prisma {
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
     questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type UserCreateWithoutTimetablesInput = {
@@ -37774,6 +39348,7 @@ export namespace Prisma {
     questions?: QuestionUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateWithoutChapterInput = {
@@ -37786,6 +39361,7 @@ export namespace Prisma {
     questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateManyWithoutChapterInput = {
@@ -37824,6 +39400,14 @@ export namespace Prisma {
     completedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type TopicPdfCreateManyTopicInput = {
+    id?: string
+    title: string
+    url: string
+    pathname?: string | null
+    createdAt?: Date | string
   }
 
   export type QuestionUpdateWithoutTopicInput = {
@@ -37919,6 +39503,30 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicPdfUpdateWithoutTopicInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    pathname?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicPdfUncheckedUpdateWithoutTopicInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    pathname?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicPdfUncheckedUpdateManyWithoutTopicInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    pathname?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AnswerCreateManyQuestionInput = {

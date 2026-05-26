@@ -223,6 +223,15 @@ exports.Prisma.TopicScalarFieldEnum = {
   assignment: 'assignment'
 };
 
+exports.Prisma.TopicPdfScalarFieldEnum = {
+  id: 'id',
+  topicId: 'topicId',
+  title: 'title',
+  url: 'url',
+  pathname: 'pathname',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.Assignment_AttemptScalarFieldEnum = {
   id: 'id',
   topicId: 'topicId',
@@ -377,6 +386,7 @@ exports.Prisma.ModelName = {
   ModuleEnrollment: 'ModuleEnrollment',
   Chapter: 'Chapter',
   Topic: 'Topic',
+  TopicPdf: 'TopicPdf',
   Assignment_Attempt: 'Assignment_Attempt',
   Question: 'Question',
   Answer: 'Answer',

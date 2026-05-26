@@ -204,9 +204,24 @@ model Topic {
   questions    Question[]
   flashcards   Flashcard[]
   quizAttempts QuizAttempt[]
+  pdfs         TopicPdf[]
 
   @@index([chapterId])
   @@map("topics")
+}
+
+model TopicPdf {
+  id        String   @id @default(cuid())
+  topicId   String
+  title     String
+  url       String   @db.Text
+  pathname  String?  @db.Text
+  createdAt DateTime @default(now())
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId])
+  @@map("topic_pdfs")
 }
 
 model Assignment_Attempt {

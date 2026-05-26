@@ -5,11 +5,9 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { ContentManager } from "@/components/admin/content-manager"
-import { PdfUploader } from "@/components/admin/pdf-uploader"
-import { QuestionExtractor } from "@/components/admin/question-extractor"
+import { TopicPdfManager } from "@/components/admin/topic-pdf-manager"
 import { ExcelBulkImport } from "@/components/admin/excel-bulk-import"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { ExtractedQuestion } from "@/lib/ai/question-generator"
 import { Button } from "@/components/ui/button"
 
 interface TopicDetail {
@@ -47,17 +45,27 @@ export default function AdminTopicDetailPage() {
       method: "DELETE",
     })
     if (!res.ok) {
-      const data = await res.json()
+      await res.json().catch(() => null)
       load()
       alert("failed to delete")
     }
 
     router.back()
-  }, [id, load])
+  }, [id, load, router])
 
   useEffect(() => {
-    load()
-  }, [load])
+    let cancelled = false
+
+    fetch(`/api/topics/${id}`)
+      .then((res) => (res.ok ? res.json() as Promise<TopicDetail> : null))
+      .then((data) => {
+        if (!cancelled && data) setTopic(data)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   if (!topic) {
     return <p className="text-sm text-muted-foreground">Loading…</p>
@@ -82,6 +90,15 @@ export default function AdminTopicDetailPage() {
           initialContent={topic.content ?? ""}
           onSaved={load}
         />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>PDF content</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TopicPdfManager topicId={id} />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
