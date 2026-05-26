@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Tyro Study - ReImagined Learning',
-  description: 'Structured studying with AI-powered quizzes and flashcards',
+  description: 'Structured studying with quizzes and flashcards',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

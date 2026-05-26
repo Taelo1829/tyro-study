@@ -1,0 +1,12 @@
+Notifications please
+ability to swipe message and respond to it
+Fix online status
+app emojis
+sending different types of documents
+progress bar on topics and chapters and modules
+Add install button
+Bubble for incoming message
+typing status should only trigger while input box is on focus
+Ability to rewind voice notes
+Add sounds when message comes through
+Reactions
