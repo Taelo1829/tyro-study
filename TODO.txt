@@ -10,3 +10,4 @@ typing status should only trigger while input box is on focus
 Ability to rewind voice notes
 Add sounds when message comes through
 Reactions
+ability to edit sent messages
