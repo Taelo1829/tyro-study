@@ -45,7 +45,7 @@ export function TopicPdfReader({ topicId }: TopicPdfReaderProps) {
         <h3 className="font-semibold">PDF content</h3>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      {/* <div className="flex flex-wrap gap-2">
         {pdfs.map((pdf) => (
           <button
             key={pdf.id}
@@ -60,7 +60,7 @@ export function TopicPdfReader({ topicId }: TopicPdfReaderProps) {
             {pdf.title}
           </button>
         ))}
-      </div>
+      </div> */}
 
       <div className="overflow-hidden rounded-[var(--neo-radius-lg)] border border-foreground/10">
         <iframe
