@@ -2,7 +2,7 @@
   "name": "Tyro Study",
   "short_name": "Tyro",
   "description": "Structured studying with AI-powered quizzes and flashcards",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#e4e9f0",
   "theme_color": "#6c5ce7",
