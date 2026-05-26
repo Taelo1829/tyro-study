@@ -27,8 +27,8 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Timetable", href: "/timetable", icon: Calendar },
   // { label: "Flashcards", href: "/flashcards", icon: Layers },
   { label: "Chats", href: "/chat", icon: MessageCircle, badge: true },
-  { label: "Assignments", href: "/assignments", icon: ClipboardList },
+  // { label: "Assignments", href: "/assignments", icon: ClipboardList },
+  { label: "Logout", href: "/", icon: LogOut, action: "logout" },
   { label: "Settings", href: "/settings", icon: Settings },
   { label: "Admin", href: "/admin", icon: Shield, adminOnly: true },
-  { label: "Logout", href: "/", icon: LogOut, action: "logout" },
 ]
