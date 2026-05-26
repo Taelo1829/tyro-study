@@ -9,7 +9,20 @@ export default withAuth(
       signIn: "/login",
     },
     callbacks: {
-      authorized: ({ token }) => !!token, // only allow logged-in users
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl
+        const publicPaths = [
+          "/manifest.json",
+          "/sw.js",
+          "/favicon.ico",
+          "/icons",
+        ]
+
+        if (publicPaths.some((path) => pathname.startsWith(path))) {
+          return true
+        }
+        return !!token
+      }
     },
   }
 )
