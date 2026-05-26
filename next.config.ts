@@ -1,10 +1,10 @@
 import type { NextConfig } from "next";
 import withPWAInit from "next-pwa"
 
-const nextConfig: NextConfig = {
-  reactCompiler: true,
+const nextConfig = {
+  reactStrictMode: true,
   serverExternalPackages: ["pdf-parse", "xlsx"],
-};
+}
 
 
 const withPWA = withPWAInit({
@@ -13,4 +13,4 @@ const withPWA = withPWAInit({
   skipWaiting: true,
 })
 
-export default nextConfig;
+export default withPWA(nextConfig);
