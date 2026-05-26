@@ -13,3 +13,4 @@ Reactions
 ability to edit sent messages
 message disappearing bug
 message bubble on desktop mode
+dictionary

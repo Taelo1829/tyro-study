@@ -115,7 +115,7 @@ export function parseQuestionsExcel(buffer: Buffer): {
 
     if (!options.includes(correctOption)) {
       errors.push(
-        `Row ${rowNum}: correct_option must match one of the option columns exactly`
+        `Row ${rowNum}: correct_option must match one of the option columns exactly -  but recieved ${correctOption}`
       )
       return
     }
