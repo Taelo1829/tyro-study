@@ -3,7 +3,6 @@ import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
 import { Sidebar } from "@/components/layout/sidebar"
 import { MobileNav } from "@/components/layout/mobile-nav"
-import { recordDailyVisit } from "@/lib/streak"
 
 export default async function DashboardLayout({
   children,
@@ -16,13 +15,7 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
-  let isAdmin = false
-  try {
-    const user = await recordDailyVisit(session.user.id)
-    isAdmin = user?.role === "ADMIN"
-  } catch {
-    // DB may be unavailable during local setup
-  }
+  const isAdmin = session.user.role === "ADMIN"
 
   return (
     <div className="min-h-dvh bg-background">

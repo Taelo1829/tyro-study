@@ -2,7 +2,9 @@ import { Header } from "@/components/layout/header"
 import { DashboardWidget } from "@/components/dashboard/dashboard-widget"
 import { StudyProgressDonut } from "@/components/dashboard/study-progress-donut"
 import { Flame, BookOpen, Calendar, ClipboardList, ChevronRight } from "lucide-react"
-import { getAuthUserId } from "@/lib/auth-session"
+import { getServerSession } from "next-auth"
+import { redirect } from "next/navigation"
+import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { recordDailyVisit } from "@/lib/streak"
 import Link from "next/link"
@@ -19,10 +21,7 @@ interface TopicUpNext {
   totalQuestions: number
 }
 
-async function getStudyProgressPercent() {
-  const userId = await getAuthUserId()
-  if (!userId) return 0
-
+async function getStudyProgressPercent(userId: string) {
   const enrollments = await prisma.moduleEnrollment.findMany({
     where: { userId },
     select: { moduleId: true },
@@ -63,18 +62,12 @@ async function getStudyProgressPercent() {
   )
 }
 
-async function getCurrentStreakDays() {
-  const userId = await getAuthUserId()
-  if (!userId) return 0
-
+async function getCurrentStreakDays(userId: string) {
   const user = await recordDailyVisit(userId)
   return user?.streakDays ?? 0
 }
 
-async function getTopicUpNext(): Promise<TopicUpNext | null> {
-  const userId = await getAuthUserId()
-  if (!userId) return null
-
+async function getTopicUpNext(userId: string): Promise<TopicUpNext | null> {
   const candidates = await prisma.$queryRaw<TopicUpNext[]>`
     SELECT
       t."id",
@@ -108,10 +101,17 @@ async function getTopicUpNext(): Promise<TopicUpNext | null> {
 }
 
 export default async function DashboardPage() {
+  const session = await getServerSession(authOptions)
+  const userId = session?.user?.id
+
+  if (!userId) {
+    redirect("/login")
+  }
+
   const [studyProgressPercent, currentStreakDays, topicUpNext] = await Promise.all([
-    getStudyProgressPercent(),
-    getCurrentStreakDays(),
-    getTopicUpNext(),
+    getStudyProgressPercent(userId),
+    getCurrentStreakDays(userId),
+    getTopicUpNext(userId),
   ])
 
   return (

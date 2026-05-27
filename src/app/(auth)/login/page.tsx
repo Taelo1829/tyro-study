@@ -8,12 +8,28 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eye, EyeOff } from "lucide-react"
 
+function getSafeCallbackUrl() {
+  if (typeof window === "undefined") return "/dashboard"
+
+  const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl")
+  if (!callbackUrl) return "/dashboard"
+
+  try {
+    const url = new URL(callbackUrl, window.location.origin)
+    if (url.origin !== window.location.origin) return "/dashboard"
+    return `${url.pathname}${url.search}${url.hash}`
+  } catch {
+    return "/dashboard"
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -21,18 +37,38 @@ export default function LoginPage() {
     setError("")
     setLoading(true)
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    })
+    try {
+      const callbackUrl = getSafeCallbackUrl()
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl,
+      })
 
-    if (result?.error) {
-      setError("Invalid email or password")
-      return
+      if (result?.error) {
+        setError("Invalid email or password")
+        setLoading(false)
+        return
+      }
+
+      setRedirecting(true)
+      router.replace(callbackUrl)
+    } catch {
+      setError("Unable to sign in. Please try again.")
+      setLoading(false)
     }
-    router.push("/dashboard")
-    router.refresh()
+  }
+
+  if (redirecting) {
+    return (
+      <>
+        <h1 className="mb-1 text-2xl font-bold">Opening dashboard</h1>
+        <p className="text-sm text-muted-foreground">
+          You&apos;re signed in. Taking you there now.
+        </p>
+      </>
+    )
   }
 
   return (
@@ -91,7 +127,7 @@ export default function LoginPage() {
         )}
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? "Signing in..." : "Sign in"}
         </Button>
       </form>
 
