@@ -18,6 +18,16 @@ function isPushSupported() {
   )
 }
 
+async function showEnabledNotification(registration: ServiceWorkerRegistration) {
+  await registration.showNotification("Tyro Study", {
+    body: "Notifications are on",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    tag: "notifications-enabled",
+    data: { url: "/dashboard" },
+  })
+}
+
 export function usePushNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>(() =>
     typeof window !== "undefined" && "Notification" in window
@@ -54,7 +64,9 @@ export function usePushNotifications() {
         body: JSON.stringify(subscription),
       })
 
-      return saveRes.ok
+      if (!saveRes.ok) return false
+      await showEnabledNotification(registration)
+      return true
     } finally {
       setLoading(false)
     }
