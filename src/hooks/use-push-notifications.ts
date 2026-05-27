@@ -19,13 +19,15 @@ function isPushSupported() {
 }
 
 async function showEnabledNotification(registration: ServiceWorkerRegistration) {
-  await registration.showNotification("Tyro Study", {
-    body: "Notifications are on",
-    icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
-    tag: "notifications-enabled",
-    data: { url: "/dashboard" },
-  })
+  setTimeout(async () => {
+    await registration.showNotification("Tyro Study", {
+      body: "Notifications are on",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: "notifications-enabled",
+      data: { url: "/dashboard" },
+    })
+  }, 5000)
 }
 
 export function usePushNotifications() {
