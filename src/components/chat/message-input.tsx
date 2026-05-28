@@ -1,22 +1,64 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { Send, Image as ImageIcon, Mic, X, Loader2 } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Send, Image as ImageIcon, Mic, X, Loader2, Reply } from 'lucide-react'
 import { VoiceRecorder } from './voice-recorder'
 import { cn } from '@/lib/utils'
+import type { ChatMessage, ChatMessageReply, MessageType } from './types'
+
+interface SendMessagePayload {
+  type: MessageType
+  content?: string
+  mediaUrl?: string
+  mediaDuration?: number
+  replyToId?: string
+}
 
 interface MessageInputProps {
-  conversationId: string
-  onSend: (payload: {
-    type: 'TEXT' | 'IMAGE' | 'VOICE'
-    content?: string
-    mediaUrl?: string
-    mediaDuration?: number
-  }) => void
+  onSend: (payload: SendMessagePayload) => void
+  replyTo?: ChatMessage | null
+  onCancelReply?: () => void
   disabled?: boolean
 }
 
-export function MessageInput({ conversationId, onSend, disabled }: MessageInputProps) {
+function getReplyPreview(message: ChatMessage | ChatMessageReply) {
+  if (message.type === 'VOICE') return 'Voice note'
+  if (message.type === 'IMAGE') return 'Image'
+  return message.content ?? 'Message'
+}
+
+function ReplyPreview({
+  message,
+  onCancel,
+}: {
+  message: ChatMessage
+  onCancel?: () => void
+}) {
+  return (
+    <div className="mb-2 flex items-stretch overflow-hidden rounded-lg border border-border bg-muted/60">
+      <div className="w-1 shrink-0 bg-primary" />
+      <div className="min-w-0 flex-1 px-3 py-2">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+          <Reply className="h-3.5 w-3.5" />
+          <span>{message.sender.name ?? message.sender.email}</span>
+        </div>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          {getReplyPreview(message)}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onCancel}
+        className="flex w-9 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
+        aria-label="Cancel reply"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  )
+}
+
+export function MessageInput({ onSend, replyTo, onCancelReply, disabled }: MessageInputProps) {
   const [text, setText] = useState('')
   const [showVoice, setShowVoice] = useState(false)
   const [imagePreview, setImagePreview] = useState<{ url: string; file: File } | null>(null)
@@ -32,8 +74,9 @@ export function MessageInput({ conversationId, onSend, disabled }: MessageInputP
   function handleSendText() {
     const trimmed = text.trim()
     if (!trimmed || disabled) return
-    onSend({ type: 'TEXT', content: trimmed })
+    onSend({ type: 'TEXT', content: trimmed, replyToId: replyTo?.id })
     setText('')
+    onCancelReply?.()
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -66,9 +109,10 @@ export function MessageInput({ conversationId, onSend, disabled }: MessageInputP
       if (!res.ok) throw new Error('Upload failed')
       const { url } = await res.json()
 
-      onSend({ type: 'IMAGE', mediaUrl: url })
+      onSend({ type: 'IMAGE', mediaUrl: url, replyToId: replyTo?.id })
       URL.revokeObjectURL(imagePreview.url)
       setImagePreview(null)
+      onCancelReply?.()
     } catch {
       // Keep preview so user can retry
     } finally {
@@ -88,8 +132,9 @@ export function MessageInput({ conversationId, onSend, disabled }: MessageInputP
       if (!res.ok) throw new Error('Upload failed')
       const { url } = await res.json()
 
-      onSend({ type: 'VOICE', mediaUrl: url, mediaDuration: duration })
+      onSend({ type: 'VOICE', mediaUrl: url, mediaDuration: duration, replyToId: replyTo?.id })
       setShowVoice(false)
+      onCancelReply?.()
     } catch {
       setShowVoice(false)
     } finally {
@@ -102,6 +147,7 @@ export function MessageInput({ conversationId, onSend, disabled }: MessageInputP
   if (showVoice) {
     return (
       <div className="p-3 border-t border-border bg-background">
+        {replyTo && <ReplyPreview message={replyTo} onCancel={onCancelReply} />}
         <VoiceRecorder
           onSend={handleVoiceSend}
           onCancel={() => setShowVoice(false)}
@@ -114,6 +160,7 @@ export function MessageInput({ conversationId, onSend, disabled }: MessageInputP
   if (imagePreview) {
     return (
       <div className="p-3 border-t border-border bg-background space-y-2">
+        {replyTo && <ReplyPreview message={replyTo} onCancel={onCancelReply} />}
         <div className="relative w-32">
           <img
             src={imagePreview.url}
@@ -149,6 +196,7 @@ export function MessageInput({ conversationId, onSend, disabled }: MessageInputP
 
   return (
     <div className="p-3 border-t border-border bg-background">
+      {replyTo && <ReplyPreview message={replyTo} onCancel={onCancelReply} />}
       <div className="flex items-end gap-2">
         {/* Image button */}
         <button

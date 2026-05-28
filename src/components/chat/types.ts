@@ -7,6 +7,16 @@ export interface ChatUser {
   image: string | null
 }
 
+export interface ChatMessageReply {
+  id: string
+  senderId: string
+  type: MessageType
+  content: string | null
+  mediaUrl: string | null
+  mediaDuration: number | null
+  sender: ChatUser
+}
+
 export interface ChatMessage {
   id: string
   conversationId: string
@@ -15,6 +25,8 @@ export interface ChatMessage {
   content: string | null
   mediaUrl: string | null
   mediaDuration: number | null
+  replyToId: string | null
+  replyTo: ChatMessageReply | null
   readAt: string | null
   createdAt: string
   sender: ChatUser,

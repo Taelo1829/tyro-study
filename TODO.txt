@@ -1,5 +1,5 @@
 Notifications please
-ability to swipe message and respond to it
+- ability to swipe message and respond to it(testing)
 Fix online status
 app emojis
 sending different types of documents
@@ -14,3 +14,8 @@ ability to edit sent messages
 message disappearing bug
 message bubble on desktop mode
 dictionary
+randomize questions and answers
+ability to delete questions and chapters
+next topic after answering a quiz
+generate pdf content from the failed questions in the quiz
+add not in content (from quiz to remove the question)

@@ -317,6 +317,7 @@ exports.Prisma.MessageScalarFieldEnum = {
   content: 'content',
   mediaUrl: 'mediaUrl',
   mediaDuration: 'mediaDuration',
+  replyToId: 'replyToId',
   readAt: 'readAt',
   createdAt: 'createdAt'
 };

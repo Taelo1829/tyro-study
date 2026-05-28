@@ -376,14 +376,18 @@ model Message {
   content        String?     @db.Text
   mediaUrl       String?
   mediaDuration  Int?
+  replyToId      String?
   readAt         DateTime?
   createdAt      DateTime    @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo      Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies      Message[]    @relation("MessageReplies")
 
   @@index([conversationId, createdAt])
   @@index([senderId])
+  @@index([replyToId])
 }
 
 model PushSubscription {

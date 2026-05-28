@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { format, isToday, isYesterday } from 'date-fns'
-import { Check, CheckCheck } from 'lucide-react'
+import { Check, CheckCheck, Reply } from 'lucide-react'
 import { VoiceNote } from './voice-note'
 import { MessageInput } from './message-input'
 import {
@@ -12,6 +12,7 @@ import {
   unsubscribeFromPusherChannel,
 } from '@/lib/pusher'
 import type { ChatMessage, ChatUser } from './types'
+import type { ChatMessageReply } from './types'
 import { cn } from '@/lib/utils'
 
 interface MessageThreadProps {
@@ -39,10 +40,135 @@ function DateDivider({ date }: { date: string }) {
   )
 }
 
-function MessageBubble({ msg, isMine }: { msg: ChatMessage; isMine: boolean }) {
+function getMessagePreview(message: ChatMessage | ChatMessageReply) {
+  if (message.type === 'VOICE') return 'Voice note'
+  if (message.type === 'IMAGE') return 'Image'
+  return message.content ?? 'Message'
+}
+
+function toReplyPreview(message: ChatMessage): ChatMessageReply {
+  return {
+    id: message.id,
+    senderId: message.senderId,
+    type: message.type,
+    content: message.content,
+    mediaUrl: message.mediaUrl,
+    mediaDuration: message.mediaDuration,
+    sender: message.sender,
+  }
+}
+
+function QuotedMessage({ message, isMine }: { message: ChatMessageReply; isMine: boolean }) {
   return (
-    <div className={cn('flex gap-2 group', isMine ? 'flex-row-reverse' : 'flex-row')}>
-      <div className={cn('max-w-[70%] space-y-0.5', isMine ? 'items-end' : 'items-start', 'flex flex-col')}>
+    <div
+      className={cn(
+        'w-full max-w-xs rounded-lg border-l-4 px-3 py-2 text-xs',
+        isMine
+          ? 'border-primary-foreground/70 bg-primary-foreground/10 text-primary-foreground'
+          : 'border-primary bg-background/80 text-foreground',
+      )}
+    >
+      <p className={cn('truncate font-semibold', isMine ? 'text-primary-foreground' : 'text-primary')}>
+        {message.sender.name ?? message.sender.email}
+      </p>
+      <p className={cn('mt-0.5 truncate', isMine ? 'text-primary-foreground/75' : 'text-muted-foreground')}>
+        {getMessagePreview(message)}
+      </p>
+    </div>
+  )
+}
+
+function MessageBubble({
+  msg,
+  isMine,
+  onReply,
+}: {
+  msg: ChatMessage
+  isMine: boolean
+  onReply: (message: ChatMessage) => void
+}) {
+  const [dragX, setDragX] = useState(0)
+  const dragRef = useRef({
+    active: false,
+    currentX: 0,
+    startX: 0,
+    startY: 0,
+    swiping: false,
+  })
+  const replyOpacity = Math.min(Math.abs(dragX) / 64, 1)
+
+  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType === 'mouse' && event.button !== 0) return
+
+    dragRef.current = {
+      active: true,
+      currentX: 0,
+      startX: event.clientX,
+      startY: event.clientY,
+      swiping: false,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current
+    if (!drag.active) return
+
+    const dx = event.clientX - drag.startX
+    const dy = event.clientY - drag.startY
+
+    if (!drag.swiping && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+      drag.swiping = true
+    }
+
+    if (!drag.swiping) return
+
+    event.preventDefault()
+    const nextDragX = Math.max(-84, Math.min(84, dx))
+    drag.currentX = nextDragX
+    setDragX(nextDragX)
+  }
+
+  function endSwipe() {
+    const shouldReply = Math.abs(dragRef.current.currentX) >= 64
+    dragRef.current.active = false
+    dragRef.current.currentX = 0
+    dragRef.current.swiping = false
+    setDragX(0)
+
+    if (shouldReply) {
+      onReply(msg)
+    }
+  }
+
+  return (
+    <div
+      className={cn('relative flex gap-2 group', isMine ? 'flex-row-reverse' : 'flex-row')}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={endSwipe}
+      onPointerCancel={endSwipe}
+      style={{ touchAction: 'pan-y' }}
+    >
+      <div
+        className={cn(
+          'pointer-events-none absolute top-1/2 -translate-y-1/2 rounded-full bg-primary/10 p-2 text-primary transition-opacity',
+          dragX < 0 ? 'right-2' : 'left-2',
+        )}
+        style={{ opacity: replyOpacity }}
+      >
+        <Reply className="h-4 w-4" />
+      </div>
+
+      <div
+        className={cn(
+          'max-w-[70%] space-y-0.5 transition-transform',
+          isMine ? 'items-end' : 'items-start',
+          'flex flex-col',
+        )}
+        style={{ transform: `translateX(${dragX}px)` }}
+      >
+        {msg.replyTo && <QuotedMessage message={msg.replyTo} isMine={isMine} />}
 
         {msg.type === 'TEXT' && (
           <div className={cn(
@@ -93,10 +219,15 @@ export function MessageThread({ conversationId, currentUser }: MessageThreadProp
   const [loadingMore, setLoadingMore] = useState(false)
   const [typingName, setTypingName] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
+  const [replyState, setReplyState] = useState<{
+    conversationId: string
+    message: ChatMessage
+  } | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isFirstLoad = useRef(true)
+  const replyTo = replyState?.conversationId === conversationId ? replyState.message : null
 
   useEffect(() => {
     fetch(`/api/chat/messages?conversationId=${conversationId}`)
@@ -196,6 +327,7 @@ export function MessageThread({ conversationId, currentUser }: MessageThreadProp
     content?: string
     mediaUrl?: string
     mediaDuration?: number
+    replyToId?: string
   }) {
     const temporaryMessage: ChatMessage = {
       content: payload.content!,
@@ -204,6 +336,8 @@ export function MessageThread({ conversationId, currentUser }: MessageThreadProp
       id: "temporaryId" + new Date(),
       mediaDuration: payload.mediaDuration!,
       mediaUrl: payload.mediaUrl!,
+      replyToId: payload.replyToId ?? null,
+      replyTo: replyTo && payload.replyToId === replyTo.id ? toReplyPreview(replyTo) : null,
       readAt: null,
       pending: true,
       type: payload.type,
@@ -262,6 +396,7 @@ export function MessageThread({ conversationId, currentUser }: MessageThreadProp
               key={item.id}
               msg={item}
               isMine={item.senderId === currentUser.id}
+              onReply={(message) => setReplyState({ conversationId, message })}
             />
           )
         })}
@@ -285,8 +420,9 @@ export function MessageThread({ conversationId, currentUser }: MessageThreadProp
       </div>
 
       <MessageInput
-        conversationId={conversationId}
         onSend={handleSend}
+        replyTo={replyTo}
+        onCancelReply={() => setReplyState(null)}
         disabled={sending}
       />
     </div>

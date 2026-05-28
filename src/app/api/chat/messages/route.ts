@@ -5,6 +5,21 @@ import { pusherServer, conversationChannel, EVENTS, userChannel } from '@/lib/pu
 import { getServerSession } from 'next-auth'
 import { sendChatPushNotifications } from '@/lib/web-push'
 
+const messageInclude = {
+  sender: { select: { id: true, name: true, email: true, image: true } },
+  replyTo: {
+    select: {
+      id: true,
+      senderId: true,
+      type: true,
+      content: true,
+      mediaUrl: true,
+      mediaDuration: true,
+      sender: { select: { id: true, name: true, email: true, image: true } },
+    },
+  },
+}
+
 // GET /api/chat/messages?conversationId=xxx&cursor=xxx
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -28,9 +43,7 @@ export async function GET(req: NextRequest) {
 
   const messages = await prisma.message.findMany({
     where: { conversationId },
-    include: {
-      sender: { select: { id: true, name: true, image: true } },
-    },
+    include: messageInclude,
     orderBy: { createdAt: 'desc' },
     take: limit + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -53,7 +66,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { conversationId, content, type = 'TEXT', mediaUrl, mediaDuration } = body
+  const { conversationId, content, type = 'TEXT', mediaUrl, mediaDuration, replyToId } = body
 
   if (!conversationId) return NextResponse.json({ error: 'conversationId required' }, { status: 400 })
   if (type === 'TEXT' && !content?.trim()) return NextResponse.json({ error: 'content required' }, { status: 400 })
@@ -68,6 +81,24 @@ export async function POST(req: NextRequest) {
   })
   if (!conversation) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  let validReplyToId: string | null = null
+  if (replyToId) {
+    if (typeof replyToId !== 'string') {
+      return NextResponse.json({ error: 'replyToId must be a string' }, { status: 400 })
+    }
+
+    const replyTo = await prisma.message.findFirst({
+      where: { id: replyToId, conversationId },
+      select: { id: true },
+    })
+
+    if (!replyTo) {
+      return NextResponse.json({ error: 'replyTo message not found' }, { status: 400 })
+    }
+
+    validReplyToId = replyTo.id
+  }
+
   const [message] = await Promise.all([
     prisma.message.create({
       data: {
@@ -77,10 +108,9 @@ export async function POST(req: NextRequest) {
         content: content?.trim() ?? null,
         mediaUrl: mediaUrl ?? null,
         mediaDuration: mediaDuration ?? null,
+        replyToId: validReplyToId,
       },
-      include: {
-        sender: { select: { id: true, name: true, image: true } },
-      },
+      include: messageInclude,
     }),
     prisma.conversation.update({
       where: { id: conversationId },

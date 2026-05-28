@@ -3272,6 +3272,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type MessageCountOutputType
+   */
+
+  export type MessageCountOutputType = {
+    replies: number
+  }
+
+  export type MessageCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    replies?: boolean | MessageCountOutputTypeCountRepliesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MessageCountOutputType without action
+   */
+  export type MessageCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MessageCountOutputType
+     */
+    select?: MessageCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MessageCountOutputType without action
+   */
+  export type MessageCountOutputTypeCountRepliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MessageWhereInput
+  }
+
+
+  /**
    * Models
    */
 
@@ -26033,6 +26064,7 @@ export namespace Prisma {
     content: string | null
     mediaUrl: string | null
     mediaDuration: number | null
+    replyToId: string | null
     readAt: Date | null
     createdAt: Date | null
   }
@@ -26045,6 +26077,7 @@ export namespace Prisma {
     content: string | null
     mediaUrl: string | null
     mediaDuration: number | null
+    replyToId: string | null
     readAt: Date | null
     createdAt: Date | null
   }
@@ -26057,6 +26090,7 @@ export namespace Prisma {
     content: number
     mediaUrl: number
     mediaDuration: number
+    replyToId: number
     readAt: number
     createdAt: number
     _all: number
@@ -26079,6 +26113,7 @@ export namespace Prisma {
     content?: true
     mediaUrl?: true
     mediaDuration?: true
+    replyToId?: true
     readAt?: true
     createdAt?: true
   }
@@ -26091,6 +26126,7 @@ export namespace Prisma {
     content?: true
     mediaUrl?: true
     mediaDuration?: true
+    replyToId?: true
     readAt?: true
     createdAt?: true
   }
@@ -26103,6 +26139,7 @@ export namespace Prisma {
     content?: true
     mediaUrl?: true
     mediaDuration?: true
+    replyToId?: true
     readAt?: true
     createdAt?: true
     _all?: true
@@ -26202,6 +26239,7 @@ export namespace Prisma {
     content: string | null
     mediaUrl: string | null
     mediaDuration: number | null
+    replyToId: string | null
     readAt: Date | null
     createdAt: Date
     _count: MessageCountAggregateOutputType | null
@@ -26233,10 +26271,14 @@ export namespace Prisma {
     content?: boolean
     mediaUrl?: boolean
     mediaDuration?: boolean
+    replyToId?: boolean
     readAt?: boolean
     createdAt?: boolean
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
     sender?: boolean | UserDefaultArgs<ExtArgs>
+    replyTo?: boolean | Message$replyToArgs<ExtArgs>
+    replies?: boolean | Message$repliesArgs<ExtArgs>
+    _count?: boolean | MessageCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["message"]>
 
   export type MessageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -26247,10 +26289,12 @@ export namespace Prisma {
     content?: boolean
     mediaUrl?: boolean
     mediaDuration?: boolean
+    replyToId?: boolean
     readAt?: boolean
     createdAt?: boolean
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
     sender?: boolean | UserDefaultArgs<ExtArgs>
+    replyTo?: boolean | Message$replyToArgs<ExtArgs>
   }, ExtArgs["result"]["message"]>
 
   export type MessageSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -26261,10 +26305,12 @@ export namespace Prisma {
     content?: boolean
     mediaUrl?: boolean
     mediaDuration?: boolean
+    replyToId?: boolean
     readAt?: boolean
     createdAt?: boolean
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
     sender?: boolean | UserDefaultArgs<ExtArgs>
+    replyTo?: boolean | Message$replyToArgs<ExtArgs>
   }, ExtArgs["result"]["message"]>
 
   export type MessageSelectScalar = {
@@ -26275,22 +26321,28 @@ export namespace Prisma {
     content?: boolean
     mediaUrl?: boolean
     mediaDuration?: boolean
+    replyToId?: boolean
     readAt?: boolean
     createdAt?: boolean
   }
 
-  export type MessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "senderId" | "type" | "content" | "mediaUrl" | "mediaDuration" | "readAt" | "createdAt", ExtArgs["result"]["message"]>
+  export type MessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "senderId" | "type" | "content" | "mediaUrl" | "mediaDuration" | "replyToId" | "readAt" | "createdAt", ExtArgs["result"]["message"]>
   export type MessageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
     sender?: boolean | UserDefaultArgs<ExtArgs>
+    replyTo?: boolean | Message$replyToArgs<ExtArgs>
+    replies?: boolean | Message$repliesArgs<ExtArgs>
+    _count?: boolean | MessageCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MessageIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
     sender?: boolean | UserDefaultArgs<ExtArgs>
+    replyTo?: boolean | Message$replyToArgs<ExtArgs>
   }
   export type MessageIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
     sender?: boolean | UserDefaultArgs<ExtArgs>
+    replyTo?: boolean | Message$replyToArgs<ExtArgs>
   }
 
   export type $MessagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -26298,6 +26350,8 @@ export namespace Prisma {
     objects: {
       conversation: Prisma.$ConversationPayload<ExtArgs>
       sender: Prisma.$UserPayload<ExtArgs>
+      replyTo: Prisma.$MessagePayload<ExtArgs> | null
+      replies: Prisma.$MessagePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -26307,6 +26361,7 @@ export namespace Prisma {
       content: string | null
       mediaUrl: string | null
       mediaDuration: number | null
+      replyToId: string | null
       readAt: Date | null
       createdAt: Date
     }, ExtArgs["result"]["message"]>
@@ -26705,6 +26760,8 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     conversation<T extends ConversationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ConversationDefaultArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     sender<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    replyTo<T extends Message$replyToArgs<ExtArgs> = {}>(args?: Subset<T, Message$replyToArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    replies<T extends Message$repliesArgs<ExtArgs> = {}>(args?: Subset<T, Message$repliesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -26741,6 +26798,7 @@ export namespace Prisma {
     readonly content: FieldRef<"Message", 'String'>
     readonly mediaUrl: FieldRef<"Message", 'String'>
     readonly mediaDuration: FieldRef<"Message", 'Int'>
+    readonly replyToId: FieldRef<"Message", 'String'>
     readonly readAt: FieldRef<"Message", 'DateTime'>
     readonly createdAt: FieldRef<"Message", 'DateTime'>
   }
@@ -27141,6 +27199,49 @@ export namespace Prisma {
      * Limit how many Messages to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Message.replyTo
+   */
+  export type Message$replyToArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    where?: MessageWhereInput
+  }
+
+  /**
+   * Message.replies
+   */
+  export type Message$repliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    where?: MessageWhereInput
+    orderBy?: MessageOrderByWithRelationInput | MessageOrderByWithRelationInput[]
+    cursor?: MessageWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MessageScalarFieldEnum | MessageScalarFieldEnum[]
   }
 
   /**
@@ -28446,6 +28547,7 @@ export namespace Prisma {
     content: 'content',
     mediaUrl: 'mediaUrl',
     mediaDuration: 'mediaDuration',
+    replyToId: 'replyToId',
     readAt: 'readAt',
     createdAt: 'createdAt'
   };
@@ -30010,10 +30112,13 @@ export namespace Prisma {
     content?: StringNullableFilter<"Message"> | string | null
     mediaUrl?: StringNullableFilter<"Message"> | string | null
     mediaDuration?: IntNullableFilter<"Message"> | number | null
+    replyToId?: StringNullableFilter<"Message"> | string | null
     readAt?: DateTimeNullableFilter<"Message"> | Date | string | null
     createdAt?: DateTimeFilter<"Message"> | Date | string
     conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
     sender?: XOR<UserScalarRelationFilter, UserWhereInput>
+    replyTo?: XOR<MessageNullableScalarRelationFilter, MessageWhereInput> | null
+    replies?: MessageListRelationFilter
   }
 
   export type MessageOrderByWithRelationInput = {
@@ -30024,10 +30129,13 @@ export namespace Prisma {
     content?: SortOrderInput | SortOrder
     mediaUrl?: SortOrderInput | SortOrder
     mediaDuration?: SortOrderInput | SortOrder
+    replyToId?: SortOrderInput | SortOrder
     readAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     conversation?: ConversationOrderByWithRelationInput
     sender?: UserOrderByWithRelationInput
+    replyTo?: MessageOrderByWithRelationInput
+    replies?: MessageOrderByRelationAggregateInput
   }
 
   export type MessageWhereUniqueInput = Prisma.AtLeast<{
@@ -30041,10 +30149,13 @@ export namespace Prisma {
     content?: StringNullableFilter<"Message"> | string | null
     mediaUrl?: StringNullableFilter<"Message"> | string | null
     mediaDuration?: IntNullableFilter<"Message"> | number | null
+    replyToId?: StringNullableFilter<"Message"> | string | null
     readAt?: DateTimeNullableFilter<"Message"> | Date | string | null
     createdAt?: DateTimeFilter<"Message"> | Date | string
     conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
     sender?: XOR<UserScalarRelationFilter, UserWhereInput>
+    replyTo?: XOR<MessageNullableScalarRelationFilter, MessageWhereInput> | null
+    replies?: MessageListRelationFilter
   }, "id">
 
   export type MessageOrderByWithAggregationInput = {
@@ -30055,6 +30166,7 @@ export namespace Prisma {
     content?: SortOrderInput | SortOrder
     mediaUrl?: SortOrderInput | SortOrder
     mediaDuration?: SortOrderInput | SortOrder
+    replyToId?: SortOrderInput | SortOrder
     readAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: MessageCountOrderByAggregateInput
@@ -30075,6 +30187,7 @@ export namespace Prisma {
     content?: StringNullableWithAggregatesFilter<"Message"> | string | null
     mediaUrl?: StringNullableWithAggregatesFilter<"Message"> | string | null
     mediaDuration?: IntNullableWithAggregatesFilter<"Message"> | number | null
+    replyToId?: StringNullableWithAggregatesFilter<"Message"> | string | null
     readAt?: DateTimeNullableWithAggregatesFilter<"Message"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Message"> | Date | string
   }
@@ -31555,6 +31668,8 @@ export namespace Prisma {
     createdAt?: Date | string
     conversation: ConversationCreateNestedOneWithoutMessagesInput
     sender: UserCreateNestedOneWithoutSentMessagesInput
+    replyTo?: MessageCreateNestedOneWithoutRepliesInput
+    replies?: MessageCreateNestedManyWithoutReplyToInput
   }
 
   export type MessageUncheckedCreateInput = {
@@ -31565,8 +31680,10 @@ export namespace Prisma {
     content?: string | null
     mediaUrl?: string | null
     mediaDuration?: number | null
+    replyToId?: string | null
     readAt?: Date | string | null
     createdAt?: Date | string
+    replies?: MessageUncheckedCreateNestedManyWithoutReplyToInput
   }
 
   export type MessageUpdateInput = {
@@ -31579,6 +31696,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversation?: ConversationUpdateOneRequiredWithoutMessagesNestedInput
     sender?: UserUpdateOneRequiredWithoutSentMessagesNestedInput
+    replyTo?: MessageUpdateOneWithoutRepliesNestedInput
+    replies?: MessageUpdateManyWithoutReplyToNestedInput
   }
 
   export type MessageUncheckedUpdateInput = {
@@ -31589,8 +31708,10 @@ export namespace Prisma {
     content?: NullableStringFieldUpdateOperationsInput | string | null
     mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    replyToId?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    replies?: MessageUncheckedUpdateManyWithoutReplyToNestedInput
   }
 
   export type MessageCreateManyInput = {
@@ -31601,6 +31722,7 @@ export namespace Prisma {
     content?: string | null
     mediaUrl?: string | null
     mediaDuration?: number | null
+    replyToId?: string | null
     readAt?: Date | string | null
     createdAt?: Date | string
   }
@@ -31623,6 +31745,7 @@ export namespace Prisma {
     content?: NullableStringFieldUpdateOperationsInput | string | null
     mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    replyToId?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -32851,6 +32974,11 @@ export namespace Prisma {
     isNot?: ConversationWhereInput
   }
 
+  export type MessageNullableScalarRelationFilter = {
+    is?: MessageWhereInput | null
+    isNot?: MessageWhereInput | null
+  }
+
   export type MessageCountOrderByAggregateInput = {
     id?: SortOrder
     conversationId?: SortOrder
@@ -32859,6 +32987,7 @@ export namespace Prisma {
     content?: SortOrder
     mediaUrl?: SortOrder
     mediaDuration?: SortOrder
+    replyToId?: SortOrder
     readAt?: SortOrder
     createdAt?: SortOrder
   }
@@ -32875,6 +33004,7 @@ export namespace Prisma {
     content?: SortOrder
     mediaUrl?: SortOrder
     mediaDuration?: SortOrder
+    replyToId?: SortOrder
     readAt?: SortOrder
     createdAt?: SortOrder
   }
@@ -32887,6 +33017,7 @@ export namespace Prisma {
     content?: SortOrder
     mediaUrl?: SortOrder
     mediaDuration?: SortOrder
+    replyToId?: SortOrder
     readAt?: SortOrder
     createdAt?: SortOrder
   }
@@ -34550,6 +34681,26 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type MessageCreateNestedOneWithoutRepliesInput = {
+    create?: XOR<MessageCreateWithoutRepliesInput, MessageUncheckedCreateWithoutRepliesInput>
+    connectOrCreate?: MessageCreateOrConnectWithoutRepliesInput
+    connect?: MessageWhereUniqueInput
+  }
+
+  export type MessageCreateNestedManyWithoutReplyToInput = {
+    create?: XOR<MessageCreateWithoutReplyToInput, MessageUncheckedCreateWithoutReplyToInput> | MessageCreateWithoutReplyToInput[] | MessageUncheckedCreateWithoutReplyToInput[]
+    connectOrCreate?: MessageCreateOrConnectWithoutReplyToInput | MessageCreateOrConnectWithoutReplyToInput[]
+    createMany?: MessageCreateManyReplyToInputEnvelope
+    connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+  }
+
+  export type MessageUncheckedCreateNestedManyWithoutReplyToInput = {
+    create?: XOR<MessageCreateWithoutReplyToInput, MessageUncheckedCreateWithoutReplyToInput> | MessageCreateWithoutReplyToInput[] | MessageUncheckedCreateWithoutReplyToInput[]
+    connectOrCreate?: MessageCreateOrConnectWithoutReplyToInput | MessageCreateOrConnectWithoutReplyToInput[]
+    createMany?: MessageCreateManyReplyToInputEnvelope
+    connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+  }
+
   export type EnumMessageTypeFieldUpdateOperationsInput = {
     set?: $Enums.MessageType
   }
@@ -34568,6 +34719,44 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutSentMessagesInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSentMessagesInput, UserUpdateWithoutSentMessagesInput>, UserUncheckedUpdateWithoutSentMessagesInput>
+  }
+
+  export type MessageUpdateOneWithoutRepliesNestedInput = {
+    create?: XOR<MessageCreateWithoutRepliesInput, MessageUncheckedCreateWithoutRepliesInput>
+    connectOrCreate?: MessageCreateOrConnectWithoutRepliesInput
+    upsert?: MessageUpsertWithoutRepliesInput
+    disconnect?: MessageWhereInput | boolean
+    delete?: MessageWhereInput | boolean
+    connect?: MessageWhereUniqueInput
+    update?: XOR<XOR<MessageUpdateToOneWithWhereWithoutRepliesInput, MessageUpdateWithoutRepliesInput>, MessageUncheckedUpdateWithoutRepliesInput>
+  }
+
+  export type MessageUpdateManyWithoutReplyToNestedInput = {
+    create?: XOR<MessageCreateWithoutReplyToInput, MessageUncheckedCreateWithoutReplyToInput> | MessageCreateWithoutReplyToInput[] | MessageUncheckedCreateWithoutReplyToInput[]
+    connectOrCreate?: MessageCreateOrConnectWithoutReplyToInput | MessageCreateOrConnectWithoutReplyToInput[]
+    upsert?: MessageUpsertWithWhereUniqueWithoutReplyToInput | MessageUpsertWithWhereUniqueWithoutReplyToInput[]
+    createMany?: MessageCreateManyReplyToInputEnvelope
+    set?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    disconnect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    delete?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    update?: MessageUpdateWithWhereUniqueWithoutReplyToInput | MessageUpdateWithWhereUniqueWithoutReplyToInput[]
+    updateMany?: MessageUpdateManyWithWhereWithoutReplyToInput | MessageUpdateManyWithWhereWithoutReplyToInput[]
+    deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
+  }
+
+  export type MessageUncheckedUpdateManyWithoutReplyToNestedInput = {
+    create?: XOR<MessageCreateWithoutReplyToInput, MessageUncheckedCreateWithoutReplyToInput> | MessageCreateWithoutReplyToInput[] | MessageUncheckedCreateWithoutReplyToInput[]
+    connectOrCreate?: MessageCreateOrConnectWithoutReplyToInput | MessageCreateOrConnectWithoutReplyToInput[]
+    upsert?: MessageUpsertWithWhereUniqueWithoutReplyToInput | MessageUpsertWithWhereUniqueWithoutReplyToInput[]
+    createMany?: MessageCreateManyReplyToInputEnvelope
+    set?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    disconnect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    delete?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    update?: MessageUpdateWithWhereUniqueWithoutReplyToInput | MessageUpdateWithWhereUniqueWithoutReplyToInput[]
+    updateMany?: MessageUpdateManyWithWhereWithoutReplyToInput | MessageUpdateManyWithWhereWithoutReplyToInput[]
+    deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -35676,6 +35865,8 @@ export namespace Prisma {
     readAt?: Date | string | null
     createdAt?: Date | string
     conversation: ConversationCreateNestedOneWithoutMessagesInput
+    replyTo?: MessageCreateNestedOneWithoutRepliesInput
+    replies?: MessageCreateNestedManyWithoutReplyToInput
   }
 
   export type MessageUncheckedCreateWithoutSenderInput = {
@@ -35685,8 +35876,10 @@ export namespace Prisma {
     content?: string | null
     mediaUrl?: string | null
     mediaDuration?: number | null
+    replyToId?: string | null
     readAt?: Date | string | null
     createdAt?: Date | string
+    replies?: MessageUncheckedCreateNestedManyWithoutReplyToInput
   }
 
   export type MessageCreateOrConnectWithoutSenderInput = {
@@ -36019,6 +36212,7 @@ export namespace Prisma {
     content?: StringNullableFilter<"Message"> | string | null
     mediaUrl?: StringNullableFilter<"Message"> | string | null
     mediaDuration?: IntNullableFilter<"Message"> | number | null
+    replyToId?: StringNullableFilter<"Message"> | string | null
     readAt?: DateTimeNullableFilter<"Message"> | Date | string | null
     createdAt?: DateTimeFilter<"Message"> | Date | string
   }
@@ -38366,6 +38560,8 @@ export namespace Prisma {
     readAt?: Date | string | null
     createdAt?: Date | string
     sender: UserCreateNestedOneWithoutSentMessagesInput
+    replyTo?: MessageCreateNestedOneWithoutRepliesInput
+    replies?: MessageCreateNestedManyWithoutReplyToInput
   }
 
   export type MessageUncheckedCreateWithoutConversationInput = {
@@ -38375,8 +38571,10 @@ export namespace Prisma {
     content?: string | null
     mediaUrl?: string | null
     mediaDuration?: number | null
+    replyToId?: string | null
     readAt?: Date | string | null
     createdAt?: Date | string
+    replies?: MessageUncheckedCreateNestedManyWithoutReplyToInput
   }
 
   export type MessageCreateOrConnectWithoutConversationInput = {
@@ -38603,6 +38801,73 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutSentMessagesInput, UserUncheckedCreateWithoutSentMessagesInput>
   }
 
+  export type MessageCreateWithoutRepliesInput = {
+    id?: string
+    type?: $Enums.MessageType
+    content?: string | null
+    mediaUrl?: string | null
+    mediaDuration?: number | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+    conversation: ConversationCreateNestedOneWithoutMessagesInput
+    sender: UserCreateNestedOneWithoutSentMessagesInput
+    replyTo?: MessageCreateNestedOneWithoutRepliesInput
+  }
+
+  export type MessageUncheckedCreateWithoutRepliesInput = {
+    id?: string
+    conversationId: string
+    senderId: string
+    type?: $Enums.MessageType
+    content?: string | null
+    mediaUrl?: string | null
+    mediaDuration?: number | null
+    replyToId?: string | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type MessageCreateOrConnectWithoutRepliesInput = {
+    where: MessageWhereUniqueInput
+    create: XOR<MessageCreateWithoutRepliesInput, MessageUncheckedCreateWithoutRepliesInput>
+  }
+
+  export type MessageCreateWithoutReplyToInput = {
+    id?: string
+    type?: $Enums.MessageType
+    content?: string | null
+    mediaUrl?: string | null
+    mediaDuration?: number | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+    conversation: ConversationCreateNestedOneWithoutMessagesInput
+    sender: UserCreateNestedOneWithoutSentMessagesInput
+    replies?: MessageCreateNestedManyWithoutReplyToInput
+  }
+
+  export type MessageUncheckedCreateWithoutReplyToInput = {
+    id?: string
+    conversationId: string
+    senderId: string
+    type?: $Enums.MessageType
+    content?: string | null
+    mediaUrl?: string | null
+    mediaDuration?: number | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+    replies?: MessageUncheckedCreateNestedManyWithoutReplyToInput
+  }
+
+  export type MessageCreateOrConnectWithoutReplyToInput = {
+    where: MessageWhereUniqueInput
+    create: XOR<MessageCreateWithoutReplyToInput, MessageUncheckedCreateWithoutReplyToInput>
+  }
+
+  export type MessageCreateManyReplyToInputEnvelope = {
+    data: MessageCreateManyReplyToInput | MessageCreateManyReplyToInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ConversationUpsertWithoutMessagesInput = {
     update: XOR<ConversationUpdateWithoutMessagesInput, ConversationUncheckedUpdateWithoutMessagesInput>
     create: XOR<ConversationCreateWithoutMessagesInput, ConversationUncheckedCreateWithoutMessagesInput>
@@ -38689,6 +38954,59 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
+  }
+
+  export type MessageUpsertWithoutRepliesInput = {
+    update: XOR<MessageUpdateWithoutRepliesInput, MessageUncheckedUpdateWithoutRepliesInput>
+    create: XOR<MessageCreateWithoutRepliesInput, MessageUncheckedCreateWithoutRepliesInput>
+    where?: MessageWhereInput
+  }
+
+  export type MessageUpdateToOneWithWhereWithoutRepliesInput = {
+    where?: MessageWhereInput
+    data: XOR<MessageUpdateWithoutRepliesInput, MessageUncheckedUpdateWithoutRepliesInput>
+  }
+
+  export type MessageUpdateWithoutRepliesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: ConversationUpdateOneRequiredWithoutMessagesNestedInput
+    sender?: UserUpdateOneRequiredWithoutSentMessagesNestedInput
+    replyTo?: MessageUpdateOneWithoutRepliesNestedInput
+  }
+
+  export type MessageUncheckedUpdateWithoutRepliesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    replyToId?: NullableStringFieldUpdateOperationsInput | string | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MessageUpsertWithWhereUniqueWithoutReplyToInput = {
+    where: MessageWhereUniqueInput
+    update: XOR<MessageUpdateWithoutReplyToInput, MessageUncheckedUpdateWithoutReplyToInput>
+    create: XOR<MessageCreateWithoutReplyToInput, MessageUncheckedCreateWithoutReplyToInput>
+  }
+
+  export type MessageUpdateWithWhereUniqueWithoutReplyToInput = {
+    where: MessageWhereUniqueInput
+    data: XOR<MessageUpdateWithoutReplyToInput, MessageUncheckedUpdateWithoutReplyToInput>
+  }
+
+  export type MessageUpdateManyWithWhereWithoutReplyToInput = {
+    where: MessageScalarWhereInput
+    data: XOR<MessageUpdateManyMutationInput, MessageUncheckedUpdateManyWithoutReplyToInput>
   }
 
   export type QuestionAttemptCreateManyQuizAttemptInput = {
@@ -38842,6 +39160,7 @@ export namespace Prisma {
     content?: string | null
     mediaUrl?: string | null
     mediaDuration?: number | null
+    replyToId?: string | null
     readAt?: Date | string | null
     createdAt?: Date | string
   }
@@ -39149,6 +39468,8 @@ export namespace Prisma {
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversation?: ConversationUpdateOneRequiredWithoutMessagesNestedInput
+    replyTo?: MessageUpdateOneWithoutRepliesNestedInput
+    replies?: MessageUpdateManyWithoutReplyToNestedInput
   }
 
   export type MessageUncheckedUpdateWithoutSenderInput = {
@@ -39158,8 +39479,10 @@ export namespace Prisma {
     content?: NullableStringFieldUpdateOperationsInput | string | null
     mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    replyToId?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    replies?: MessageUncheckedUpdateManyWithoutReplyToNestedInput
   }
 
   export type MessageUncheckedUpdateManyWithoutSenderInput = {
@@ -39169,6 +39492,7 @@ export namespace Prisma {
     content?: NullableStringFieldUpdateOperationsInput | string | null
     mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    replyToId?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -39724,6 +40048,7 @@ export namespace Prisma {
     content?: string | null
     mediaUrl?: string | null
     mediaDuration?: number | null
+    replyToId?: string | null
     readAt?: Date | string | null
     createdAt?: Date | string
   }
@@ -39737,6 +40062,8 @@ export namespace Prisma {
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sender?: UserUpdateOneRequiredWithoutSentMessagesNestedInput
+    replyTo?: MessageUpdateOneWithoutRepliesNestedInput
+    replies?: MessageUpdateManyWithoutReplyToNestedInput
   }
 
   export type MessageUncheckedUpdateWithoutConversationInput = {
@@ -39746,12 +40073,65 @@ export namespace Prisma {
     content?: NullableStringFieldUpdateOperationsInput | string | null
     mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    replyToId?: NullableStringFieldUpdateOperationsInput | string | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    replies?: MessageUncheckedUpdateManyWithoutReplyToNestedInput
   }
 
   export type MessageUncheckedUpdateManyWithoutConversationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    replyToId?: NullableStringFieldUpdateOperationsInput | string | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MessageCreateManyReplyToInput = {
+    id?: string
+    conversationId: string
+    senderId: string
+    type?: $Enums.MessageType
+    content?: string | null
+    mediaUrl?: string | null
+    mediaDuration?: number | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type MessageUpdateWithoutReplyToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: ConversationUpdateOneRequiredWithoutMessagesNestedInput
+    sender?: UserUpdateOneRequiredWithoutSentMessagesNestedInput
+    replies?: MessageUpdateManyWithoutReplyToNestedInput
+  }
+
+  export type MessageUncheckedUpdateWithoutReplyToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    replies?: MessageUncheckedUpdateManyWithoutReplyToNestedInput
+  }
+
+  export type MessageUncheckedUpdateManyWithoutReplyToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
     senderId?: StringFieldUpdateOperationsInput | string
     type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
     content?: NullableStringFieldUpdateOperationsInput | string | null
