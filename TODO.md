@@ -1,4 +1,4 @@
-* Notifications please (testing)
+* Notifications please (done)
 * ability to swipe message and respond to it(testing)
 * Fix online status
 * app emojis
@@ -19,4 +19,5 @@
 * next topic after answering a quiz
 * generate pdf content from the failed questions in the quiz
 * add not in content (from quiz to remove the question)
+* logout
 
