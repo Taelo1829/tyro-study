@@ -160,7 +160,8 @@ exports.Prisma.UserScalarFieldEnum = {
   streakDays: 'streakDays',
   lastVisitDate: 'lastVisitDate',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  lastSeen: 'lastSeen'
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
