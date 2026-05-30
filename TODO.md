@@ -1,6 +1,6 @@
 * Notifications please (done)
-* ability to swipe message and respond to it(testing)
-* Fix online status
+* ability to swipe message and respond to it(done)
+* Fix online status(WIP)
 * app emojis
 * sending different types of documents
 * progress bar on topics and chapters and modules

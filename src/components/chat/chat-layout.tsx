@@ -37,7 +37,6 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
 
   return (
     <div className="flex h-full overflow-hidden rounded-xl border border-border bg-card">
-
       <div className={cn(
         'flex flex-col border-r border-border',
         'w-full lg:w-80 shrink-0',
@@ -114,7 +113,6 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
               </div>
             </div>
 
-            {/* Thread */}
             <div className="flex-1 overflow-hidden">
               <MessageThread
                 conversationId={selected.id}
