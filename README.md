@@ -1,5 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Password reset email
+
+Password-reset links are sent through [Resend](https://resend.com). Add these values to `.env.local` before using the feature:
+
+```env
+RESEND_API_KEY=re_...
+EMAIL_FROM="Tyro Study <no-reply@your-verified-domain.com>"
+NEXTAUTH_URL=https://your-app-url.example
+```
+
 ## Getting Started
 
 First, run the development server:

@@ -1,23 +1,6 @@
 @import "tailwindcss";
 
 :root {
-  --neo-bg: #e4e9f0;
-  --neo-surface: #e4e9f0;
-  --neo-text: #2d3436;
-  --neo-muted: #636e72;
-  --neo-primary: #6c5ce7;
-  --neo-primary-foreground: #ffffff;
-  --neo-accent: #00b894;
-  --neo-shadow-light: #ffffff;
-  --neo-shadow-dark: #b8bec7;
-  --neo-inset-light: #ffffff;
-  --neo-inset-dark: #c5ccd6;
-  --neo-radius: 1rem;
-  --neo-radius-lg: 1.25rem;
-  --neo-radius-xl: 1.5rem;
-}
-
-.dark {
   --neo-bg: #1a1d24;
   --neo-surface: #1a1d24;
   --neo-text: #e8eaed;
@@ -29,6 +12,9 @@
   --neo-shadow-dark: #0f1115;
   --neo-inset-light: #23272f;
   --neo-inset-dark: #0f1115;
+  --neo-radius: 1rem;
+  --neo-radius-lg: 1.25rem;
+  --neo-radius-xl: 1.5rem;
 }
 
 @theme inline {
@@ -50,10 +36,6 @@
 }
 
 html {
-  color-scheme: light;
-}
-
-html.dark {
   color-scheme: dark;
 }
 

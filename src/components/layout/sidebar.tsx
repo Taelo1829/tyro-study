@@ -2,11 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Brain, Moon, Sun } from "lucide-react"
+import { Brain } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MAIN_NAV } from "@/lib/navigation"
-import { useThemeStore } from "@/store/theme-store"
-import { Button } from "@/components/ui/button"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
 import { signOut } from "next-auth/react"
 interface SidebarProps {
@@ -15,7 +13,6 @@ interface SidebarProps {
 
 export function Sidebar({ isAdmin = false }: SidebarProps) {
   const pathname = usePathname()
-  const { mode, toggle } = useThemeStore()
   const unreadChats = useChatUnreadCount()
   const items = MAIN_NAV.filter((item) => !item.adminOnly || isAdmin)
 
@@ -34,6 +31,7 @@ export function Sidebar({ isAdmin = false }: SidebarProps) {
             pathname === item.href || pathname?.startsWith(`${item.href}/`)
           const Icon = item.icon
           if (item.action == "logout") return <span
+            key={item.href}
             onClick={() => signOut({ callbackUrl: "/login" })}
             className={cn(
               "flex items-center gap-3 rounded-[var(--neo-radius)] px-3 py-2.5 text-sm font-medium transition-all",
@@ -76,22 +74,6 @@ export function Sidebar({ isAdmin = false }: SidebarProps) {
         })}
       </nav>
 
-      <div className="mt-4 border-t border-foreground/5 pt-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start gap-2"
-          onClick={toggle}
-          aria-label="Toggle theme"
-        >
-          {mode === "light" ? (
-            <Moon className="h-4 w-4" />
-          ) : (
-            <Sun className="h-4 w-4" />
-          )}
-          {mode === "light" ? "Dark mode" : "Light mode"}
-        </Button>
-      </div>
     </aside>
   )
 }

@@ -14,23 +14,24 @@ export async function POST(request: Request) {
   if (error) return error
 
   const body = await request.json()
-  const { topicId, questions, difficulty } = body as {
+  const { topicId, chapterId, questions, difficulty } = body as {
     topicId?: string
+    chapterId?: string
     questions?: ExtractedQuestion[]
     difficulty?: string
   }
 
-  if (!topicId || !validateExtractedQuestions(questions)) {
+  if ((!topicId && !chapterId) || !validateExtractedQuestions(questions)) {
     return NextResponse.json(
-      { error: "topicId and valid questions array are required" },
+      { error: "topicId or chapterId and a valid questions array are required" },
       { status: 400 }
     )
   }
 
-  const topic = await prisma.topic.findUnique({ where: { id: topicId } })
-  if (!topic) {
+  if (topicId && !(await prisma.topic.findUnique({ where: { id: topicId } }))) {
     return NextResponse.json({ error: "Topic not found" }, { status: 404 })
   }
+  if (chapterId && !(await prisma.chapter.findUnique({ where: { id: chapterId } }))) return NextResponse.json({ error: "Chapter not found" }, { status: 404 })
 
   const created = await runBatched(questions, BULK_BATCH_SIZE, (batch) =>
     prisma.$transaction(
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
         prisma.question.create({
           data: {
             topicId,
+            chapterId,
             question: q.question,
             difficulty: difficulty ?? "medium",
             answers: {

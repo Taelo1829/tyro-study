@@ -12,7 +12,10 @@ export async function GET(_request: Request, { params }: Params) {
       module: { select: { id: true, title: true } },
       topics: {
         orderBy: { order: "asc" },
-        include: { _count: { select: { questions: true } } },
+        include: {
+          _count: { select: { questions: true } },
+          questions: { include: { answers: true }, orderBy: { createdAt: "asc" } },
+        },
       },
     },
   })

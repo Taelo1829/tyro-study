@@ -91,7 +91,7 @@ model User {
   lastVisitDate DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  lastSeen      DateTime
+  lastSeen      DateTime?
 
   accounts               Account[]
   sessions               Session[]

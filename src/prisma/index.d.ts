@@ -6011,7 +6011,7 @@ export namespace Prisma {
     lastVisitDate: Date | null
     createdAt: Date
     updatedAt: Date
-    lastSeen: Date
+    lastSeen: Date | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -6153,7 +6153,7 @@ export namespace Prisma {
       lastVisitDate: Date | null
       createdAt: Date
       updatedAt: Date
-      lastSeen: Date
+      lastSeen: Date | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -28956,7 +28956,7 @@ export namespace Prisma {
     lastVisitDate?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
-    lastSeen?: DateTimeFilter<"User"> | Date | string
+    lastSeen?: DateTimeNullableFilter<"User"> | Date | string | null
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
     userAnswers?: UserAnswerListRelationFilter
@@ -28983,7 +28983,7 @@ export namespace Prisma {
     lastVisitDate?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    lastSeen?: SortOrder
+    lastSeen?: SortOrderInput | SortOrder
     accounts?: AccountOrderByRelationAggregateInput
     sessions?: SessionOrderByRelationAggregateInput
     userAnswers?: UserAnswerOrderByRelationAggregateInput
@@ -29013,7 +29013,7 @@ export namespace Prisma {
     lastVisitDate?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
-    lastSeen?: DateTimeFilter<"User"> | Date | string
+    lastSeen?: DateTimeNullableFilter<"User"> | Date | string | null
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
     userAnswers?: UserAnswerListRelationFilter
@@ -29040,7 +29040,7 @@ export namespace Prisma {
     lastVisitDate?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    lastSeen?: SortOrder
+    lastSeen?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -29063,7 +29063,7 @@ export namespace Prisma {
     lastVisitDate?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
-    lastSeen?: DateTimeWithAggregatesFilter<"User"> | Date | string
+    lastSeen?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   }
 
   export type AccountWhereInput = {
@@ -30481,7 +30481,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -30508,7 +30508,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -30535,7 +30535,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -30562,7 +30562,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
@@ -30589,7 +30589,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -30604,7 +30604,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -30619,7 +30619,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type AccountCreateInput = {
@@ -35099,7 +35099,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -35125,7 +35125,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -35257,7 +35257,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -35283,7 +35283,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
@@ -36262,7 +36262,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
     timetables?: TimetableCreateNestedManyWithoutUserInput
@@ -36288,7 +36288,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
     timetables?: TimetableUncheckedCreateNestedManyWithoutUserInput
@@ -36330,7 +36330,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
     timetables?: TimetableUpdateManyWithoutUserNestedInput
@@ -36356,7 +36356,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
     timetables?: TimetableUncheckedUpdateManyWithoutUserNestedInput
@@ -36382,7 +36382,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
     timetables?: TimetableCreateNestedManyWithoutUserInput
@@ -36408,7 +36408,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
     timetables?: TimetableUncheckedCreateNestedManyWithoutUserInput
@@ -36450,7 +36450,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
     timetables?: TimetableUpdateManyWithoutUserNestedInput
@@ -36476,7 +36476,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
     timetables?: TimetableUncheckedUpdateManyWithoutUserNestedInput
@@ -36697,7 +36697,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -36723,7 +36723,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -36790,7 +36790,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -36816,7 +36816,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
@@ -37690,7 +37690,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     timetables?: TimetableCreateNestedManyWithoutUserInput
@@ -37716,7 +37716,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     timetables?: TimetableUncheckedCreateNestedManyWithoutUserInput
@@ -37804,7 +37804,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     timetables?: TimetableUpdateManyWithoutUserNestedInput
@@ -37830,7 +37830,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     timetables?: TimetableUncheckedUpdateManyWithoutUserNestedInput
@@ -37982,7 +37982,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -38008,7 +38008,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -38075,7 +38075,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -38101,7 +38101,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
@@ -38158,7 +38158,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -38184,7 +38184,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -38226,7 +38226,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -38252,7 +38252,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
@@ -38278,7 +38278,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -38304,7 +38304,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -38335,7 +38335,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -38361,7 +38361,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -38403,7 +38403,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -38429,7 +38429,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
@@ -38466,7 +38466,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -38492,7 +38492,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
@@ -38518,7 +38518,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -38544,7 +38544,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -38575,7 +38575,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -38601,7 +38601,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -38679,7 +38679,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -38705,7 +38705,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
@@ -38742,7 +38742,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -38768,7 +38768,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
@@ -38831,7 +38831,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
@@ -38857,7 +38857,7 @@ export namespace Prisma {
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    lastSeen: Date | string
+    lastSeen?: Date | string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
@@ -38993,7 +38993,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
@@ -39019,7 +39019,7 @@ export namespace Prisma {
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput

@@ -32,6 +32,7 @@ export async function POST(request: Request) {
         name: name ?? null,
         email,
         password: hashed,
+        lastSeen:new Date()
       },
       select: { id: true, email: true, name: true },
     })
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { error: "Registration failed" },
+      { error: "Registration failed for no reason" },
       { status: 500 }
     )
   }
