@@ -39,7 +39,6 @@ export async function POST(request: Request) {
         prisma.question.create({
           data: {
             topicId,
-            chapterId,
             question: q.question,
             difficulty: difficulty ?? "medium",
             answers: {
