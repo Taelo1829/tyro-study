@@ -13,6 +13,7 @@ const buttonVariants = cva(
           "neo-button bg-primary hover:opacity-90",
         ghost: "hover:neo-pressed rounded-[var(--neo-radius)] px-3 py-2",
         inset: "neo-inset text-foreground",
+        outline: ""
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -30,7 +31,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 

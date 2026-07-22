@@ -84,9 +84,6 @@ export default function HomePage() {
               </Button> */}
             </Link>
             <Link href="#features">
-              {/* <Button size="lg" variant="outline" className="text-lg">
-                Learn More
-              </Button> */}
             </Link>
           </div>
           <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
