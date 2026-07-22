@@ -2,11 +2,11 @@
 
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export default function ResetPasswordPage() {
+function ResetPasswordPage() {
   const token = useSearchParams().get("token") ?? ""
   const [password, setPassword] = useState("")
   const [confirmation, setConfirmation] = useState("")
@@ -46,4 +46,11 @@ export default function ResetPasswordPage() {
       {!token && <p className="text-sm text-red-500" role="alert">This reset link is incomplete.</p>}
     </form>}
   </>
+}
+
+
+export default function ResetPasswordPageContainer() {
+  return <Suspense fallback={<div>loading...</div>}>
+    <ResetPasswordPage />
+  </Suspense>
 }
