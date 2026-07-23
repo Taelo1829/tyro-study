@@ -101,10 +101,10 @@ export default function QuizPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+            <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center">
-                    <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-                    <p className="mt-4 text-gray-600">Loading quiz...</p>
+                    <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+                    <p className="mt-4 text-muted-foreground">Loading quiz...</p>
                 </div>
             </div>
         );
@@ -112,12 +112,12 @@ export default function QuizPage() {
 
     if (!topic) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+            <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center">
-                    <p className="text-red-600">Topic not found</p>
+                    <p className="text-red-400">Topic not found</p>
                     <button
                         onClick={() => router.back()}
-                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-neo neo-button hover:opacity-90"
                     >
                         Go Back
                     </button>
@@ -133,36 +133,36 @@ export default function QuizPage() {
 
         if (percentage >= 80) {
             message = "Excellent! You've mastered this topic! 🎉";
-            messageColor = "text-green-600";
+            messageColor = "text-accent";
         } else if (percentage >= 60) {
             message = "Good job! A bit more practice and you'll get it! 📚";
-            messageColor = "text-blue-600";
+            messageColor = "text-primary";
         } else if (percentage >= 40) {
             message = "Not bad! Review the material and try again! 💪";
-            messageColor = "text-yellow-600";
+            messageColor = "text-yellow-400";
         } else {
             message = "Keep studying! Review the topic and take the quiz again! 📖";
-            messageColor = "text-red-600";
+            messageColor = "text-red-400";
         }
 
         return (
-            <div className="min-h-screen py-12 px-4 bg-gradient-to-br from-gray-50 to-gray-100">
+            <div className="min-h-screen py-12 px-4 bg-background">
                 <div className="max-w-3xl mx-auto">
-                    <div className="bg-white rounded-2xl shadow-xl p-8">
+                    <div className="neo-flat p-8">
                         <div className="text-center">
-                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 mb-6">
+                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full neo-pressed mb-6">
                                 <span className="text-4xl">📊</span>
                             </div>
-                            <h1 className="text-3xl font-bold mb-2">Quiz Results</h1>
-                            <p className="text-gray-600 mb-6">{topic.title}</p>
+                            <h1 className="text-3xl font-bold mb-2 text-foreground">Quiz Results</h1>
+                            <p className="text-muted-foreground mb-6">{topic.title}</p>
 
-                            <div className="text-6xl font-bold text-blue-600 mb-4">
+                            <div className="text-6xl font-bold text-primary mb-4">
                                 {score}/{topic.questions.length}
                             </div>
 
-                            <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+                            <div className="w-full neo-inset rounded-full h-3 mb-6">
                                 <div
-                                    className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+                                    className="bg-primary h-3 rounded-full transition-all duration-500"
                                     style={{ width: `${percentage}%` }}
                                 />
                             </div>
@@ -174,13 +174,13 @@ export default function QuizPage() {
                             <div className="flex gap-4 justify-center">
                                 <button
                                     onClick={handleRestart}
-                                    className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-all"
+                                    className="px-6 py-3 bg-primary text-primary-foreground rounded-neo neo-button font-medium hover:opacity-90 transition-all"
                                 >
                                     Take Quiz Again
                                 </button>
                                 <button
                                     onClick={handleBackToTopic}
-                                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition-all"
+                                    className="px-6 py-3 text-foreground rounded-neo neo-button font-medium hover:opacity-90 transition-all"
                                 >
                                     Back to Topic
                                 </button>
@@ -188,8 +188,8 @@ export default function QuizPage() {
                         </div>
 
                         {/* Detailed results */}
-                        <div className="mt-12 border-t pt-8">
-                            <h2 className="text-xl font-bold mb-4">Detailed Review</h2>
+                        <div className="mt-12 border-t border-[var(--neo-shadow-light)] pt-8">
+                            <h2 className="text-xl font-bold mb-4 text-foreground">Detailed Review</h2>
                             <div className="space-y-4">
                                 {topic.questions.map((question, idx) => {
                                     const selectedAnswerId = selectedAnswers[question.id];
@@ -198,20 +198,20 @@ export default function QuizPage() {
                                     const isCorrect = selectedAnswerId === correctAnswer?.id;
 
                                     return (
-                                        <div key={question.id} className="border rounded-lg p-4">
+                                        <div key={question.id} className="neo-inset p-4">
                                             <div className="flex items-start gap-3">
-                                                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${isCorrect ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                                                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${isCorrect ? "bg-green-900/40 text-accent" : "bg-red-900/40 text-red-400"
                                                     }`}>
                                                     {isCorrect ? "✓" : "✗"}
                                                 </div>
                                                 <div className="flex-1">
-                                                    <p className="font-medium mb-2">
+                                                    <p className="font-medium mb-2 text-foreground">
                                                         {idx + 1}. {question.question}
                                                     </p>
-                                                    <div className="text-sm text-gray-600">
+                                                    <div className="text-sm text-muted-foreground">
                                                         <p>Your answer: {selectedAnswer?.answer || "Not answered"}</p>
                                                         {!isCorrect && (
-                                                            <p className="text-green-600 mt-1">
+                                                            <p className="text-accent mt-1">
                                                                 Correct answer: {correctAnswer?.answer}
                                                             </p>
                                                         )}

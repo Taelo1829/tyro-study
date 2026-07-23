@@ -296,7 +296,7 @@ export default function TopicPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="prose prose-slate dark:prose-invert max-w-none">
+                                <div className="prose prose-invert max-w-none">
                                     {topic.content ? (
                                         <div
                                             ref={contentRef}

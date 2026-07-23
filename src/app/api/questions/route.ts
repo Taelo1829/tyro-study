@@ -38,11 +38,8 @@ export async function POST(request: Request) {
       batch.map((q) =>
         prisma.question.create({
           data: {
-            topic: {
-              connect: {
-                id: topicId
-              }
-            },
+            ...(topicId ? { topic: { connect: { id: topicId } } } : {}),
+            ...(chapterId ? { chapter: { connect: { id: chapterId } } } : {}),
             question: q.question,
             difficulty: difficulty ?? "medium",
             answers: {

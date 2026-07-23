@@ -16,12 +16,16 @@ const ACCEPTED_TYPES = [
   "application/vnd.ms-excel",
 ]
 
-function createQuestionsBatch(topicId: string, batch: QuestionImportRow[]) {
+function createQuestionsBatch(
+  parent: { topicId?: string; chapterId?: string },
+  batch: QuestionImportRow[]
+) {
   return prisma.$transaction(
     batch.map((q) =>
       prisma.question.create({
         data: {
-          topicId,
+          ...(parent.topicId ? { topicId: parent.topicId } : {}),
+          ...(parent.chapterId ? { chapterId: parent.chapterId } : {}),
           question: q.question,
           difficulty: q.difficulty,
           answers: {
@@ -45,9 +49,14 @@ export async function POST(request: Request) {
     const formData = await request.formData()
     const file = formData.get("file")
     const topicId = formData.get("topicId")
+    const chapterId = formData.get("chapterId")
 
-    if (!topicId || typeof topicId !== "string") {
-      return NextResponse.json({ error: "topicId is required" }, { status: 400 })
+    const parent: { topicId?: string; chapterId?: string } = {}
+    if (typeof topicId === "string" && topicId) parent.topicId = topicId
+    if (typeof chapterId === "string" && chapterId) parent.chapterId = chapterId
+
+    if (!parent.topicId && !parent.chapterId) {
+      return NextResponse.json({ error: "topicId or chapterId is required" }, { status: 400 })
     }
 
     if (!file || !(file instanceof File)) {
@@ -67,9 +76,17 @@ export async function POST(request: Request) {
       )
     }
 
-    const topic = await prisma.topic.findUnique({ where: { id: topicId } })
-    if (!topic) {
-      return NextResponse.json({ error: "Topic not found" }, { status: 404 })
+    if (parent.topicId) {
+      const topic = await prisma.topic.findUnique({ where: { id: parent.topicId } })
+      if (!topic) {
+        return NextResponse.json({ error: "Topic not found" }, { status: 404 })
+      }
+    }
+    if (parent.chapterId) {
+      const chapter = await prisma.chapter.findUnique({ where: { id: parent.chapterId } })
+      if (!chapter) {
+        return NextResponse.json({ error: "Chapter not found" }, { status: 404 })
+      }
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
@@ -83,7 +100,7 @@ export async function POST(request: Request) {
     }
 
     const created = await runBatched(questions, BULK_BATCH_SIZE, (batch) =>
-      createQuestionsBatch(topicId, batch)
+      createQuestionsBatch(parent, batch)
     )
 
     return NextResponse.json({

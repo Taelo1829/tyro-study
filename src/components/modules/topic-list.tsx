@@ -109,7 +109,7 @@ function TopicRow({
                 {hasFlashcards && (
                     <Link
                         href={`/modules/${moduleId}/chapters/${chapterId}/topics/${topic.id}/flashcards`}
-                        className="px-2.5 py-1 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-medium hover:bg-teal-500/20 transition-colors"
+                        className="px-2.5 py-1 rounded-lg bg-teal-500/10 text-teal-400 text-xs font-medium hover:bg-teal-500/20 transition-colors"
                         onClick={e => e.stopPropagation()}
                     >
                         Cards

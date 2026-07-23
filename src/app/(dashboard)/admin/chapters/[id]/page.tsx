@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ChevronRight, PlayCircle, Plus } from "lucide-react"
+import { ChevronRight, ClipboardList, Plus } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { Button } from "@/components/ui/button"
@@ -54,7 +54,7 @@ export default function AdminChapterDetailPage() {
           ← {chapter.module.title}
         </Link>
         <div className="flex gap-2">
-          {chapter.topics.some((topic) => topic._count.questions > 0) && <Link href={`/modules/${chapter.module.id}/chapters/${chapter.id}/quiz`}><Button variant="outline" size="sm"><PlayCircle className="h-4 w-4" />Preview quiz</Button></Link>}
+          <Link href={`/admin/chapters/${chapter.id}/quiz`}><Button variant="outline" size="sm"><ClipboardList className="h-4 w-4" />Manage quiz</Button></Link>
           <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}><Plus className="h-4 w-4" />New topic</Button>
         </div>
       </div>

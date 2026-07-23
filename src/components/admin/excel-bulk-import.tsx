@@ -5,7 +5,8 @@ import { Download, FileSpreadsheet, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ExcelBulkImportProps {
-  topicId: string
+  topicId?: string
+  chapterId?: string
   type: "questions" | "flashcards"
   onImported: () => void
 }
@@ -33,6 +34,7 @@ const CONFIG = {
 
 export function ExcelBulkImport({
   topicId,
+  chapterId,
   type,
   onImported,
 }: ExcelBulkImportProps) {
@@ -76,7 +78,8 @@ export function ExcelBulkImport({
     try {
       const formData = new FormData()
       formData.append("file", file)
-      formData.append("topicId", topicId)
+      if (topicId) formData.append("topicId", topicId)
+      if (chapterId) formData.append("chapterId", chapterId)
 
       const res = await fetch(cfg.importUrl, {
         method: "POST",

@@ -143,14 +143,14 @@ export function UserDirectory({ currentUserId, onRequestSent }: UserDirectoryPro
                   )}
 
                   {f?.status === 'PENDING' && !f.isSender && (
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium shrink-0">
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 text-xs font-medium shrink-0">
                       <Clock className="w-3.5 h-3.5" />
                       Requested you
                     </span>
                   )}
 
                   {f?.status === 'ACCEPTED' && (
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-medium shrink-0">
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-medium shrink-0">
                       <UserCheck className="w-3.5 h-3.5" />
                       Friends
                     </span>

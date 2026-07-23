@@ -8,7 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 type Answer = { id: string; answer: string; isCorrect: boolean }
 type Question = { id: string; question: string; answers: Answer[] }
-type Chapter = { title: string; topics: { title: string; questions: Question[] }[] }
+type Chapter = {
+  title: string
+  questions: Question[]
+  topics: { title: string; questions: Question[] }[]
+}
 
 export default function ChapterQuizPage() {
   const { chapterId, id: moduleId } = useParams<{ chapterId: string; id: string }>()
@@ -17,7 +21,12 @@ export default function ChapterQuizPage() {
   const [selected, setSelected] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
   useEffect(() => { fetch(`/api/chapters/${chapterId}`).then(async r => { if (r.ok) setChapter(await r.json()) }) }, [chapterId])
-  const questions = useMemo(() => chapter?.topics.flatMap(topic => topic.questions.map(question => ({ ...question, topic: topic.title }))) ?? [], [chapter])
+  const questions = useMemo(() => {
+    if (!chapter) return []
+    const direct = chapter.questions.map(question => ({ ...question, topic: chapter.title }))
+    const fromTopics = chapter.topics.flatMap(topic => topic.questions.map(question => ({ ...question, topic: topic.title })))
+    return [...direct, ...fromTopics]
+  }, [chapter])
   if (!chapter) return <p className="text-sm text-muted-foreground">Loading chapter quiz…</p>
   if (!questions.length) return <p className="text-sm text-muted-foreground">No questions have been added to this chapter.</p>
   const current = questions[index]
