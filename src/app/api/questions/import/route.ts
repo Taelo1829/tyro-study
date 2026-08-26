@@ -24,12 +24,8 @@ function createQuestionsBatch(
     batch.map((q) =>
       prisma.question.create({
         data: {
-          topic: {
-            connect: {
-              id: parent.topicId
-            }
-          },
-          ...(parent.chapterId ? { chapterId: parent.chapterId } : {}),
+          topicId: parent.topicId,
+          chapterId: parent.chapterId,
           question: q.question,
           difficulty: q.difficulty,
           answers: {

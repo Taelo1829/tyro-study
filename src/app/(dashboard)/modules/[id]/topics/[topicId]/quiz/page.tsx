@@ -235,26 +235,26 @@ export default function QuizPage() {
     const allQuestionsAnswered = topic.questions.every(q => selectedAnswers[q.id]);
 
     return (
-        <div className="min-h-screen py-12 px-4 bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen bg-background px-4 py-12">
             <div className="max-w-4xl mx-auto">
-                {/* Header */}
+              {/* Header */}
                 <div className="mb-8">
                     <button
                         onClick={handleBackToTopic}
-                        className="text-blue-600 hover:text-blue-800 mb-4 inline-flex items-center gap-2"
+                        className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
                     >
                         ← Back to Topic
                     </button>
-                    <div className="bg-white rounded-2xl shadow-xl p-6">
+                    <div className="neo-flat p-6">
                         <div className="flex justify-between items-center mb-4">
-                            <h1 className="text-2xl font-bold">{topic.title}</h1>
-                            <span className="text-sm text-gray-500">
+                            <h1 className="text-2xl font-bold text-foreground">{topic.title}</h1>
+                            <span className="text-sm text-muted-foreground">
                                 Question {currentQuestionIndex + 1} of {topic.questions.length}
                             </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="neo-inset h-2 w-full overflow-hidden rounded-full">
                             <div
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                className="h-2 rounded-full bg-primary transition-all duration-300"
                                 style={{ width: `${((currentQuestionIndex + 1) / topic.questions.length) * 100}%` }}
                             />
                         </div>
@@ -262,12 +262,12 @@ export default function QuizPage() {
                 </div>
 
                 {/* Question Card */}
-                <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+                <div className="neo-flat mb-6 p-8">
                     <div className="mb-6">
-                        <div className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 mb-4">
+                        <div className="neo-pressed mb-4 inline-block rounded-full px-3 py-1 text-xs font-medium text-muted-foreground">
                             {currentQuestion.difficulty.toUpperCase()}
                         </div>
-                        <h2 className="text-xl font-semibold">{currentQuestion.question}</h2>
+                        <h2 className="text-xl font-semibold text-foreground">{currentQuestion.question}</h2>
                     </div>
 
                     {/* Answers */}
@@ -279,16 +279,16 @@ export default function QuizPage() {
                                     key={answer.id}
                                     onClick={() => handleAnswerSelect(currentQuestion.id, answer.id)}
                                     className={`w-full text-left p-4 rounded-xl border-2 transition-all ${isSelected
-                                            ? "border-blue-600 bg-blue-50"
-                                            : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                                    ? "border-primary bg-primary/10"
+                                            : "border-[var(--neo-shadow-light)] hover:bg-[var(--neo-shadow-light)]/30"
                                         }`}
                                 >
                                     <div className="flex items-start gap-3">
-                                        <div className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-blue-600 bg-blue-600" : "border-gray-400"
+                                        <div className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-muted-foreground"
                                             }`}>
-                                            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                                            {isSelected && <div className="h-2 w-2 rounded-full bg-[var(--neo-primary-foreground)]" />}
                                         </div>
-                                        <span className="flex-1">{answer.answer}</span>
+                                        <span className="flex-1 text-foreground">{answer.answer}</span>
                                     </div>
                                 </button>
                             );
@@ -302,8 +302,8 @@ export default function QuizPage() {
                         onClick={handlePrevious}
                         disabled={currentQuestionIndex === 0}
                         className={`px-6 py-3 rounded-xl font-medium transition-all ${currentQuestionIndex === 0
-                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                ? "neo-inset cursor-not-allowed text-muted-foreground"
+                                : "neo-button text-foreground hover:opacity-90"
                             }`}
                     >
                         Previous
@@ -314,8 +314,8 @@ export default function QuizPage() {
                             onClick={handleNext}
                             disabled={!hasSelectedAnswer}
                             className={`px-6 py-3 rounded-xl font-medium transition-all ${hasSelectedAnswer
-                                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    ? "neo-button bg-primary text-primary-foreground hover:opacity-90"
+                                    : "neo-inset cursor-not-allowed text-muted-foreground"
                                 }`}
                         >
                             Next Question
@@ -325,8 +325,8 @@ export default function QuizPage() {
                             onClick={handleSubmit}
                             disabled={!allQuestionsAnswered}
                             className={`px-8 py-3 rounded-xl font-medium transition-all ${allQuestionsAnswered
-                                    ? "bg-green-600 text-white hover:bg-green-700"
-                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    ? "neo-button bg-primary text-primary-foreground hover:opacity-90"
+                                    : "neo-inset cursor-not-allowed text-muted-foreground"
                                 }`}
                         >
                             Submit Quiz
@@ -335,7 +335,7 @@ export default function QuizPage() {
                 </div>
 
                 {/* Progress Indicator */}
-                <div className="mt-6 text-center text-sm text-gray-500">
+                <div className="mt-6 text-center text-sm text-muted-foreground">
                     {Object.keys(selectedAnswers).length} of {topic.questions.length} questions answered
                 </div>
             </div>

@@ -185,8 +185,9 @@ model Chapter {
   order     Int      @default(0)
   createdAt DateTime @default(now())
 
-  module Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  topics Topic[]
+  module    Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  topics    Topic[]
+  questions Question[]
 
   @@index([moduleId])
   @@map("chapters")
@@ -236,17 +237,20 @@ model Assignment_Attempt {
 
 model Question {
   id         String   @id @default(cuid())
-  topicId    String
+  topicId    String?
+  chapterId  String?
   question   String   @db.Text
   difficulty String   @default("medium")
   createdAt  DateTime @default(now())
 
-  topic            Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topic            Topic?            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  chapter          Chapter?          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   answers          Answer[]
   userAnswers      UserAnswer[]
   questionAttempts QuestionAttempt[]
 
   @@index([topicId])
+  @@index([chapterId])
   @@map("questions")
 }
 

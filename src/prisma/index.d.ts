@@ -3068,10 +3068,12 @@ export namespace Prisma {
 
   export type ChapterCountOutputType = {
     topics: number
+    questions: number
   }
 
   export type ChapterCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     topics?: boolean | ChapterCountOutputTypeCountTopicsArgs
+    questions?: boolean | ChapterCountOutputTypeCountQuestionsArgs
   }
 
   // Custom InputTypes
@@ -3090,6 +3092,13 @@ export namespace Prisma {
    */
   export type ChapterCountOutputTypeCountTopicsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TopicWhereInput
+  }
+
+  /**
+   * ChapterCountOutputType without action
+   */
+  export type ChapterCountOutputTypeCountQuestionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: QuestionWhereInput
   }
 
 
@@ -12916,6 +12925,7 @@ export namespace Prisma {
     createdAt?: boolean
     module?: boolean | ModuleDefaultArgs<ExtArgs>
     topics?: boolean | Chapter$topicsArgs<ExtArgs>
+    questions?: boolean | Chapter$questionsArgs<ExtArgs>
     _count?: boolean | ChapterCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["chapter"]>
 
@@ -12949,6 +12959,7 @@ export namespace Prisma {
   export type ChapterInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     module?: boolean | ModuleDefaultArgs<ExtArgs>
     topics?: boolean | Chapter$topicsArgs<ExtArgs>
+    questions?: boolean | Chapter$questionsArgs<ExtArgs>
     _count?: boolean | ChapterCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ChapterIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12963,6 +12974,7 @@ export namespace Prisma {
     objects: {
       module: Prisma.$ModulePayload<ExtArgs>
       topics: Prisma.$TopicPayload<ExtArgs>[]
+      questions: Prisma.$QuestionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -13366,6 +13378,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     module<T extends ModuleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ModuleDefaultArgs<ExtArgs>>): Prisma__ModuleClient<$Result.GetResult<Prisma.$ModulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     topics<T extends Chapter$topicsArgs<ExtArgs> = {}>(args?: Subset<T, Chapter$topicsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    questions<T extends Chapter$questionsArgs<ExtArgs> = {}>(args?: Subset<T, Chapter$questionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$QuestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -13822,6 +13835,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TopicScalarFieldEnum | TopicScalarFieldEnum[]
+  }
+
+  /**
+   * Chapter.questions
+   */
+  export type Chapter$questionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Question
+     */
+    select?: QuestionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Question
+     */
+    omit?: QuestionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: QuestionInclude<ExtArgs> | null
+    where?: QuestionWhereInput
+    orderBy?: QuestionOrderByWithRelationInput | QuestionOrderByWithRelationInput[]
+    cursor?: QuestionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: QuestionScalarFieldEnum | QuestionScalarFieldEnum[]
   }
 
   /**
@@ -17216,6 +17253,7 @@ export namespace Prisma {
   export type QuestionMinAggregateOutputType = {
     id: string | null
     topicId: string | null
+    chapterId: string | null
     question: string | null
     difficulty: string | null
     createdAt: Date | null
@@ -17224,6 +17262,7 @@ export namespace Prisma {
   export type QuestionMaxAggregateOutputType = {
     id: string | null
     topicId: string | null
+    chapterId: string | null
     question: string | null
     difficulty: string | null
     createdAt: Date | null
@@ -17232,6 +17271,7 @@ export namespace Prisma {
   export type QuestionCountAggregateOutputType = {
     id: number
     topicId: number
+    chapterId: number
     question: number
     difficulty: number
     createdAt: number
@@ -17242,6 +17282,7 @@ export namespace Prisma {
   export type QuestionMinAggregateInputType = {
     id?: true
     topicId?: true
+    chapterId?: true
     question?: true
     difficulty?: true
     createdAt?: true
@@ -17250,6 +17291,7 @@ export namespace Prisma {
   export type QuestionMaxAggregateInputType = {
     id?: true
     topicId?: true
+    chapterId?: true
     question?: true
     difficulty?: true
     createdAt?: true
@@ -17258,6 +17300,7 @@ export namespace Prisma {
   export type QuestionCountAggregateInputType = {
     id?: true
     topicId?: true
+    chapterId?: true
     question?: true
     difficulty?: true
     createdAt?: true
@@ -17338,7 +17381,8 @@ export namespace Prisma {
 
   export type QuestionGroupByOutputType = {
     id: string
-    topicId: string
+    topicId: string | null
+    chapterId: string | null
     question: string
     difficulty: string
     createdAt: Date
@@ -17364,10 +17408,12 @@ export namespace Prisma {
   export type QuestionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     topicId?: boolean
+    chapterId?: boolean
     question?: boolean
     difficulty?: boolean
     createdAt?: boolean
-    topic?: boolean | TopicDefaultArgs<ExtArgs>
+    topic?: boolean | Question$topicArgs<ExtArgs>
+    chapter?: boolean | Question$chapterArgs<ExtArgs>
     answers?: boolean | Question$answersArgs<ExtArgs>
     userAnswers?: boolean | Question$userAnswersArgs<ExtArgs>
     questionAttempts?: boolean | Question$questionAttemptsArgs<ExtArgs>
@@ -17377,55 +17423,65 @@ export namespace Prisma {
   export type QuestionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     topicId?: boolean
+    chapterId?: boolean
     question?: boolean
     difficulty?: boolean
     createdAt?: boolean
-    topic?: boolean | TopicDefaultArgs<ExtArgs>
+    topic?: boolean | Question$topicArgs<ExtArgs>
+    chapter?: boolean | Question$chapterArgs<ExtArgs>
   }, ExtArgs["result"]["question"]>
 
   export type QuestionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     topicId?: boolean
+    chapterId?: boolean
     question?: boolean
     difficulty?: boolean
     createdAt?: boolean
-    topic?: boolean | TopicDefaultArgs<ExtArgs>
+    topic?: boolean | Question$topicArgs<ExtArgs>
+    chapter?: boolean | Question$chapterArgs<ExtArgs>
   }, ExtArgs["result"]["question"]>
 
   export type QuestionSelectScalar = {
     id?: boolean
     topicId?: boolean
+    chapterId?: boolean
     question?: boolean
     difficulty?: boolean
     createdAt?: boolean
   }
 
-  export type QuestionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "topicId" | "question" | "difficulty" | "createdAt", ExtArgs["result"]["question"]>
+  export type QuestionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "topicId" | "chapterId" | "question" | "difficulty" | "createdAt", ExtArgs["result"]["question"]>
   export type QuestionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    topic?: boolean | TopicDefaultArgs<ExtArgs>
+    topic?: boolean | Question$topicArgs<ExtArgs>
+    chapter?: boolean | Question$chapterArgs<ExtArgs>
     answers?: boolean | Question$answersArgs<ExtArgs>
     userAnswers?: boolean | Question$userAnswersArgs<ExtArgs>
     questionAttempts?: boolean | Question$questionAttemptsArgs<ExtArgs>
     _count?: boolean | QuestionCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type QuestionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    topic?: boolean | TopicDefaultArgs<ExtArgs>
+    topic?: boolean | Question$topicArgs<ExtArgs>
+    chapter?: boolean | Question$chapterArgs<ExtArgs>
   }
   export type QuestionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    topic?: boolean | TopicDefaultArgs<ExtArgs>
+    topic?: boolean | Question$topicArgs<ExtArgs>
+    chapter?: boolean | Question$chapterArgs<ExtArgs>
   }
 
   export type $QuestionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Question"
     objects: {
-      topic: Prisma.$TopicPayload<ExtArgs>
+      topic: Prisma.$TopicPayload<ExtArgs> | null
+      chapter: Prisma.$ChapterPayload<ExtArgs> | null
       answers: Prisma.$AnswerPayload<ExtArgs>[]
       userAnswers: Prisma.$UserAnswerPayload<ExtArgs>[]
       questionAttempts: Prisma.$QuestionAttemptPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      topicId: string
+      topicId: string | null
+      chapterId: string | null
       question: string
       difficulty: string
       createdAt: Date
@@ -17823,7 +17879,8 @@ export namespace Prisma {
    */
   export interface Prisma__QuestionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    topic<T extends TopicDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TopicDefaultArgs<ExtArgs>>): Prisma__TopicClient<$Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    topic<T extends Question$topicArgs<ExtArgs> = {}>(args?: Subset<T, Question$topicArgs<ExtArgs>>): Prisma__TopicClient<$Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    chapter<T extends Question$chapterArgs<ExtArgs> = {}>(args?: Subset<T, Question$chapterArgs<ExtArgs>>): Prisma__ChapterClient<$Result.GetResult<Prisma.$ChapterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     answers<T extends Question$answersArgs<ExtArgs> = {}>(args?: Subset<T, Question$answersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AnswerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     userAnswers<T extends Question$userAnswersArgs<ExtArgs> = {}>(args?: Subset<T, Question$userAnswersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserAnswerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     questionAttempts<T extends Question$questionAttemptsArgs<ExtArgs> = {}>(args?: Subset<T, Question$questionAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$QuestionAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -17858,6 +17915,7 @@ export namespace Prisma {
   interface QuestionFieldRefs {
     readonly id: FieldRef<"Question", 'String'>
     readonly topicId: FieldRef<"Question", 'String'>
+    readonly chapterId: FieldRef<"Question", 'String'>
     readonly question: FieldRef<"Question", 'String'>
     readonly difficulty: FieldRef<"Question", 'String'>
     readonly createdAt: FieldRef<"Question", 'DateTime'>
@@ -18259,6 +18317,44 @@ export namespace Prisma {
      * Limit how many Questions to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Question.topic
+   */
+  export type Question$topicArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Topic
+     */
+    select?: TopicSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Topic
+     */
+    omit?: TopicOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicInclude<ExtArgs> | null
+    where?: TopicWhereInput
+  }
+
+  /**
+   * Question.chapter
+   */
+  export type Question$chapterArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Chapter
+     */
+    select?: ChapterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Chapter
+     */
+    omit?: ChapterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChapterInclude<ExtArgs> | null
+    where?: ChapterWhereInput
   }
 
   /**
@@ -28464,6 +28560,7 @@ export namespace Prisma {
   export const QuestionScalarFieldEnum: {
     id: 'id',
     topicId: 'topicId',
+    chapterId: 'chapterId',
     question: 'question',
     difficulty: 'difficulty',
     createdAt: 'createdAt'
@@ -29376,6 +29473,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Chapter"> | Date | string
     module?: XOR<ModuleScalarRelationFilter, ModuleWhereInput>
     topics?: TopicListRelationFilter
+    questions?: QuestionListRelationFilter
   }
 
   export type ChapterOrderByWithRelationInput = {
@@ -29386,6 +29484,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     module?: ModuleOrderByWithRelationInput
     topics?: TopicOrderByRelationAggregateInput
+    questions?: QuestionOrderByRelationAggregateInput
   }
 
   export type ChapterWhereUniqueInput = Prisma.AtLeast<{
@@ -29399,6 +29498,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Chapter"> | Date | string
     module?: XOR<ModuleScalarRelationFilter, ModuleWhereInput>
     topics?: TopicListRelationFilter
+    questions?: QuestionListRelationFilter
   }, "id">
 
   export type ChapterOrderByWithAggregationInput = {
@@ -29628,11 +29728,13 @@ export namespace Prisma {
     OR?: QuestionWhereInput[]
     NOT?: QuestionWhereInput | QuestionWhereInput[]
     id?: StringFilter<"Question"> | string
-    topicId?: StringFilter<"Question"> | string
+    topicId?: StringNullableFilter<"Question"> | string | null
+    chapterId?: StringNullableFilter<"Question"> | string | null
     question?: StringFilter<"Question"> | string
     difficulty?: StringFilter<"Question"> | string
     createdAt?: DateTimeFilter<"Question"> | Date | string
-    topic?: XOR<TopicScalarRelationFilter, TopicWhereInput>
+    topic?: XOR<TopicNullableScalarRelationFilter, TopicWhereInput> | null
+    chapter?: XOR<ChapterNullableScalarRelationFilter, ChapterWhereInput> | null
     answers?: AnswerListRelationFilter
     userAnswers?: UserAnswerListRelationFilter
     questionAttempts?: QuestionAttemptListRelationFilter
@@ -29640,11 +29742,13 @@ export namespace Prisma {
 
   export type QuestionOrderByWithRelationInput = {
     id?: SortOrder
-    topicId?: SortOrder
+    topicId?: SortOrderInput | SortOrder
+    chapterId?: SortOrderInput | SortOrder
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
     topic?: TopicOrderByWithRelationInput
+    chapter?: ChapterOrderByWithRelationInput
     answers?: AnswerOrderByRelationAggregateInput
     userAnswers?: UserAnswerOrderByRelationAggregateInput
     questionAttempts?: QuestionAttemptOrderByRelationAggregateInput
@@ -29655,11 +29759,13 @@ export namespace Prisma {
     AND?: QuestionWhereInput | QuestionWhereInput[]
     OR?: QuestionWhereInput[]
     NOT?: QuestionWhereInput | QuestionWhereInput[]
-    topicId?: StringFilter<"Question"> | string
+    topicId?: StringNullableFilter<"Question"> | string | null
+    chapterId?: StringNullableFilter<"Question"> | string | null
     question?: StringFilter<"Question"> | string
     difficulty?: StringFilter<"Question"> | string
     createdAt?: DateTimeFilter<"Question"> | Date | string
-    topic?: XOR<TopicScalarRelationFilter, TopicWhereInput>
+    topic?: XOR<TopicNullableScalarRelationFilter, TopicWhereInput> | null
+    chapter?: XOR<ChapterNullableScalarRelationFilter, ChapterWhereInput> | null
     answers?: AnswerListRelationFilter
     userAnswers?: UserAnswerListRelationFilter
     questionAttempts?: QuestionAttemptListRelationFilter
@@ -29667,7 +29773,8 @@ export namespace Prisma {
 
   export type QuestionOrderByWithAggregationInput = {
     id?: SortOrder
-    topicId?: SortOrder
+    topicId?: SortOrderInput | SortOrder
+    chapterId?: SortOrderInput | SortOrder
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
@@ -29681,7 +29788,8 @@ export namespace Prisma {
     OR?: QuestionScalarWhereWithAggregatesInput[]
     NOT?: QuestionScalarWhereWithAggregatesInput | QuestionScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Question"> | string
-    topicId?: StringWithAggregatesFilter<"Question"> | string
+    topicId?: StringNullableWithAggregatesFilter<"Question"> | string | null
+    chapterId?: StringNullableWithAggregatesFilter<"Question"> | string | null
     question?: StringWithAggregatesFilter<"Question"> | string
     difficulty?: StringWithAggregatesFilter<"Question"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Question"> | Date | string
@@ -30935,6 +31043,7 @@ export namespace Prisma {
     createdAt?: Date | string
     module: ModuleCreateNestedOneWithoutChaptersInput
     topics?: TopicCreateNestedManyWithoutChapterInput
+    questions?: QuestionCreateNestedManyWithoutChapterInput
   }
 
   export type ChapterUncheckedCreateInput = {
@@ -30944,6 +31053,7 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     topics?: TopicUncheckedCreateNestedManyWithoutChapterInput
+    questions?: QuestionUncheckedCreateNestedManyWithoutChapterInput
   }
 
   export type ChapterUpdateInput = {
@@ -30953,6 +31063,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     module?: ModuleUpdateOneRequiredWithoutChaptersNestedInput
     topics?: TopicUpdateManyWithoutChapterNestedInput
+    questions?: QuestionUpdateManyWithoutChapterNestedInput
   }
 
   export type ChapterUncheckedUpdateInput = {
@@ -30962,6 +31073,7 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     topics?: TopicUncheckedUpdateManyWithoutChapterNestedInput
+    questions?: QuestionUncheckedUpdateManyWithoutChapterNestedInput
   }
 
   export type ChapterCreateManyInput = {
@@ -31202,7 +31314,8 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
-    topic: TopicCreateNestedOneWithoutQuestionsInput
+    topic?: TopicCreateNestedOneWithoutQuestionsInput
+    chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     answers?: AnswerCreateNestedManyWithoutQuestionInput
     userAnswers?: UserAnswerCreateNestedManyWithoutQuestionInput
     questionAttempts?: QuestionAttemptCreateNestedManyWithoutQuestionInput
@@ -31210,7 +31323,8 @@ export namespace Prisma {
 
   export type QuestionUncheckedCreateInput = {
     id?: string
-    topicId: string
+    topicId?: string | null
+    chapterId?: string | null
     question: string
     difficulty?: string
     createdAt?: Date | string
@@ -31224,7 +31338,8 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    topic?: TopicUpdateOneRequiredWithoutQuestionsNestedInput
+    topic?: TopicUpdateOneWithoutQuestionsNestedInput
+    chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     answers?: AnswerUpdateManyWithoutQuestionNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutQuestionNestedInput
     questionAttempts?: QuestionAttemptUpdateManyWithoutQuestionNestedInput
@@ -31232,7 +31347,8 @@ export namespace Prisma {
 
   export type QuestionUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    topicId?: StringFieldUpdateOperationsInput | string
+    topicId?: NullableStringFieldUpdateOperationsInput | string | null
+    chapterId?: NullableStringFieldUpdateOperationsInput | string | null
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -31243,7 +31359,8 @@ export namespace Prisma {
 
   export type QuestionCreateManyInput = {
     id?: string
-    topicId: string
+    topicId?: string | null
+    chapterId?: string | null
     question: string
     difficulty?: string
     createdAt?: Date | string
@@ -31258,7 +31375,8 @@ export namespace Prisma {
 
   export type QuestionUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    topicId?: StringFieldUpdateOperationsInput | string
+    topicId?: NullableStringFieldUpdateOperationsInput | string | null
+    chapterId?: NullableStringFieldUpdateOperationsInput | string | null
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32551,7 +32669,17 @@ export namespace Prisma {
     none?: TopicWhereInput
   }
 
+  export type QuestionListRelationFilter = {
+    every?: QuestionWhereInput
+    some?: QuestionWhereInput
+    none?: QuestionWhereInput
+  }
+
   export type TopicOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type QuestionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -32592,12 +32720,6 @@ export namespace Prisma {
     isNot?: ChapterWhereInput
   }
 
-  export type QuestionListRelationFilter = {
-    every?: QuestionWhereInput
-    some?: QuestionWhereInput
-    none?: QuestionWhereInput
-  }
-
   export type FlashcardListRelationFilter = {
     every?: FlashcardWhereInput
     some?: FlashcardWhereInput
@@ -32608,10 +32730,6 @@ export namespace Prisma {
     every?: TopicPdfWhereInput
     some?: TopicPdfWhereInput
     none?: TopicPdfWhereInput
-  }
-
-  export type QuestionOrderByRelationAggregateInput = {
-    _count?: SortOrder
   }
 
   export type FlashcardOrderByRelationAggregateInput = {
@@ -32740,6 +32858,11 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
+  export type ChapterNullableScalarRelationFilter = {
+    is?: ChapterWhereInput | null
+    isNot?: ChapterWhereInput | null
+  }
+
   export type AnswerListRelationFilter = {
     every?: AnswerWhereInput
     some?: AnswerWhereInput
@@ -32753,6 +32876,7 @@ export namespace Prisma {
   export type QuestionCountOrderByAggregateInput = {
     id?: SortOrder
     topicId?: SortOrder
+    chapterId?: SortOrder
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
@@ -32761,6 +32885,7 @@ export namespace Prisma {
   export type QuestionMaxOrderByAggregateInput = {
     id?: SortOrder
     topicId?: SortOrder
+    chapterId?: SortOrder
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
@@ -32769,6 +32894,7 @@ export namespace Prisma {
   export type QuestionMinOrderByAggregateInput = {
     id?: SortOrder
     topicId?: SortOrder
+    chapterId?: SortOrder
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
@@ -34013,11 +34139,25 @@ export namespace Prisma {
     connect?: TopicWhereUniqueInput | TopicWhereUniqueInput[]
   }
 
+  export type QuestionCreateNestedManyWithoutChapterInput = {
+    create?: XOR<QuestionCreateWithoutChapterInput, QuestionUncheckedCreateWithoutChapterInput> | QuestionCreateWithoutChapterInput[] | QuestionUncheckedCreateWithoutChapterInput[]
+    connectOrCreate?: QuestionCreateOrConnectWithoutChapterInput | QuestionCreateOrConnectWithoutChapterInput[]
+    createMany?: QuestionCreateManyChapterInputEnvelope
+    connect?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
+  }
+
   export type TopicUncheckedCreateNestedManyWithoutChapterInput = {
     create?: XOR<TopicCreateWithoutChapterInput, TopicUncheckedCreateWithoutChapterInput> | TopicCreateWithoutChapterInput[] | TopicUncheckedCreateWithoutChapterInput[]
     connectOrCreate?: TopicCreateOrConnectWithoutChapterInput | TopicCreateOrConnectWithoutChapterInput[]
     createMany?: TopicCreateManyChapterInputEnvelope
     connect?: TopicWhereUniqueInput | TopicWhereUniqueInput[]
+  }
+
+  export type QuestionUncheckedCreateNestedManyWithoutChapterInput = {
+    create?: XOR<QuestionCreateWithoutChapterInput, QuestionUncheckedCreateWithoutChapterInput> | QuestionCreateWithoutChapterInput[] | QuestionUncheckedCreateWithoutChapterInput[]
+    connectOrCreate?: QuestionCreateOrConnectWithoutChapterInput | QuestionCreateOrConnectWithoutChapterInput[]
+    createMany?: QuestionCreateManyChapterInputEnvelope
+    connect?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
   }
 
   export type ModuleUpdateOneRequiredWithoutChaptersNestedInput = {
@@ -34042,6 +34182,20 @@ export namespace Prisma {
     deleteMany?: TopicScalarWhereInput | TopicScalarWhereInput[]
   }
 
+  export type QuestionUpdateManyWithoutChapterNestedInput = {
+    create?: XOR<QuestionCreateWithoutChapterInput, QuestionUncheckedCreateWithoutChapterInput> | QuestionCreateWithoutChapterInput[] | QuestionUncheckedCreateWithoutChapterInput[]
+    connectOrCreate?: QuestionCreateOrConnectWithoutChapterInput | QuestionCreateOrConnectWithoutChapterInput[]
+    upsert?: QuestionUpsertWithWhereUniqueWithoutChapterInput | QuestionUpsertWithWhereUniqueWithoutChapterInput[]
+    createMany?: QuestionCreateManyChapterInputEnvelope
+    set?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
+    disconnect?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
+    delete?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
+    connect?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
+    update?: QuestionUpdateWithWhereUniqueWithoutChapterInput | QuestionUpdateWithWhereUniqueWithoutChapterInput[]
+    updateMany?: QuestionUpdateManyWithWhereWithoutChapterInput | QuestionUpdateManyWithWhereWithoutChapterInput[]
+    deleteMany?: QuestionScalarWhereInput | QuestionScalarWhereInput[]
+  }
+
   export type TopicUncheckedUpdateManyWithoutChapterNestedInput = {
     create?: XOR<TopicCreateWithoutChapterInput, TopicUncheckedCreateWithoutChapterInput> | TopicCreateWithoutChapterInput[] | TopicUncheckedCreateWithoutChapterInput[]
     connectOrCreate?: TopicCreateOrConnectWithoutChapterInput | TopicCreateOrConnectWithoutChapterInput[]
@@ -34054,6 +34208,20 @@ export namespace Prisma {
     update?: TopicUpdateWithWhereUniqueWithoutChapterInput | TopicUpdateWithWhereUniqueWithoutChapterInput[]
     updateMany?: TopicUpdateManyWithWhereWithoutChapterInput | TopicUpdateManyWithWhereWithoutChapterInput[]
     deleteMany?: TopicScalarWhereInput | TopicScalarWhereInput[]
+  }
+
+  export type QuestionUncheckedUpdateManyWithoutChapterNestedInput = {
+    create?: XOR<QuestionCreateWithoutChapterInput, QuestionUncheckedCreateWithoutChapterInput> | QuestionCreateWithoutChapterInput[] | QuestionUncheckedCreateWithoutChapterInput[]
+    connectOrCreate?: QuestionCreateOrConnectWithoutChapterInput | QuestionCreateOrConnectWithoutChapterInput[]
+    upsert?: QuestionUpsertWithWhereUniqueWithoutChapterInput | QuestionUpsertWithWhereUniqueWithoutChapterInput[]
+    createMany?: QuestionCreateManyChapterInputEnvelope
+    set?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
+    disconnect?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
+    delete?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
+    connect?: QuestionWhereUniqueInput | QuestionWhereUniqueInput[]
+    update?: QuestionUpdateWithWhereUniqueWithoutChapterInput | QuestionUpdateWithWhereUniqueWithoutChapterInput[]
+    updateMany?: QuestionUpdateManyWithWhereWithoutChapterInput | QuestionUpdateManyWithWhereWithoutChapterInput[]
+    deleteMany?: QuestionScalarWhereInput | QuestionScalarWhereInput[]
   }
 
   export type ChapterCreateNestedOneWithoutTopicsInput = {
@@ -34262,6 +34430,12 @@ export namespace Prisma {
     connect?: TopicWhereUniqueInput
   }
 
+  export type ChapterCreateNestedOneWithoutQuestionsInput = {
+    create?: XOR<ChapterCreateWithoutQuestionsInput, ChapterUncheckedCreateWithoutQuestionsInput>
+    connectOrCreate?: ChapterCreateOrConnectWithoutQuestionsInput
+    connect?: ChapterWhereUniqueInput
+  }
+
   export type AnswerCreateNestedManyWithoutQuestionInput = {
     create?: XOR<AnswerCreateWithoutQuestionInput, AnswerUncheckedCreateWithoutQuestionInput> | AnswerCreateWithoutQuestionInput[] | AnswerUncheckedCreateWithoutQuestionInput[]
     connectOrCreate?: AnswerCreateOrConnectWithoutQuestionInput | AnswerCreateOrConnectWithoutQuestionInput[]
@@ -34304,12 +34478,24 @@ export namespace Prisma {
     connect?: QuestionAttemptWhereUniqueInput | QuestionAttemptWhereUniqueInput[]
   }
 
-  export type TopicUpdateOneRequiredWithoutQuestionsNestedInput = {
+  export type TopicUpdateOneWithoutQuestionsNestedInput = {
     create?: XOR<TopicCreateWithoutQuestionsInput, TopicUncheckedCreateWithoutQuestionsInput>
     connectOrCreate?: TopicCreateOrConnectWithoutQuestionsInput
     upsert?: TopicUpsertWithoutQuestionsInput
+    disconnect?: TopicWhereInput | boolean
+    delete?: TopicWhereInput | boolean
     connect?: TopicWhereUniqueInput
     update?: XOR<XOR<TopicUpdateToOneWithWhereWithoutQuestionsInput, TopicUpdateWithoutQuestionsInput>, TopicUncheckedUpdateWithoutQuestionsInput>
+  }
+
+  export type ChapterUpdateOneWithoutQuestionsNestedInput = {
+    create?: XOR<ChapterCreateWithoutQuestionsInput, ChapterUncheckedCreateWithoutQuestionsInput>
+    connectOrCreate?: ChapterCreateOrConnectWithoutQuestionsInput
+    upsert?: ChapterUpsertWithoutQuestionsInput
+    disconnect?: ChapterWhereInput | boolean
+    delete?: ChapterWhereInput | boolean
+    connect?: ChapterWhereUniqueInput
+    update?: XOR<XOR<ChapterUpdateToOneWithWhereWithoutQuestionsInput, ChapterUpdateWithoutQuestionsInput>, ChapterUncheckedUpdateWithoutQuestionsInput>
   }
 
   export type AnswerUpdateManyWithoutQuestionNestedInput = {
@@ -35439,14 +35625,16 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
-    topic: TopicCreateNestedOneWithoutQuestionsInput
+    topic?: TopicCreateNestedOneWithoutQuestionsInput
+    chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     answers?: AnswerCreateNestedManyWithoutQuestionInput
     userAnswers?: UserAnswerCreateNestedManyWithoutQuestionInput
   }
 
   export type QuestionUncheckedCreateWithoutQuestionAttemptsInput = {
     id?: string
-    topicId: string
+    topicId?: string | null
+    chapterId?: string | null
     question: string
     difficulty?: string
     createdAt?: Date | string
@@ -35539,14 +35727,16 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    topic?: TopicUpdateOneRequiredWithoutQuestionsNestedInput
+    topic?: TopicUpdateOneWithoutQuestionsNestedInput
+    chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     answers?: AnswerUpdateManyWithoutQuestionNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutQuestionNestedInput
   }
 
   export type QuestionUncheckedUpdateWithoutQuestionAttemptsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    topicId?: StringFieldUpdateOperationsInput | string
+    topicId?: NullableStringFieldUpdateOperationsInput | string | null
+    chapterId?: NullableStringFieldUpdateOperationsInput | string | null
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36496,6 +36686,7 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     topics?: TopicCreateNestedManyWithoutChapterInput
+    questions?: QuestionCreateNestedManyWithoutChapterInput
   }
 
   export type ChapterUncheckedCreateWithoutModuleInput = {
@@ -36504,6 +36695,7 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     topics?: TopicUncheckedCreateNestedManyWithoutChapterInput
+    questions?: QuestionUncheckedCreateNestedManyWithoutChapterInput
   }
 
   export type ChapterCreateOrConnectWithoutModuleInput = {
@@ -36922,6 +37114,38 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type QuestionCreateWithoutChapterInput = {
+    id?: string
+    question: string
+    difficulty?: string
+    createdAt?: Date | string
+    topic?: TopicCreateNestedOneWithoutQuestionsInput
+    answers?: AnswerCreateNestedManyWithoutQuestionInput
+    userAnswers?: UserAnswerCreateNestedManyWithoutQuestionInput
+    questionAttempts?: QuestionAttemptCreateNestedManyWithoutQuestionInput
+  }
+
+  export type QuestionUncheckedCreateWithoutChapterInput = {
+    id?: string
+    topicId?: string | null
+    question: string
+    difficulty?: string
+    createdAt?: Date | string
+    answers?: AnswerUncheckedCreateNestedManyWithoutQuestionInput
+    userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutQuestionInput
+    questionAttempts?: QuestionAttemptUncheckedCreateNestedManyWithoutQuestionInput
+  }
+
+  export type QuestionCreateOrConnectWithoutChapterInput = {
+    where: QuestionWhereUniqueInput
+    create: XOR<QuestionCreateWithoutChapterInput, QuestionUncheckedCreateWithoutChapterInput>
+  }
+
+  export type QuestionCreateManyChapterInputEnvelope = {
+    data: QuestionCreateManyChapterInput | QuestionCreateManyChapterInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ModuleUpsertWithoutChaptersInput = {
     update: XOR<ModuleUpdateWithoutChaptersInput, ModuleUncheckedUpdateWithoutChaptersInput>
     create: XOR<ModuleCreateWithoutChaptersInput, ModuleUncheckedCreateWithoutChaptersInput>
@@ -36982,12 +37206,41 @@ export namespace Prisma {
     assignment?: StringNullableFilter<"Topic"> | string | null
   }
 
+  export type QuestionUpsertWithWhereUniqueWithoutChapterInput = {
+    where: QuestionWhereUniqueInput
+    update: XOR<QuestionUpdateWithoutChapterInput, QuestionUncheckedUpdateWithoutChapterInput>
+    create: XOR<QuestionCreateWithoutChapterInput, QuestionUncheckedCreateWithoutChapterInput>
+  }
+
+  export type QuestionUpdateWithWhereUniqueWithoutChapterInput = {
+    where: QuestionWhereUniqueInput
+    data: XOR<QuestionUpdateWithoutChapterInput, QuestionUncheckedUpdateWithoutChapterInput>
+  }
+
+  export type QuestionUpdateManyWithWhereWithoutChapterInput = {
+    where: QuestionScalarWhereInput
+    data: XOR<QuestionUpdateManyMutationInput, QuestionUncheckedUpdateManyWithoutChapterInput>
+  }
+
+  export type QuestionScalarWhereInput = {
+    AND?: QuestionScalarWhereInput | QuestionScalarWhereInput[]
+    OR?: QuestionScalarWhereInput[]
+    NOT?: QuestionScalarWhereInput | QuestionScalarWhereInput[]
+    id?: StringFilter<"Question"> | string
+    topicId?: StringNullableFilter<"Question"> | string | null
+    chapterId?: StringNullableFilter<"Question"> | string | null
+    question?: StringFilter<"Question"> | string
+    difficulty?: StringFilter<"Question"> | string
+    createdAt?: DateTimeFilter<"Question"> | Date | string
+  }
+
   export type ChapterCreateWithoutTopicsInput = {
     id?: string
     title: string
     order?: number
     createdAt?: Date | string
     module: ModuleCreateNestedOneWithoutChaptersInput
+    questions?: QuestionCreateNestedManyWithoutChapterInput
   }
 
   export type ChapterUncheckedCreateWithoutTopicsInput = {
@@ -36996,6 +37249,7 @@ export namespace Prisma {
     title: string
     order?: number
     createdAt?: Date | string
+    questions?: QuestionUncheckedCreateNestedManyWithoutChapterInput
   }
 
   export type ChapterCreateOrConnectWithoutTopicsInput = {
@@ -37008,6 +37262,7 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     answers?: AnswerCreateNestedManyWithoutQuestionInput
     userAnswers?: UserAnswerCreateNestedManyWithoutQuestionInput
     questionAttempts?: QuestionAttemptCreateNestedManyWithoutQuestionInput
@@ -37015,6 +37270,7 @@ export namespace Prisma {
 
   export type QuestionUncheckedCreateWithoutTopicInput = {
     id?: string
+    chapterId?: string | null
     question: string
     difficulty?: string
     createdAt?: Date | string
@@ -37142,6 +37398,7 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     module?: ModuleUpdateOneRequiredWithoutChaptersNestedInput
+    questions?: QuestionUpdateManyWithoutChapterNestedInput
   }
 
   export type ChapterUncheckedUpdateWithoutTopicsInput = {
@@ -37150,6 +37407,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    questions?: QuestionUncheckedUpdateManyWithoutChapterNestedInput
   }
 
   export type QuestionUpsertWithWhereUniqueWithoutTopicInput = {
@@ -37166,17 +37424,6 @@ export namespace Prisma {
   export type QuestionUpdateManyWithWhereWithoutTopicInput = {
     where: QuestionScalarWhereInput
     data: XOR<QuestionUpdateManyMutationInput, QuestionUncheckedUpdateManyWithoutTopicInput>
-  }
-
-  export type QuestionScalarWhereInput = {
-    AND?: QuestionScalarWhereInput | QuestionScalarWhereInput[]
-    OR?: QuestionScalarWhereInput[]
-    NOT?: QuestionScalarWhereInput | QuestionScalarWhereInput[]
-    id?: StringFilter<"Question"> | string
-    topicId?: StringFilter<"Question"> | string
-    question?: StringFilter<"Question"> | string
-    difficulty?: StringFilter<"Question"> | string
-    createdAt?: DateTimeFilter<"Question"> | Date | string
   }
 
   export type FlashcardUpsertWithWhereUniqueWithoutTopicInput = {
@@ -37349,6 +37596,29 @@ export namespace Prisma {
     create: XOR<TopicCreateWithoutQuestionsInput, TopicUncheckedCreateWithoutQuestionsInput>
   }
 
+  export type ChapterCreateWithoutQuestionsInput = {
+    id?: string
+    title: string
+    order?: number
+    createdAt?: Date | string
+    module: ModuleCreateNestedOneWithoutChaptersInput
+    topics?: TopicCreateNestedManyWithoutChapterInput
+  }
+
+  export type ChapterUncheckedCreateWithoutQuestionsInput = {
+    id?: string
+    moduleId: string
+    title: string
+    order?: number
+    createdAt?: Date | string
+    topics?: TopicUncheckedCreateNestedManyWithoutChapterInput
+  }
+
+  export type ChapterCreateOrConnectWithoutQuestionsInput = {
+    where: ChapterWhereUniqueInput
+    create: XOR<ChapterCreateWithoutQuestionsInput, ChapterUncheckedCreateWithoutQuestionsInput>
+  }
+
   export type AnswerCreateWithoutQuestionInput = {
     id?: string
     answer: string
@@ -37472,6 +37742,35 @@ export namespace Prisma {
     pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
   }
 
+  export type ChapterUpsertWithoutQuestionsInput = {
+    update: XOR<ChapterUpdateWithoutQuestionsInput, ChapterUncheckedUpdateWithoutQuestionsInput>
+    create: XOR<ChapterCreateWithoutQuestionsInput, ChapterUncheckedCreateWithoutQuestionsInput>
+    where?: ChapterWhereInput
+  }
+
+  export type ChapterUpdateToOneWithWhereWithoutQuestionsInput = {
+    where?: ChapterWhereInput
+    data: XOR<ChapterUpdateWithoutQuestionsInput, ChapterUncheckedUpdateWithoutQuestionsInput>
+  }
+
+  export type ChapterUpdateWithoutQuestionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    module?: ModuleUpdateOneRequiredWithoutChaptersNestedInput
+    topics?: TopicUpdateManyWithoutChapterNestedInput
+  }
+
+  export type ChapterUncheckedUpdateWithoutQuestionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    moduleId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    topics?: TopicUncheckedUpdateManyWithoutChapterNestedInput
+  }
+
   export type AnswerUpsertWithWhereUniqueWithoutQuestionInput = {
     where: AnswerWhereUniqueInput
     update: XOR<AnswerUpdateWithoutQuestionInput, AnswerUncheckedUpdateWithoutQuestionInput>
@@ -37535,14 +37834,16 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
-    topic: TopicCreateNestedOneWithoutQuestionsInput
+    topic?: TopicCreateNestedOneWithoutQuestionsInput
+    chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     userAnswers?: UserAnswerCreateNestedManyWithoutQuestionInput
     questionAttempts?: QuestionAttemptCreateNestedManyWithoutQuestionInput
   }
 
   export type QuestionUncheckedCreateWithoutAnswersInput = {
     id?: string
-    topicId: string
+    topicId?: string | null
+    chapterId?: string | null
     question: string
     difficulty?: string
     createdAt?: Date | string
@@ -37631,14 +37932,16 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    topic?: TopicUpdateOneRequiredWithoutQuestionsNestedInput
+    topic?: TopicUpdateOneWithoutQuestionsNestedInput
+    chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutQuestionNestedInput
     questionAttempts?: QuestionAttemptUpdateManyWithoutQuestionNestedInput
   }
 
   export type QuestionUncheckedUpdateWithoutAnswersInput = {
     id?: StringFieldUpdateOperationsInput | string
-    topicId?: StringFieldUpdateOperationsInput | string
+    topicId?: NullableStringFieldUpdateOperationsInput | string | null
+    chapterId?: NullableStringFieldUpdateOperationsInput | string | null
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -37740,14 +38043,16 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
-    topic: TopicCreateNestedOneWithoutQuestionsInput
+    topic?: TopicCreateNestedOneWithoutQuestionsInput
+    chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     answers?: AnswerCreateNestedManyWithoutQuestionInput
     questionAttempts?: QuestionAttemptCreateNestedManyWithoutQuestionInput
   }
 
   export type QuestionUncheckedCreateWithoutUserAnswersInput = {
     id?: string
-    topicId: string
+    topicId?: string | null
+    chapterId?: string | null
     question: string
     difficulty?: string
     createdAt?: Date | string
@@ -37860,14 +38165,16 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    topic?: TopicUpdateOneRequiredWithoutQuestionsNestedInput
+    topic?: TopicUpdateOneWithoutQuestionsNestedInput
+    chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     answers?: AnswerUpdateManyWithoutQuestionNestedInput
     questionAttempts?: QuestionAttemptUpdateManyWithoutQuestionNestedInput
   }
 
   export type QuestionUncheckedUpdateWithoutUserAnswersInput = {
     id?: StringFieldUpdateOperationsInput | string
-    topicId?: StringFieldUpdateOperationsInput | string
+    topicId?: NullableStringFieldUpdateOperationsInput | string | null
+    chapterId?: NullableStringFieldUpdateOperationsInput | string | null
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39618,6 +39925,7 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     topics?: TopicUpdateManyWithoutChapterNestedInput
+    questions?: QuestionUpdateManyWithoutChapterNestedInput
   }
 
   export type ChapterUncheckedUpdateWithoutModuleInput = {
@@ -39626,6 +39934,7 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     topics?: TopicUncheckedUpdateManyWithoutChapterNestedInput
+    questions?: QuestionUncheckedUpdateManyWithoutChapterNestedInput
   }
 
   export type ChapterUncheckedUpdateManyWithoutModuleInput = {
@@ -39739,6 +40048,14 @@ export namespace Prisma {
     assignment?: string | null
   }
 
+  export type QuestionCreateManyChapterInput = {
+    id?: string
+    topicId?: string | null
+    question: string
+    difficulty?: string
+    createdAt?: Date | string
+  }
+
   export type TopicUpdateWithoutChapterInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
@@ -39774,8 +40091,39 @@ export namespace Prisma {
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type QuestionUpdateWithoutChapterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    question?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    topic?: TopicUpdateOneWithoutQuestionsNestedInput
+    answers?: AnswerUpdateManyWithoutQuestionNestedInput
+    userAnswers?: UserAnswerUpdateManyWithoutQuestionNestedInput
+    questionAttempts?: QuestionAttemptUpdateManyWithoutQuestionNestedInput
+  }
+
+  export type QuestionUncheckedUpdateWithoutChapterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    topicId?: NullableStringFieldUpdateOperationsInput | string | null
+    question?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    answers?: AnswerUncheckedUpdateManyWithoutQuestionNestedInput
+    userAnswers?: UserAnswerUncheckedUpdateManyWithoutQuestionNestedInput
+    questionAttempts?: QuestionAttemptUncheckedUpdateManyWithoutQuestionNestedInput
+  }
+
+  export type QuestionUncheckedUpdateManyWithoutChapterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    topicId?: NullableStringFieldUpdateOperationsInput | string | null
+    question?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type QuestionCreateManyTopicInput = {
     id?: string
+    chapterId?: string | null
     question: string
     difficulty?: string
     createdAt?: Date | string
@@ -39816,6 +40164,7 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     answers?: AnswerUpdateManyWithoutQuestionNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutQuestionNestedInput
     questionAttempts?: QuestionAttemptUpdateManyWithoutQuestionNestedInput
@@ -39823,6 +40172,7 @@ export namespace Prisma {
 
   export type QuestionUncheckedUpdateWithoutTopicInput = {
     id?: StringFieldUpdateOperationsInput | string
+    chapterId?: NullableStringFieldUpdateOperationsInput | string | null
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39833,6 +40183,7 @@ export namespace Prisma {
 
   export type QuestionUncheckedUpdateManyWithoutTopicInput = {
     id?: StringFieldUpdateOperationsInput | string
+    chapterId?: NullableStringFieldUpdateOperationsInput | string | null
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

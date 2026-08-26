@@ -60,7 +60,7 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
         }
     }, [value]);
 
-    const bg = "#e4e9f0";
+    const bg = "#1A1D24";
 
     const updateHTML = () => {
         if (editorRef.current) {
@@ -99,7 +99,7 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
     };
 
     const neumorph =
-        "shadow-[6px_6px_12px_rgba(163,177,198,0.6),_-6px_-6px_12px_rgba(255,255,255,0.9)]";
+        "shadow-[6px_6px_12px_#0f1115,_-6px_-6px_12px_#23272f]";
 
     const buttonStyle =
         `px-3 py-2 rounded-xl text-sm transition active:scale-95 ` + neumorph;
@@ -171,7 +171,7 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
                                 }
                             }}
                             placeholder="Paste video URL"
-                            className="min-h-10 flex-1 rounded-xl bg-transparent px-3 py-2 text-sm outline-none shadow-[inset_4px_4px_8px_rgba(163,177,198,0.45),inset_-4px_-4px_8px_rgba(255,255,255,0.85)]"
+                            className="min-h-10 flex-1 rounded-xl bg-transparent px-3 py-2 text-sm outline-none shadow-[inset_4px_4px_8px_#0f1115,inset_-4px_-4px_8px_#23272f]"
                         />
                         <button
                             type="button"
@@ -197,7 +197,7 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
                     style={{
                         backgroundColor: bg,
                         boxShadow:
-                            "inset 6px 6px 12px rgba(163,177,198,0.5), inset -6px -6px 12px rgba(255,255,255,0.8)",
+                            "inset 6px 6px 12px #0f1115, inset -6px -6px 12px #23272f",
                     }}
                 />
             </div>

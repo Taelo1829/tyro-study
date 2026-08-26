@@ -245,6 +245,7 @@ exports.Prisma.Assignment_AttemptScalarFieldEnum = {
 exports.Prisma.QuestionScalarFieldEnum = {
   id: 'id',
   topicId: 'topicId',
+  chapterId: 'chapterId',
   question: 'question',
   difficulty: 'difficulty',
   createdAt: 'createdAt'

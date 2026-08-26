@@ -296,7 +296,7 @@ export default function TopicPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="prose prose-invert max-w-none">
+                                <div className="topic-content">
                                     {topic.content ? (
                                         <div
                                             ref={contentRef}
@@ -463,7 +463,7 @@ export default function TopicPage() {
                         {assignmentSubmissionLoading ? <div>
                             <div>PLEASE WAIT WHILE WE PROCESS YOUR SUBMISSION...</div>
                         </div> : <div>
-                            <div dangerouslySetInnerHTML={{ __html: topic.assignment || "" }}></div>
+                            <div className="topic-content" dangerouslySetInnerHTML={{ __html: topic.assignment || "" }}></div>
                             <div className="py-4">
                                 <div>Add C++ Submission (Please only upload .cpp files e.g main.cpp)</div>
                                 {!file ? <Input type="file" onChange={onFileChange} /> : <div>{file.name}</div>}

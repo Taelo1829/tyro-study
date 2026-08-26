@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: Params) {
           questions: { include: { answers: true }, orderBy: { createdAt: "asc" } },
         },
       },
-      // questions: { include: { answers: true }, orderBy: { createdAt: "asc" } },
+      questions: { include: { answers: true }, orderBy: { createdAt: "asc" } },
     },
   })
 

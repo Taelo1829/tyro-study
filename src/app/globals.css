@@ -118,3 +118,134 @@ body {
   height: 100%;
   border: 0;
 }
+
+/* Rendered rich-text content (topic study material + assignments).
+   Forces the dark neumorphic palette onto injected HTML so it never
+   falls back to the browser's light defaults, and overrides any inline
+   colors the rich-text editor may have produced. */
+.topic-content {
+  color: var(--neo-text);
+  max-width: none;
+  line-height: 1.7;
+  font-size: 0.975rem;
+}
+
+.topic-content * {
+  color: inherit !important;
+}
+
+.topic-content h1,
+.topic-content h2,
+.topic-content h3,
+.topic-content h4 {
+  color: var(--neo-text);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.4em 0 0.6em;
+}
+
+.topic-content h1 {
+  font-size: 1.6rem;
+}
+
+.topic-content h2 {
+  font-size: 1.35rem;
+}
+
+.topic-content h3 {
+  font-size: 1.15rem;
+}
+
+.topic-content h4 {
+  font-size: 1.02rem;
+}
+
+.topic-content p {
+  margin: 0.75rem 0;
+}
+
+.topic-content a {
+  color: var(--neo-primary) !important;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.topic-content a:hover {
+  color: var(--neo-accent) !important;
+}
+
+.topic-content strong {
+  font-weight: 700;
+}
+
+.topic-content ul,
+.topic-content ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.topic-content ul {
+  list-style: disc;
+}
+
+.topic-content ol {
+  list-style: decimal;
+}
+
+.topic-content li {
+  margin: 0.25rem 0;
+}
+
+.topic-content blockquote {
+  border-left: 3px solid var(--neo-primary);
+  margin: 1rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  color: var(--neo-muted);
+}
+
+.topic-content code {
+  font-family: var(--font-geist-mono), monospace;
+  background: var(--neo-inset-dark);
+  padding: 0.15em 0.4em;
+  border-radius: 0.35rem;
+  font-size: 0.875em;
+}
+
+.topic-content pre {
+  background: var(--neo-inset-dark);
+  padding: 1rem;
+  border-radius: var(--neo-radius);
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.topic-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.topic-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--neo-radius);
+  margin: 1rem 0;
+}
+
+.topic-content hr {
+  border: none;
+  border-top: 1px solid var(--neo-shadow-light);
+  margin: 1.5rem 0;
+}
+
+.topic-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.topic-content th,
+.topic-content td {
+  border: 1px solid var(--neo-shadow-light);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
