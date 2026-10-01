@@ -7,6 +7,7 @@ import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { recordDailyVisit } from "@/lib/streak"
+import { listCalendarEvents, type CalendarEventRow } from "@/lib/calendar"
 import Link from "next/link"
 
 const TOPIC_COMPLETION_THRESHOLD = 0.7
@@ -100,6 +101,43 @@ async function getTopicUpNext(userId: string): Promise<TopicUpNext | null> {
   )
 }
 
+// Timetable entries are shown in South African time (SA has no daylight saving)
+const SA_TZ = "Africa/Johannesburg"
+const saTime = new Intl.DateTimeFormat("en-ZA", { timeZone: SA_TZ, hour: "2-digit", minute: "2-digit" })
+const saDay = new Intl.DateTimeFormat("en-ZA", { timeZone: SA_TZ, weekday: "short", day: "numeric", month: "short" })
+
+function startOfTodaySA() {
+  const ymd = new Intl.DateTimeFormat("en-CA", { timeZone: SA_TZ }).format(new Date()) // YYYY-MM-DD
+  return new Date(`${ymd}T00:00:00+02:00`)
+}
+
+async function getTimetableSummary(userId: string) {
+  const todayStart = startOfTodaySA()
+  const tomorrowStart = new Date(todayStart.getTime() + 86_400_000)
+  const inTwoWeeks = new Date(todayStart.getTime() + 15 * 86_400_000)
+  try {
+    const [today, soon] = await Promise.all([
+      listCalendarEvents(userId, todayStart.toISOString(), tomorrowStart.toISOString()),
+      listCalendarEvents(userId, new Date().toISOString(), inTwoWeeks.toISOString()),
+    ])
+    return {
+      today: today.filter(e => !e.completed),
+      dueSoon: soon.filter(e => !e.completed && (e.type === "ASSIGNMENT" || e.type === "EXAM")).slice(0, 4),
+    }
+  } catch (error) {
+    // e.g. the calendar migration hasn't been run yet — don't break the dashboard
+    console.error("Timetable summary failed:", error)
+    return { today: [] as CalendarEventRow[], dueSoon: [] as CalendarEventRow[] }
+  }
+}
+
+function timeLabel(e: CalendarEventRow) {
+  if (e.allDay) return "All day"
+  const start = saTime.format(new Date(e.startAt))
+  if (e.type === "ASSIGNMENT") return `Due ${start}`
+  return e.endAt ? `${start} – ${saTime.format(new Date(e.endAt))}` : start
+}
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
   const userId = session?.user?.id
@@ -108,10 +146,11 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
-  const [studyProgressPercent, currentStreakDays, topicUpNext] = await Promise.all([
+  const [studyProgressPercent, currentStreakDays, topicUpNext, timetable] = await Promise.all([
     getStudyProgressPercent(userId),
     getCurrentStreakDays(userId),
     getTopicUpNext(userId),
+    getTimetableSummary(userId),
   ])
 
   return (
@@ -189,25 +228,66 @@ export default async function DashboardPage() {
           description="From your timetable"
           delay={0.15}
         >
-          <div className="flex items-start gap-3">
-            <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-            <p className="text-sm text-muted-foreground">
-              No sessions planned for today.
-            </p>
-          </div>
+          {timetable.today.length === 0 ? (
+            <Link href="/timetable" className="group flex items-start gap-3">
+              <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <p className="text-sm text-muted-foreground group-hover:text-foreground">
+                Nothing planned for today. Plan a study session →
+              </p>
+            </Link>
+          ) : (
+            <ul className="space-y-2">
+              {timetable.today.slice(0, 4).map(e => (
+                <li key={e.id}>
+                  <Link href="/timetable" className="flex items-center gap-3 rounded-2xl bg-muted px-3 py-2 hover:bg-tint-blue">
+                    <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{e.title}</span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {timeLabel(e)}{e.moduleTitle && ` · ${e.moduleTitle}`}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+              {timetable.today.length > 4 && (
+                <li className="px-1 text-xs text-muted-foreground">+{timetable.today.length - 4} more today</li>
+              )}
+            </ul>
+          )}
         </DashboardWidget>
 
         <DashboardWidget
           title="Upcoming Assignments"
-          description="Due soon"
+          description="Assignments and exams in the next two weeks"
           delay={0.2}
         >
-          <div className="flex items-start gap-3">
-            <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-            <p className="text-sm text-muted-foreground">
-              No assignments due. Add one from the Timetable.
-            </p>
-          </div>
+          {timetable.dueSoon.length === 0 ? (
+            <Link href="/timetable" className="group flex items-start gap-3">
+              <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <p className="text-sm text-muted-foreground group-hover:text-foreground">
+                Nothing due in the next two weeks. Add a due date →
+              </p>
+            </Link>
+          ) : (
+            <ul className="space-y-2">
+              {timetable.dueSoon.map(e => (
+                <li key={e.id}>
+                  <Link href="/timetable" className="flex items-center gap-3 rounded-2xl bg-muted px-3 py-2 hover:bg-orange-50">
+                    <ClipboardList className="h-4 w-4 shrink-0 text-orange" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">
+                        {e.type === "EXAM" ? "Exam: " : ""}{e.title}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {saDay.format(new Date(e.startAt))} · {timeLabel(e)}{e.moduleTitle && ` · ${e.moduleTitle}`}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </DashboardWidget>
       </div>
     </>

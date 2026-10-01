@@ -105,6 +105,7 @@ model User {
   conversationsAsUser1   Conversation[] @relation("ConversationUser1")
   conversationsAsUser2   Conversation[] @relation("ConversationUser2")
   sentMessages           Message[]      @relation("MessageSender")
+  calendarEvents         CalendarEvent[]
   @@map("users")
   
 }
@@ -159,6 +160,7 @@ model Module {
   timetables   Timetable[]
   enrollments  ModuleEnrollment[]
   quizAttempts QuizAttempt[]
+  calendarEvents CalendarEvent[]
 
   @@map("modules")
 }
@@ -312,6 +314,29 @@ model Timetable {
 
   @@index([userId])
   @@map("timetable")
+}
+
+/// Timetable calendar entries: study sessions, assignment due dates, exams, reminders.
+/// type is one of STUDY_SESSION | ASSIGNMENT | EXAM | REMINDER (checked by the API).
+model CalendarEvent {
+  id        String    @id @default(cuid())
+  userId    String
+  moduleId  String?
+  type      String    @default("STUDY_SESSION")
+  title     String
+  notes     String?   @db.Text
+  startAt   DateTime
+  endAt     DateTime?
+  allDay    Boolean   @default(false)
+  completed Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module Module? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+
+  @@index([userId, startAt])
+  @@map("calendar_events")
 }
 
 model Notification {
