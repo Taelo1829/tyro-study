@@ -166,7 +166,7 @@ export function ConversationList({ currentUser, selectedId, onSelect }: Conversa
                   {preview}
                 </p>
                 {conv.unreadCount > 0 && (
-                  <span className="shrink-0 min-w-[18px] h-[18px] rounded-full gradient-primary bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                  <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-orange text-white text-[10px] font-bold flex items-center justify-center px-1">
                     {conv.unreadCount > 99 ? '99+' : conv.unreadCount}
                   </span>
                 )}

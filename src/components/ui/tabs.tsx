@@ -10,20 +10,20 @@ const Tabs = TabsPrimitive.Root
 
 // Tabs List Variants
 const tabsListVariants = cva(
-  "inline-flex items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+  "inline-flex items-center justify-center rounded-[1.75rem] bg-card p-1.5 text-muted-foreground shadow-sm",
   {
     variants: {
       variant: {
-        default: "bg-muted",
+        default: "bg-card",
         outline: "bg-transparent border",
         pills: "bg-transparent gap-2",
         underlined: "bg-transparent border-b rounded-none p-0",
         "soft-rounded": "bg-secondary/50 rounded-xl",
       },
       size: {
-        default: "h-10",
-        sm: "h-8",
-        lg: "h-12",
+        default: "h-auto min-h-12",
+        sm: "h-10",
+        lg: "h-14",
       },
       fullWidth: {
         true: "w-full",
@@ -40,19 +40,19 @@ const tabsListVariants = cva(
 
 // Tabs Trigger Variants
 const tabsTriggerVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm",
   {
     variants: {
       variant: {
-        default: "data-[state=active]:bg-background data-[state=active]:text-foreground",
+        default: "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:text-foreground",
         outline: "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
         pills: "rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
         underlined: "rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none",
         "soft-rounded": "rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
       },
       size: {
-        default: "px-3 py-1.5",
-        sm: "px-2 py-1 text-xs",
+        default: "px-4 py-2",
+        sm: "px-3 py-1 text-xs",
         lg: "px-4 py-2 text-base",
       },
       fullWidth: {
@@ -194,4 +194,4 @@ export const VerticalTabsTrigger = React.forwardRef<
 ))
 VerticalTabsTrigger.displayName = "VerticalTabsTrigger"
 
-export { Tabs, TabsList, TabsTrigger, TabsContent }
+export { Tabs, TabsList, TabsTrigger, TabsContent }

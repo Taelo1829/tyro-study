@@ -62,7 +62,7 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
         }
     }, [value]);
 
-    const bg = "#1A1D24";
+    const bg = "var(--neo-surface)";
 
     const updateHTML = () => {
         if (editorRef.current) {
@@ -101,10 +101,10 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
     };
 
     const neumorph =
-        "shadow-[6px_6px_12px_#0f1115,_-6px_-6px_12px_#23272f]";
+        "shadow-sm ring-1 ring-border";
 
     const buttonStyle =
-        `px-3 py-2 rounded-xl text-sm transition active:scale-95 ` + neumorph;
+        `inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm text-foreground transition hover:bg-muted active:scale-95 ` + neumorph;
 
     return (
         <div
@@ -173,7 +173,7 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
                                 }
                             }}
                             placeholder="Paste video URL"
-                            className="min-h-10 flex-1 rounded-xl bg-transparent px-3 py-2 text-sm outline-none shadow-[inset_4px_4px_8px_#0f1115,inset_-4px_-4px_8px_#23272f]"
+                            className="neo-inset min-h-10 flex-1 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-accent/50"
                         />
                         <button
                             type="button"
@@ -195,12 +195,7 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
                     contentEditable
                     onInput={updateHTML}
                     suppressContentEditableWarning
-                    className="min-h-[250px] p-5 rounded-2xl outline-none"
-                    style={{
-                        backgroundColor: bg,
-                        boxShadow:
-                            "inset 6px 6px 12px #0f1115, inset -6px -6px 12px #23272f",
-                    }}
+                    className="topic-content neo-inset min-h-[250px] rounded-2xl p-5 outline-none focus:ring-2 focus:ring-accent/50"
                 />
             </div>
         </div>

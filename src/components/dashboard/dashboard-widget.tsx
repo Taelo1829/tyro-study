@@ -14,13 +14,23 @@ interface DashboardWidgetProps {
   description?: string
   children: React.ReactNode
   delay?: number
+  /** Pastel panel colour, as in the design's feature cards */
+  tone?: "white" | "blue" | "mint" | "slate"
 }
+
+const TONES = {
+  white: "",
+  blue: "tint-blue shadow-none",
+  mint: "tint-mint shadow-none",
+  slate: "tint-slate shadow-none",
+} as const
 
 export function DashboardWidget({
   title,
   description,
   children,
   delay = 0,
+  tone = "white",
 }: DashboardWidgetProps) {
   return (
     <motion.div
@@ -28,7 +38,7 @@ export function DashboardWidget({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay }}
     >
-      <Card>
+      <Card className={`h-full ${TONES[tone]}`}>
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}

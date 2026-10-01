@@ -20,8 +20,8 @@ export function MobileNav({ isAdmin = false }: MobileNavProps) {
   )
 
   return (
-    <nav className="neo-glass fixed bottom-0 left-0 right-0 z-50 border-t border-foreground/5 px-2 pb-[env(safe-area-inset-bottom)] pt-2 lg:hidden">
-      <ul className="flex items-center justify-around">
+    <nav className="fixed inset-x-3 bottom-3 z-50 pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <ul className="neo-glass flex items-center justify-around rounded-full px-2 py-2 shadow-lg shadow-black/10">
         {items.map((item) => {
           const active =
             pathname === item.href || pathname?.startsWith(`${item.href}/`)
@@ -32,7 +32,7 @@ export function MobileNav({ isAdmin = false }: MobileNavProps) {
                 <button
                   type="button"
                   onClick={() => signOut({ callbackUrl: "/login" })}
-                  className="flex flex-col items-center gap-0.5 rounded-[var(--neo-radius)] px-3 py-1.5 text-[10px] font-medium text-muted-foreground transition-colors"
+                  className="flex flex-col items-center gap-0.5 rounded-full px-3 py-1.5 text-[10px] font-medium text-muted-foreground transition-colors"
                 >
                   <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
@@ -45,14 +45,14 @@ export function MobileNav({ isAdmin = false }: MobileNavProps) {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 rounded-[var(--neo-radius)] px-3 py-1.5 text-[10px] font-medium transition-colors",
-                  active ? "text-primary" : "text-muted-foreground"
+                  "flex flex-col items-center gap-0.5 rounded-full px-3 py-1.5 text-[10px] font-medium transition-colors",
+                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                 )}
               >
                 <span className="relative">
-                  <Icon className={cn("h-5 w-5", active && "scale-110")} />
+                  <Icon className="h-5 w-5" />
                   {item.badge && unreadChats > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                    <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange px-1 text-[10px] font-bold leading-none text-white">
                       {unreadChats > 99 ? "99+" : unreadChats}
                     </span>
                   )}

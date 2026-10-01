@@ -126,6 +126,7 @@ export default async function DashboardPage() {
           title="Study Progress"
           description="Overall completion across modules"
           delay={0}
+          tone="blue"
         >
           <StudyProgressDonut percent={studyProgressPercent} />
         </DashboardWidget>
@@ -134,13 +135,14 @@ export default async function DashboardPage() {
           title="Current Streak"
           description="Consecutive study days"
           delay={0.05}
+          tone="mint"
         >
           <div className="flex items-center gap-4">
-            <div className="neo-pressed flex h-14 w-14 items-center justify-center rounded-full">
-              <Flame className="h-7 w-7 text-accent" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-card">
+              <Flame className="h-7 w-7 text-orange" />
             </div>
             <div>
-              <p className="text-3xl font-bold">{currentStreakDays}</p>
+              <p className="text-4xl font-semibold">{currentStreakDays}</p>
               <p className="text-sm text-muted-foreground">days in a row</p>
             </div>
           </div>

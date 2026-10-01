@@ -15,7 +15,7 @@ export function StudyProgressDonut({ percent = 0 }: { percent?: number }) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--neo-inset-dark)"
+          stroke="rgba(255,255,255,0.75)"
           strokeWidth={stroke}
         />
         <circle
@@ -31,7 +31,7 @@ export function StudyProgressDonut({ percent = 0 }: { percent?: number }) {
           className="transition-all duration-700 ease-out"
         />
       </svg>
-      <p className="text-2xl font-bold text-primary">{percent}%</p>
+      <p className="text-3xl font-semibold text-foreground">{percent}%</p>
       <p className="text-xs text-muted-foreground">Overall progress</p>
     </div>
   )

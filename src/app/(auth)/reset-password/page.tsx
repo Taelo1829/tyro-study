@@ -42,7 +42,7 @@ function ResetPasswordPage() {
       <div><label htmlFor="password" className="mb-1.5 block text-sm font-medium">New password</label><Input id="password" type="password" autoComplete="new-password" minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} /></div>
       <div><label htmlFor="confirmation" className="mb-1.5 block text-sm font-medium">Confirm password</label><Input id="confirmation" type="password" autoComplete="new-password" minLength={8} required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></div>
       {error && <p className="text-sm text-red-500" role="alert">{error}</p>}
-      <Button type="submit" className="w-full" disabled={loading || !token}>{loading ? "Resetting..." : "Reset password"}</Button>
+      <Button type="submit" variant="primary" className="w-full" disabled={loading || !token}>{loading ? "Resetting..." : "Reset password"}</Button>
       {!token && <p className="text-sm text-red-500" role="alert">This reset link is incomplete.</p>}
     </form>}
   </>

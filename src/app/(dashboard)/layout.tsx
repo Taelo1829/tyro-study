@@ -1,7 +1,8 @@
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
-import { Sidebar } from "@/components/layout/sidebar"
+import { recordDailyVisit } from "@/lib/streak"
+import { TopNav } from "@/components/layout/top-nav"
 import { MobileNav } from "@/components/layout/mobile-nav"
 
 export default async function DashboardLayout({
@@ -17,12 +18,20 @@ export default async function DashboardLayout({
 
   const isAdmin = session.user.role === "ADMIN"
 
+  // Count today's visit on any page of the app (not only the dashboard), so
+  // studying straight from a module, quiz or chat link keeps the streak going.
+  // A failure here must never block the page.
+  await recordDailyVisit(session.user.id).catch(error =>
+    console.error("Streak update failed:", error)
+  )
+
   return (
     <div className="min-h-dvh bg-background">
-      <div className="mx-auto flex min-h-dvh max-w-7xl gap-4 p-4 pb-24 lg:pb-4">
-        <Sidebar isAdmin={isAdmin} />
-        <main className="min-w-0 flex-1">{children}</main>
-      </div>
+      <TopNav isAdmin={isAdmin} />
+      {/* pt clears the fixed top nav; pb clears the mobile bottom bar */}
+      <main className="mx-auto min-h-dvh max-w-7xl px-4 pb-28 pt-24 sm:px-6 sm:pt-28 lg:pb-10">
+        {children}
+      </main>
       <MobileNav isAdmin={isAdmin} />
     </div>
   )

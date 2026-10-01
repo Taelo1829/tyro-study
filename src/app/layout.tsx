@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Urbanist } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/components/providers/auth-provider'
 
-const inter = Inter({ subsets: ['latin'] })
+const urbanist = Urbanist({
+  subsets: ['latin'],
+  variable: '--font-urbanist',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Tyro Study - ReImagined Learning',
@@ -21,7 +25,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#000000'
+  themeColor: '#eef1f4'
 }
 
 export default function RootLayout({
@@ -30,13 +34,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={urbanist.variable}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4704249489359180"
           crossOrigin="anonymous"></script>
       </head>
-      <body className={inter.className}>
+      <body className={`${urbanist.className} bg-background text-foreground`}>
         <AuthProvider>
           {children}
           <Toaster />

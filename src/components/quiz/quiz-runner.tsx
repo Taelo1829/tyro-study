@@ -221,8 +221,8 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     )
 
     const primaryButton =
-        "rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground shadow-lg shadow-black/30 transition-all hover:opacity-90 active:scale-[0.98]"
-    const disabledButton = "neo-inset cursor-not-allowed rounded-xl px-6 py-3 font-medium text-muted-foreground"
+        "rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground shadow-lg shadow-black/30 transition-all hover:opacity-90 active:scale-[0.98]"
+    const disabledButton = "neo-inset cursor-not-allowed rounded-full px-6 py-3 font-medium text-muted-foreground"
 
     if (phase === "loading") {
         return (
@@ -243,7 +243,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                     <p className="text-muted-foreground">{error}</p>
                     <button
                         onClick={() => void start()}
-                        className="neo-button mt-4 rounded-xl px-6 py-3 font-medium text-foreground hover:opacity-90"
+                        className="neo-button mt-4 px-6 py-3 font-medium text-foreground hover:opacity-90"
                     >
                         Try again
                     </button>
@@ -258,16 +258,16 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         const percentage = final?.score ?? Math.round((correct / Math.max(total, 1)) * 100)
 
         let message = "Keep studying! Review the material and take the quiz again! 📖"
-        let messageColor = "text-red-400"
+        let messageColor = "text-red-600"
         if (percentage >= 80) {
             message = "Excellent! You've mastered this! 🎉"
-            messageColor = "text-accent"
+            messageColor = "text-green-600"
         } else if (percentage >= 60) {
             message = "Good job! A bit more practice and you'll get it! 📚"
             messageColor = "text-primary"
         } else if (percentage >= 40) {
             message = "Not bad! Review the material and try again! 💪"
-            messageColor = "text-yellow-400"
+            messageColor = "text-amber-600"
         }
 
         // Topics with wrong answers, worst first
@@ -316,7 +316,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
 
                             <div className="neo-inset mb-6 h-3 w-full rounded-full">
                                 <div
-                                    className="h-3 rounded-full bg-primary transition-all duration-500"
+                                    className="h-3 rounded-full bg-accent transition-all duration-500"
                                     style={{ width: `${percentage}%` }}
                                 />
                             </div>
@@ -329,7 +329,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 </button>
                                 <Link
                                     href={backHref}
-                                    className="neo-button rounded-xl px-6 py-3 font-medium text-foreground transition-all hover:opacity-90"
+                                    className="neo-button px-6 py-3 font-medium text-foreground transition-all hover:opacity-90"
                                 >
                                     {backLabel}
                                 </Link>
@@ -337,10 +337,10 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                         </div>
 
                         {showFocusTopics && (
-                            <div className="mt-12 border-t border-[var(--neo-shadow-light)] pt-8">
+                            <div className="mt-12 border-t border-border pt-8">
                                 <h2 className="mb-1 text-xl font-bold text-foreground">Topics to focus on</h2>
                                 {focusTopics.length === 0 ? (
-                                    <p className="text-sm text-accent">You got everything right — no weak topics this time. 🎉</p>
+                                    <p className="text-sm text-green-700">You got everything right — no weak topics this time. 🎉</p>
                                 ) : (
                                     <>
                                         <p className="mb-4 text-sm text-muted-foreground">
@@ -351,7 +351,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                                 const row = (
                                                     <div className="flex items-center justify-between gap-3">
                                                         <span className="font-medium text-foreground">{topic.title}</span>
-                                                        <span className="shrink-0 text-sm text-red-400">
+                                                        <span className="shrink-0 text-sm font-medium text-red-600">
                                                             {topic.wrong} of {topic.total} wrong
                                                         </span>
                                                     </div>
@@ -374,7 +374,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             </div>
                         )}
 
-                        <div className="mt-12 border-t border-[var(--neo-shadow-light)] pt-8">
+                        <div className="mt-12 border-t border-border pt-8">
                             <h2 className="mb-4 text-xl font-bold text-foreground">Detailed Review</h2>
                             <div className="space-y-4">
                                 {questions.map((question, idx) => {
@@ -387,7 +387,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                         <div key={question.id} className="neo-inset p-4">
                                             <div className="flex items-start gap-3">
                                                 <div
-                                                    className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold ${isCorrect ? "bg-green-900/40 text-accent" : "bg-red-900/40 text-red-400"}`}
+                                                    className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold ${isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}
                                                 >
                                                     {isCorrect ? "✓" : "✗"}
                                                 </div>
@@ -398,7 +398,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                                     <div className="text-sm text-muted-foreground">
                                                         <p>Your answer: {result ? yourAnswer?.text ?? "Not answered" : "Not answered"}</p>
                                                         {!isCorrect && correctAnswer && (
-                                                            <p className="mt-1 text-accent">
+                                                            <p className="mt-1 font-medium text-green-700">
                                                                 Correct answer: {correctAnswer.text}
                                                             </p>
                                                         )}
@@ -449,7 +449,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                         </div>
                         <div className="neo-inset h-2 w-full overflow-hidden rounded-full">
                             <div
-                                className="h-2 rounded-full bg-primary transition-all duration-300"
+                                className="h-2 rounded-full bg-accent transition-all duration-300"
                                 style={{ width: `${(answeredCount / questions.length) * 100}%` }}
                             />
                         </div>
@@ -477,18 +477,18 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             const isRightAnswer = answered && option.id === result.correctAnswerId
                             const isWrongPick = answered && isSelected && !result.isCorrect
 
-                            let style = "border-[var(--neo-shadow-light)] hover:bg-[var(--neo-shadow-light)]/30"
-                            if (isRightAnswer) style = "border-green-500 bg-green-500/10"
-                            else if (isWrongPick) style = "border-red-500 bg-red-500/10"
-                            else if (isSelected) style = "border-primary bg-primary/10"
-                            else if (answered) style = "border-[var(--neo-shadow-light)] opacity-60"
+                            let style = "border-border bg-card hover:bg-muted"
+                            if (isRightAnswer) style = "border-green-500 bg-tint-mint"
+                            else if (isWrongPick) style = "border-red-400 bg-red-50"
+                            else if (isSelected) style = "border-accent bg-tint-blue"
+                            else if (answered) style = "border-border bg-card opacity-60"
 
                             return (
                                 <button
                                     key={option.id}
                                     disabled={answered || checking}
                                     onClick={() => setSelected(prev => ({ ...prev, [current.id]: option.id }))}
-                                    className={`w-full rounded-xl border-2 p-4 text-left transition-all ${style} ${answered ? "cursor-default" : ""}`}
+                                    className={`w-full rounded-2xl border-2 p-4 text-left transition-all ${style} ${answered ? "cursor-default" : ""}`}
                                 >
                                     <div className="flex items-start gap-3">
                                         <div
@@ -497,8 +497,8 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                             {isSelected && <div className="h-2 w-2 rounded-full bg-[var(--neo-primary-foreground)]" />}
                                         </div>
                                         <span className="flex-1 text-foreground">{option.text}</span>
-                                        {isRightAnswer && <span className="shrink-0 text-sm font-semibold text-green-400">✓ Correct answer</span>}
-                                        {isWrongPick && <span className="shrink-0 text-sm font-semibold text-red-400">✗ Your answer</span>}
+                                        {isRightAnswer && <span className="shrink-0 text-sm font-semibold text-green-700">✓ Correct answer</span>}
+                                        {isWrongPick && <span className="shrink-0 text-sm font-semibold text-red-600">✗ Your answer</span>}
                                     </div>
                                 </button>
                             )
@@ -508,14 +508,14 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                     {answered && (
                         <div
                             role="status"
-                            className={`mt-6 rounded-xl border-2 p-4 font-semibold ${result.isCorrect ? "border-green-500 bg-green-500/10 text-green-400" : "border-red-500 bg-red-500/10 text-red-400"}`}
+                            className={`mt-6 rounded-2xl border p-4 font-semibold ${result.isCorrect ? "border-green-200 bg-tint-mint text-green-800" : "border-red-200 bg-red-50 text-red-700"}`}
                         >
                             {result.isCorrect ? "✓ Correct! Well done." : "✗ Not quite — the correct answer is highlighted in green."}
                         </div>
                     )}
                 </div>
 
-                {error && <p className="mb-4 text-center text-sm text-red-400" role="alert">{error}</p>}
+                {error && <p className="mb-4 text-center text-sm text-red-600" role="alert">{error}</p>}
 
                 <div className="flex justify-end gap-4">
                     {!answered ? (

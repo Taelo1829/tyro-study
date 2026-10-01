@@ -4,8 +4,8 @@
   "description": "Structured studying with AI-powered quizzes and flashcards",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#e4e9f0",
-  "theme_color": "#6c5ce7",
+  "background_color": "#eef1f4",
+  "theme_color": "#eef1f4",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -19,4 +19,4 @@
       "type": "image/png"
     }
   ]
-}
+}

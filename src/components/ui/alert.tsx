@@ -5,19 +5,19 @@ import { X } from "lucide-react"
 import { Button } from "./button"
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "relative w-full rounded-[var(--neo-radius)] border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
+        default: "border-border bg-card text-foreground",
         destructive:
-          "border-destructive/50 text-destructive [&>svg]:text-destructive",
+          "border-red-200 bg-red-50 text-red-700 [&>svg]:text-red-600",
         success:
-          "border-green-500 bg-green-950/50 text-green-300 [&>svg]:text-green-400",
+          "border-green-200 bg-tint-mint text-green-800 [&>svg]:text-green-600",
         warning:
-          "border-yellow-500 bg-yellow-950/50 text-yellow-300 [&>svg]:text-yellow-400",
+          "border-amber-200 bg-amber-50 text-amber-800 [&>svg]:text-amber-600",
         info:
-          "border-blue-500 bg-blue-950/50 text-blue-300 [&>svg]:text-blue-400",
+          "border-sky-200 bg-tint-blue text-sky-900 [&>svg]:text-sky-600",
       },
       size: {
         default: "p-4",
@@ -168,4 +168,4 @@ export const AlertIcon = {
   ),
 }
 
-export { Alert, AlertTitle, AlertDescription }
+export { Alert, AlertTitle, AlertDescription }

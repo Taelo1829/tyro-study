@@ -47,17 +47,20 @@ export default function AdminModuleDetailPage() {
     <>
       <Header title={mod.title} subtitle="Chapters in this module" />
 
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/admin/modules"
           className="text-sm text-muted-foreground hover:text-primary"
         >
           ← Modules
         </Link>
-        <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4" />
-          New chapter
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <TextbookUploader moduleId={id} onUploaded={load} />
+          <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}>
+            <Plus className="h-4 w-4" />
+            New chapter
+          </Button>
+        </div>
       </div>
 
       {showForm && (
@@ -87,8 +90,6 @@ export default function AdminModuleDetailPage() {
           </CardContent>
         </Card>
       )}
-
-      <TextbookUploader moduleId={id} onUploaded={load} />
 
       <ul className="space-y-3">
         {mod.chapters.map((ch) => (

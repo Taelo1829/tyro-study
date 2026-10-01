@@ -36,7 +36,7 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
   ]
 
   return (
-    <div className="flex h-full overflow-hidden rounded-xl border border-border bg-card">
+    <div className="flex h-full overflow-hidden rounded-[var(--neo-radius-lg)] border border-border bg-card shadow-sm">
       <div className={cn(
         'flex flex-col border-r border-border',
         'w-full lg:w-80 shrink-0',

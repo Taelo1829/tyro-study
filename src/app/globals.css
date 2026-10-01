@@ -1,31 +1,69 @@
 @import "tailwindcss";
 
+/*
+ * Tyro Study theme — light, soft and rounded.
+ * Soft grey canvas, white cards with large radii, near-black for primary
+ * actions/active states, sky blue as the highlight colour, and pale blue /
+ * mint tints for feature panels.
+ *
+ * The --neo-* names are kept so existing class names keep working.
+ */
 :root {
-  --neo-bg: #1a1d24;
-  --neo-surface: #1a1d24;
-  --neo-text: #e8eaed;
-  --neo-muted: #9aa0a6;
-  --neo-primary: #a29bfe;
-  --neo-primary-foreground: #1a1d24;
-  --neo-accent: #55efc4;
-  --neo-shadow-light: #23272f;
-  --neo-shadow-dark: #0f1115;
-  --neo-inset-light: #23272f;
-  --neo-inset-dark: #0f1115;
-  --neo-radius: 1rem;
-  --neo-radius-lg: 1.25rem;
-  --neo-radius-xl: 1.5rem;
+  --neo-bg: #eef1f4;
+  --neo-surface: #ffffff;
+  --neo-surface-soft: #f4f6f8;
+  --neo-text: #16181d;
+  --neo-muted: #6b7280;
+  --neo-border: #e3e7ec;
+  --neo-primary: #16181d;
+  --neo-primary-foreground: #ffffff;
+  --neo-accent: #4cb2f5;
+  --neo-accent-foreground: #ffffff;
+  --neo-orange: #ff6b3d;
+  --neo-tint-blue: #d6eafb;
+  --neo-tint-mint: #dcefe6;
+  --neo-tint-slate: #e2e9ef;
+  --neo-success: #16a34a;
+  --neo-danger: #e5484d;
+  --neo-warning: #d97706;
+
+  /* Kept for older references (borders, chart tracks, code blocks) */
+  --neo-shadow-light: #e3e7ec;
+  --neo-shadow-dark: rgba(22, 24, 29, 0.08);
+  --neo-inset-light: #f4f6f8;
+  --neo-inset-dark: #e9edf1;
+
+  --neo-radius: 1.25rem;
+  --neo-radius-lg: 1.75rem;
+  --neo-radius-xl: 2rem;
 }
 
 @theme inline {
   --color-background: var(--neo-bg);
   --color-foreground: var(--neo-text);
+  --color-card: var(--neo-surface);
+  --color-card-foreground: var(--neo-text);
+  --color-muted: var(--neo-surface-soft);
   --color-muted-foreground: var(--neo-muted);
+  --color-border: var(--neo-border);
+  --color-input: var(--neo-border);
+  --color-ring: var(--neo-accent);
   --color-primary: var(--neo-primary);
   --color-primary-foreground: var(--neo-primary-foreground);
+  --color-secondary: var(--neo-surface-soft);
+  --color-secondary-foreground: var(--neo-text);
   --color-accent: var(--neo-accent);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-accent-foreground: var(--neo-accent-foreground);
+  --color-destructive: var(--neo-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-success: var(--neo-success);
+  --color-sky: var(--neo-accent);
+  --color-orange: var(--neo-orange);
+  --color-tint-blue: var(--neo-tint-blue);
+  --color-tint-mint: var(--neo-tint-mint);
+  --color-tint-slate: var(--neo-tint-slate);
+  --font-sans: var(--font-urbanist, ui-sans-serif), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-neo: var(--neo-radius);
   --radius-neo-lg: var(--neo-radius-lg);
   --radius-neo-xl: var(--neo-radius-xl);
@@ -36,78 +74,101 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   background: var(--neo-bg);
   color: var(--neo-text);
+  font-family: var(--font-sans);
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Neomorphic surfaces */
-.neo-flat {
-  background: var(--neo-surface);
-  border-radius: var(--neo-radius-lg);
-  box-shadow:
-    8px 8px 16px var(--neo-shadow-dark),
-    -8px -8px 16px var(--neo-shadow-light);
-}
+/*
+ * Surfaces. These live in the components layer so Tailwind utilities
+ * (bg-primary, rounded-full, …) on the same element win. Previously they
+ * were unlayered and silently overrode utilities such as bg-primary.
+ */
+@layer components {
+  /* White card */
+  .neo-flat {
+    background: var(--neo-surface);
+    border-radius: var(--neo-radius-lg);
+    box-shadow: 0 1px 2px rgba(22, 24, 29, 0.04), 0 8px 24px -12px rgba(22, 24, 29, 0.08);
+  }
 
-.neo-pressed {
-  background: var(--neo-surface);
-  border-radius: var(--neo-radius-lg);
-  box-shadow:
-    inset 6px 6px 12px var(--neo-inset-dark),
-    inset -6px -6px 12px var(--neo-inset-light);
-}
+  /* Soft grey chip / pill (badges, icon circles, active states) */
+  .neo-pressed {
+    background: var(--neo-surface-soft);
+    border-radius: var(--neo-radius-lg);
+  }
 
-.neo-inset {
-  background: var(--neo-surface);
-  border-radius: var(--neo-radius);
-  box-shadow:
-    inset 4px 4px 8px var(--neo-inset-dark),
-    inset -4px -4px 8px var(--neo-inset-light);
-}
+  /* Recessed field / track (inputs, progress tracks, list rows) */
+  .neo-inset {
+    background: var(--neo-surface-soft);
+    border-radius: var(--neo-radius);
+    box-shadow: inset 0 0 0 1px var(--neo-border);
+  }
 
-.neo-button {
-  background: var(--neo-surface);
-  border-radius: var(--neo-radius);
-  box-shadow:
-    6px 6px 12px var(--neo-shadow-dark),
-    -6px -6px 12px var(--neo-shadow-light);
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  /* White pill button, like the round icon buttons in the design */
+  .neo-button {
+    background: var(--neo-surface);
+    border-radius: 9999px;
+    box-shadow: 0 1px 2px rgba(22, 24, 29, 0.06), inset 0 0 0 1px var(--neo-border);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  }
+
+  .neo-button:hover {
+    background: var(--neo-surface-soft);
+  }
+
+  .neo-button:active {
+    transform: scale(0.97);
+  }
+
+  .neo-glass {
+    background: color-mix(in srgb, var(--neo-surface) 88%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* Highlight fill used by chat avatars, badges and progress bars */
+  .gradient-primary {
+    background: linear-gradient(135deg, #6cc4f8 0%, var(--neo-accent) 100%);
+    color: #ffffff;
+  }
+
+  /* Pastel feature panels */
+  .tint-blue {
+    background: var(--neo-tint-blue);
+  }
+
+  .tint-mint {
+    background: var(--neo-tint-mint);
+  }
+
+  .tint-slate {
+    background: var(--neo-tint-slate);
+  }
 }
 
 #delete {
-  background: rgb(252, 58, 58) !important;
+  background: var(--neo-danger) !important;
   color: #fff;
-  border-radius: var(--neo-radius);
-  box-shadow:
-    6px 6px 12px var(--neo-shadow-dark),
-    -6px -6px 12px var(--neo-shadow-light);
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  border-radius: 9999px;
+  transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
-.neo-button:active {
-  box-shadow:
-    inset 4px 4px 8px var(--neo-inset-dark),
-    inset -4px -4px 8px var(--neo-inset-light);
-  transform: scale(0.98);
-}
-
-.neo-glass {
-  background: color-mix(in srgb, var(--neo-surface) 85%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+#delete:active {
+  transform: scale(0.97);
 }
 
 .topic-video-embed {
   aspect-ratio: 16 / 9;
   margin: 1rem 0;
   overflow: hidden;
-  border-radius: 0.75rem;
+  border-radius: var(--neo-radius);
   background: #000;
 }
 
@@ -120,9 +181,8 @@ body {
 }
 
 /* Rendered rich-text content (topic study material + assignments).
-   Forces the dark neumorphic palette onto injected HTML so it never
-   falls back to the browser's light defaults, and overrides any inline
-   colors the rich-text editor may have produced. */
+   Forces the theme palette onto injected HTML and overrides any inline
+   colours the rich-text editor may have produced. */
 .topic-content {
   color: var(--neo-text);
   max-width: none;
@@ -170,8 +230,12 @@ body {
   text-underline-offset: 2px;
 }
 
+.topic-content a {
+  color: #1d8fd8 !important;
+}
+
 .topic-content a:hover {
-  color: var(--neo-accent) !important;
+  color: var(--neo-text) !important;
 }
 
 .topic-content strong {
@@ -197,14 +261,14 @@ body {
 }
 
 .topic-content blockquote {
-  border-left: 3px solid var(--neo-primary);
+  border-left: 3px solid var(--neo-accent);
   margin: 1rem 0;
   padding: 0.25rem 0 0.25rem 1rem;
   color: var(--neo-muted);
 }
 
 .topic-content code {
-  font-family: var(--font-geist-mono), monospace;
+  font-family: var(--font-mono);
   background: var(--neo-inset-dark);
   padding: 0.15em 0.4em;
   border-radius: 0.35rem;

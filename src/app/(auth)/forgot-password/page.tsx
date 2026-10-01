@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
       </div>
       {message && <p className="text-sm text-green-600" role="status">{message}</p>}
       {error && <p className="text-sm text-red-500" role="alert">{error}</p>}
-      <Button type="submit" className="w-full" disabled={loading}>{loading ? "Sending..." : "Send reset link"}</Button>
+      <Button type="submit" variant="primary" className="w-full" disabled={loading}>{loading ? "Sending..." : "Send reset link"}</Button>
     </form>
     <p className="mt-6 text-center text-sm text-muted-foreground"><Link href="/login" className="font-medium text-primary hover:underline">Back to sign in</Link></p>
   </>

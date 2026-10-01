@@ -1,19 +1,28 @@
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, FileText, Layers, ListTree } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { BookOpen, ChevronRight, FileText, Layers, ListTree, Users } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 
 export default async function AdminPage() {
-  const [moduleCount, chapterCount, topicCount, questionCount] =
+  const [moduleCount, chapterCount, topicCount, questionCount, userCount] =
     await Promise.all([
       prisma.module.count(),
       prisma.chapter.count(),
       prisma.topic.count(),
       prisma.question.count(),
+      prisma.user.count(),
     ])
 
   const links = [
+    {
+      href: "/admin/users",
+      label: "Users",
+      description: "Manage accounts, roles and passwords",
+      icon: Users,
+      count: userCount,
+    },
     {
       href: "/admin/modules",
       label: "Modules",
@@ -48,10 +57,26 @@ export default async function AdminPage() {
     <>
       <Header
         title="Admin"
-        subtitle="Manage content hierarchy and AI extraction"
+        subtitle="Manage users, content and AI extraction"
       />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 flex flex-wrap gap-3">
+        <Button variant="primary" asChild>
+          <Link href="/admin/users">
+            <Users className="h-4 w-4" />
+            Manage users
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link href="/admin/modules">
+            <BookOpen className="h-4 w-4" />
+            Manage modules
+          </Link>
+        </Button>
+      </div>
+
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {links.map((item) => {
           const Icon = item.icon
           return (

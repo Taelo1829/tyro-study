@@ -24,7 +24,7 @@ export default async function ChatPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-8rem)] animate-fade-in">
+    <div className="h-[calc(100dvh-13rem)] sm:h-[calc(100dvh-14rem)] lg:h-[calc(100dvh-9.5rem)]">
       <ChatLayout currentUser={currentUser} />
     </div>
   )
