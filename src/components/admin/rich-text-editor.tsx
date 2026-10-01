@@ -55,7 +55,9 @@ export default function NeumorphicEditor({ value, setHtml }: Props) {
     const [videoError, setVideoError] = useState("");
 
     useEffect(() => {
-        if (editorRef.current) {
+        // Only overwrite the DOM when the value really changed from outside.
+        // Re-assigning innerHTML on every keystroke reset the caret to the start.
+        if (editorRef.current && editorRef.current.innerHTML !== value) {
             editorRef.current.innerHTML = value;
         }
     }, [value]);

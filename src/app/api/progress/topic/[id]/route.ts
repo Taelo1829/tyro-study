@@ -1,66 +1,40 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string; }>; }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const { error, userId } = await requireAuth()
+    if (error) return error
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    })
+    const { id } = await params
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
-    }
-
-    let { id } = await params
-    // Get quiz attempts for this topic
-    const attempts = await prisma.userAnswer.groupBy({
-      by: ['questionId'],
+    // Use the finished quiz attempts for this topic. The old version counted
+    // *questions answered* as "attempts" and divided every correct answer ever
+    // given by the number of questions, so the "best score" could go above 100%.
+    const completedAttempts = await prisma.quizAttempt.findMany({
       where: {
-        userId: user.id,
-        question: {
-          topicId: id,
-        },
+        userId: userId!,
+        topicId: id,
+        status: "COMPLETED",
       },
-      _count: true,
+      select: { score: true, completedAt: true },
+      orderBy: { completedAt: "desc" },
     })
 
-    const completed = attempts.length > 0
-
-    // Calculate best score
-    const questions = await prisma.question.findMany({
-      where: { topicId: id },
-      select: { id: true },
-    })
-
-    const correctAnswers = await prisma.userAnswer.count({
-      where: {
-        userId: user.id,
-        isCorrect: true,
-        question: {
-          topicId: id,
-        },
-      },
-    })
-
-    const bestScore = questions.length > 0
-      ? Math.round((correctAnswers / questions.length) * 100)
-      : 0
+    const bestScore = completedAttempts.reduce(
+      (best, attempt) => Math.max(best, attempt.score ?? 0),
+      0
+    )
 
     return NextResponse.json({
-      completed,
-      quizAttempts: attempts.length,
+      completed: completedAttempts.length > 0,
+      quizAttempts: completedAttempts.length,
       bestScore,
-      lastAttemptAt: null,
+      lastAttemptAt: completedAttempts[0]?.completedAt ?? null,
     })
   } catch (error) {
     console.error("Error fetching progress:", error)

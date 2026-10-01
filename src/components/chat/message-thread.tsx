@@ -14,6 +14,7 @@ import {
 import type { ChatMessage, ChatUser } from './types'
 import type { ChatMessageReply } from './types'
 import { cn } from '@/lib/utils'
+import { toast } from '@/hooks/use-toast'
 
 interface MessageThreadProps {
   conversationId: string
@@ -230,21 +231,34 @@ export function MessageThread({ conversationId, currentUser }: MessageThreadProp
   const replyTo = replyState?.conversationId === conversationId ? replyState.message : null
 
   useEffect(() => {
+    // Ignore responses that arrive after the user has switched to another chat,
+    // otherwise the previous conversation's messages can show up in this one.
+    let cancelled = false
+
     fetch(`/api/chat/messages?conversationId=${conversationId}`)
-      .then(r => r.json())
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error('Failed to load messages'))))
       .then(data => {
-        setMessages(data.messages)
+        if (cancelled) return
+        setMessages(data.messages ?? [])
         setHasMore(data.hasMore)
         setNextCursor(data.nextCursor)
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'instant' }), 50)
         isFirstLoad.current = false
       })
+      .catch(err => console.error(err))
 
     fetch('/api/chat/read', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ conversationId }),
     })
+
+    return () => {
+      cancelled = true
+      setMessages([])
+      setHasMore(false)
+      setNextCursor(null)
+    }
   }, [conversationId])
 
   useEffect(() => {
@@ -329,13 +343,14 @@ export function MessageThread({ conversationId, currentUser }: MessageThreadProp
     mediaDuration?: number
     replyToId?: string
   }) {
+    const temporaryId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`
     const temporaryMessage: ChatMessage = {
-      content: payload.content!,
+      content: payload.content ?? null,
       conversationId: conversationId,
       createdAt: new Date().toISOString(),
-      id: "temporaryId" + new Date(),
-      mediaDuration: payload.mediaDuration!,
-      mediaUrl: payload.mediaUrl!,
+      id: temporaryId,
+      mediaDuration: payload.mediaDuration ?? null,
+      mediaUrl: payload.mediaUrl ?? null,
       replyToId: payload.replyToId ?? null,
       replyTo: replyTo && payload.replyToId === replyTo.id ? toReplyPreview(replyTo) : null,
       readAt: null,
@@ -351,15 +366,30 @@ export function MessageThread({ conversationId, currentUser }: MessageThreadProp
     }
 
     setMessages(prev => [...prev, temporaryMessage])
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
     setSending(true)
     try {
-      await fetch('/api/chat/messages', {
+      const res = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId, ...payload }),
       })
+      if (!res.ok) throw new Error('Failed to send message')
+      const saved: ChatMessage = await res.json()
+
+      // Swap the temporary bubble for the saved message straight away instead of
+      // removing it and waiting for Pusher to add it back — if the Pusher event was
+      // slow or missed, the message used to vanish from the thread.
+      setMessages(prev => {
+        const withoutTemp = prev.filter(m => m.id !== temporaryId)
+        if (withoutTemp.some(m => m.id === saved.id)) return withoutTemp
+        return [...withoutTemp, saved]
+      })
+    } catch (err) {
+      console.error(err)
+      setMessages(prev => prev.filter(m => m.id !== temporaryId))
+      toast.error('Message not sent', 'Check your connection and try again.')
     } finally {
-      setMessages(prev => prev.filter(m => !m.pending))
       setSending(false)
     }
   }

@@ -97,6 +97,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Friendship already exists' }, { status: 409 })
   }
 
+  const receiver = await prisma.user.findUnique({ where: { id: receiverId }, select: { id: true } })
+  if (!receiver) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+
   const friendship = await prisma.friendship.create({
     data: { senderId: session.user.id, receiverId },
     include: {
@@ -104,11 +109,15 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  // Notify receiver in real-time
-  await pusherServer.trigger(userChannel(receiverId), EVENTS.FRIEND_REQUEST, {
-    friendship,
-    sender: friendship.sender,
-  })
+  // Notify receiver in real-time (the request is already saved, so don't fail on a Pusher error)
+  try {
+    await pusherServer.trigger(userChannel(receiverId), EVENTS.FRIEND_REQUEST, {
+      friendship,
+      sender: friendship.sender,
+    })
+  } catch (error) {
+    console.error('Pusher friend-request error:', error)
+  }
 
   return NextResponse.json(friendship, { status: 201 })
 }
@@ -162,11 +171,15 @@ export async function PATCH(req: NextRequest) {
   ])
 
   // Notify sender that request was accepted
-  await pusherServer.trigger(userChannel(friendship.senderId), EVENTS.FRIEND_ACCEPTED, {
-    friendship: updated,
-    friend: friendship.receiver,
-    conversationId: conversation.id,
-  })
+  try {
+    await pusherServer.trigger(userChannel(friendship.senderId), EVENTS.FRIEND_ACCEPTED, {
+      friendship: updated,
+      friend: friendship.receiver,
+      conversationId: conversation.id,
+    })
+  } catch (error) {
+    console.error('Pusher friend-accepted error:', error)
+  }
 
   return NextResponse.json({ friendship: updated, conversationId: conversation.id })
 }

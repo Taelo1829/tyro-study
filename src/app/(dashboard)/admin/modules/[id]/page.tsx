@@ -6,6 +6,7 @@ import { useParams } from "next/navigation"
 import { ChevronRight, Plus } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
+import { TextbookUploader } from "@/components/admin/textbook-uploader"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -86,6 +87,8 @@ export default function AdminModuleDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      <TextbookUploader moduleId={id} onUploaded={load} />
 
       <ul className="space-y-3">
         {mod.chapters.map((ch) => (

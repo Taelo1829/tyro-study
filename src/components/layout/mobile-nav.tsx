@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { MAIN_NAV } from "@/lib/navigation"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
+import { signOut } from "next-auth/react"
 
 interface MobileNavProps {
   isAdmin?: boolean
@@ -25,6 +26,20 @@ export function MobileNav({ isAdmin = false }: MobileNavProps) {
           const active =
             pathname === item.href || pathname?.startsWith(`${item.href}/`)
           const Icon = item.icon
+          if (item.action === "logout") {
+            return (
+              <li key={item.href}>
+                <button
+                  type="button"
+                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  className="flex flex-col items-center gap-0.5 rounded-[var(--neo-radius)] px-3 py-1.5 text-[10px] font-medium text-muted-foreground transition-colors"
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </button>
+              </li>
+            )
+          }
           return (
             <li key={item.href}>
               <Link

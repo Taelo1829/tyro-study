@@ -10,6 +10,8 @@ interface VoiceRecorderProps {
   disabled?: boolean
 }
 
+const MAX_SECONDS = 120
+
 function formatDuration(seconds: number) {
   const m = Math.floor(seconds / 60)
   const s = seconds % 60
@@ -26,23 +28,48 @@ export function VoiceRecorder({ onSend, onCancel, disabled }: VoiceRecorderProps
   const [error, setError] = useState<string | null>(null)
 
   const mediaRef = useRef<MediaRecorder | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const startedAtRef = useRef<number>(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioUrlRef = useRef<string | null>(null)
+  const unmountedRef = useRef(false)
 
-  // Start recording immediately on mount
-  useEffect(() => {
-    startRecording()
-    return () => {
-      timerRef.current && clearInterval(timerRef.current)
-      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current)
+  function clearTimer() {
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
     }
-  }, [])
+  }
+
+  function releaseMicrophone() {
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current = null
+  }
+
+  function stopRecording() {
+    clearTimer()
+    // Work out the length from the start time rather than from React state —
+    // the auto-stop at 2 minutes ran inside an interval whose closure only
+    // ever saw `elapsed === 0`, so long notes were saved as 1 second.
+    const seconds = Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000))
+    setDuration(Math.min(seconds, MAX_SECONDS))
+    if (mediaRef.current && mediaRef.current.state !== 'inactive') {
+      mediaRef.current.stop()
+    }
+  }
 
   async function startRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      if (unmountedRef.current) {
+        // Cancelled while the permission prompt was open
+        stream.getTracks().forEach(t => t.stop())
+        return
+      }
+      streamRef.current = stream
+
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
         : MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')
@@ -56,7 +83,8 @@ export function VoiceRecorder({ onSend, onCancel, disabled }: VoiceRecorderProps
       recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
 
       recorder.onstop = () => {
-        stream.getTracks().forEach(t => t.stop())
+        releaseMicrophone()
+        if (unmountedRef.current) return
         const recorded = new Blob(chunksRef.current, { type: mimeType })
         setBlob(recorded)
         audioUrlRef.current = URL.createObjectURL(recorded)
@@ -71,25 +99,36 @@ export function VoiceRecorder({ onSend, onCancel, disabled }: VoiceRecorderProps
       }
 
       recorder.start(100)
+      startedAtRef.current = Date.now()
 
       timerRef.current = setInterval(() => {
-        setElapsed(s => {
-          if (s >= 119) { stopRecording(); return s }
-          return s + 1
-        })
-      }, 1000)
+        const seconds = Math.floor((Date.now() - startedAtRef.current) / 1000)
+        setElapsed(seconds)
+        if (seconds >= MAX_SECONDS) stopRecording()
+      }, 250)
     } catch {
-      setError('Microphone access denied')
+      if (!unmountedRef.current) setError('Microphone access denied')
     }
   }
 
-  function stopRecording() {
-    timerRef.current && clearInterval(timerRef.current)
-    setDuration(elapsed + 1)
-    if (mediaRef.current) {
-      mediaRef.current.stop()
+  // Start recording immediately on mount
+  useEffect(() => {
+    unmountedRef.current = false
+    startRecording()
+    return () => {
+      // Runs when the recorder is cancelled/closed. Previously the microphone
+      // stream was never stopped here, so the mic stayed on after cancelling.
+      unmountedRef.current = true
+      clearTimer()
+      if (mediaRef.current && mediaRef.current.state !== 'inactive') {
+        mediaRef.current.stop()
+      }
+      releaseMicrophone()
+      audioRef.current?.pause()
+      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current)
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function togglePlay() {
     if (!audioRef.current) return

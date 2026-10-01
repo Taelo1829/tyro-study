@@ -17,7 +17,9 @@ import {
     ArrowLeft,
     PlayCircle,
     FileQuestion,
-    Sparkles
+    Sparkles,
+    FileText,
+    Video
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
@@ -55,6 +57,11 @@ interface Topic {
         id: string
         front: string
         back: string
+    }>
+    pdfs: Array<{
+        id: string
+        title: string
+        url: string
     }>
     assignment?: string
     nextTopic?: string
@@ -98,8 +105,14 @@ export default function TopicPage() {
             try {
                 const response = await fetch(`/api/topics/${topicId}`)
                 if (!response.ok) throw new Error("Failed to fetch topic")
-                const data = await response.json()
+                const data: Topic = await response.json()
                 setTopic(data)
+                // Open the Video tab first when the topic has both a video and PDFs.
+                // (Done here rather than in a separate effect: an effect placed after
+                // the early returns below broke React's rules of hooks and crashed the page.)
+                const dataHasVideo = !!data.content && detectVideoInContent(data.content)
+                const dataHasPdfs = (data.pdfs?.length ?? 0) > 0
+                setActiveTab(dataHasVideo && dataHasPdfs ? "video" : "content")
             } catch (error) {
                 console.error("Error fetching topic:", error)
                 toast.error("Error", "Failed to load topic content")
@@ -132,29 +145,10 @@ export default function TopicPage() {
             return
         }
 
+        // The quiz page creates (and saves) its own attempt. Creating one here as
+        // well left an extra, never-finished attempt behind every time.
         setIsStartingQuiz(true)
-        try {
-            // Create a quiz attempt
-            const response = await fetch("/api/quiz/attempt", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    topicId: topic.id,
-                    questionIds: topic.questions.map(q => q.id),
-                }),
-            })
-
-            if (!response.ok) throw new Error("Failed to start quiz")
-
-            await response.json()
-            // Navigate to quiz page
-            router.push(`/modules/${topic.chapter.module.id}/topics/${topic.id}/quiz`)
-        } catch (error) {
-            console.error("Error starting quiz:", error)
-            toast.error("Error", "Failed to start quiz. Please try again.")
-        } finally {
-            setIsStartingQuiz(false)
-        }
+        router.push(`/modules/${topic.chapter.module.id}/topics/${topic.id}/quiz`)
     }
 
     if (isLoading) {
@@ -184,6 +178,9 @@ export default function TopicPage() {
 
     const hasQuestions = topic.questions?.length > 0
     const hasFlashcards = topic.flashcards?.length > 0
+    const hasPdfs = topic.pdfs?.length > 0
+    const hasVideo = !!topic.content && detectVideoInContent(topic.content)
+    const isAdmin = session?.user?.role === "ADMIN"
 
     const toggle = () => {
         setIsOpen(!isOpen)
@@ -275,6 +272,18 @@ export default function TopicPage() {
                             <BookOpen className="h-4 w-4" />
                             <span>Study Content</span>
                         </TabsTrigger>
+                        {hasVideo && hasPdfs && (
+                            <TabsTrigger value="video" className="space-x-2">
+                                <Video className="h-4 w-4" />
+                                <span>Video</span>
+                            </TabsTrigger>
+                        )}
+                        {hasVideo && hasPdfs && (
+                            <TabsTrigger value="pdf" className="space-x-2">
+                                <FileText className="h-4 w-4" />
+                                <span>PDF</span>
+                            </TabsTrigger>
+                        )}
                         {hasFlashcards && (
                             <TabsTrigger value="flashcards" className="space-x-2">
                                 <Sparkles className="h-4 w-4" />
@@ -300,7 +309,7 @@ export default function TopicPage() {
                                     {topic.content ? (
                                         <div
                                             ref={contentRef}
-                                            dangerouslySetInnerHTML={{ __html: formatContent(topic.content) }}
+                                            dangerouslySetInnerHTML={{ __html: formatContent(hasVideo ? removeVideoFromContent(topic.content) : topic.content) }}
                                         />
                                     ) : (
                                         <p className="text-muted-foreground italic">
@@ -308,7 +317,16 @@ export default function TopicPage() {
                                         </p>
                                     )}
                                 </div>
-                                <TopicPdfReader topicId={topic.id} />
+                                {!hasVideo && hasPdfs && <TopicPdfReader topicId={topic.id} />}
+                                {hasVideo && !hasPdfs && (
+                                    <div className="topic-content mt-6">
+                                        {topic.content ? (
+                                            <div
+                                                dangerouslySetInnerHTML={{ __html: formatContent(extractVideoFromContent(topic.content)) }}
+                                            />
+                                        ) : null}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -334,6 +352,50 @@ export default function TopicPage() {
                         )}
                     </TabsContent>
 
+                    {/* Video Tab */}
+                    {hasVideo && hasPdfs && (
+                        <TabsContent value="video" className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Video Content</CardTitle>
+                                    <CardDescription>
+                                        Watch the video to learn about this topic.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="topic-content">
+                                        {topic.content ? (
+                                            <div
+                                                dangerouslySetInnerHTML={{ __html: formatContent(extractVideoFromContent(topic.content)) }}
+                                            />
+                                        ) : (
+                                            <p className="text-muted-foreground italic">
+                                                No video content available for this topic yet.
+                                            </p>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )}
+
+                    {/* PDF Tab */}
+                    {hasVideo && hasPdfs && (
+                        <TabsContent value="pdf" className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>PDF Content</CardTitle>
+                                    <CardDescription>
+                                        Read through the PDF material for additional context.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <TopicPdfReader topicId={topic.id} />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )}
+
                     {/* Flashcards Tab */}
                     {hasFlashcards && (
                         <TabsContent value="flashcards" className="space-y-6">
@@ -358,7 +420,9 @@ export default function TopicPage() {
                                 <CardTitle>Ready to Test Your Knowledge?</CardTitle>
                                 <CardDescription>
                                     {hasQuestions
-                                        ? `This quiz contains ${topic.questions.length} questions covering all the key concepts.`
+                                        ? topic.questions.length > 10
+                                            ? `Each quiz picks 10 of this topic's ${topic.questions.length} questions, starting with ones you haven't done yet.`
+                                            : `This quiz contains ${topic.questions.length} questions covering all the key concepts.`
                                         : "No questions available for this topic yet."}
                                 </CardDescription>
                             </CardHeader>
@@ -370,11 +434,11 @@ export default function TopicPage() {
                                             <ul className="space-y-2 text-sm">
                                                 <li className="flex items-center gap-2">
                                                     <FileQuestion className="h-4 w-4 text-primary" />
-                                                    <span>{topic.questions.length} multiple-choice questions</span>
+                                                    <span>{Math.min(topic.questions.length, 10)} multiple-choice questions per quiz</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <Clock className="h-4 w-4 text-primary" />
-                                                    <span>No time limit - take your time to answer</span>
+                                                    <span>No time limit — a timer shows how long you take</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <Trophy className="h-4 w-4 text-primary" />
@@ -387,7 +451,7 @@ export default function TopicPage() {
                                             </ul>
                                         </div>
 
-                                        {progress?.quizAttempts && progress?.quizAttempts > 0 && (
+                                        {!!progress && progress.quizAttempts > 0 && (
                                             <Alert>
                                                 <Trophy className="h-4 w-4" />
                                                 <AlertDescription>
@@ -441,11 +505,11 @@ export default function TopicPage() {
                                         <p className="text-muted-foreground">
                                             No questions have been added to this topic yet.
                                         </p>
-                                        {session?.user?.email === "admin@tyrostudy.com" && (
+                                        {isAdmin && (
                                             <Button
                                                 variant="default"
                                                 className="mt-4"
-                                                onClick={() => router.push(`/admin/topics/${topic.id}/questions`)}
+                                                onClick={() => router.push(`/admin/topics/${topic.id}`)}
                                             >
                                                 Add Questions
                                             </Button>
@@ -494,7 +558,7 @@ export default function TopicPage() {
                     </div>
                     <div className="py-4">
                         <Button className="float-end" onClick={toggleAssignment}>Close</Button>
-                        {result?.passed && <Button className="float-end" onClick={navigateToNextTopic}>Next Topic</Button>}
+                        {result?.passed && topic.nextTopic && <Button className="float-end" onClick={navigateToNextTopic}>Next Topic</Button>}
                     </div>
                 </Card>
             </Modal>
@@ -566,4 +630,28 @@ function extractKeyPoint(question: string): string {
     // Extract the main concept from a question
     const cleaned = question.replace(/^(What|Which|How|Why|When|Where)\s+(is|are|does|do|can|could|would|should)\s+/i, '')
     return cleaned.length > 100 ? cleaned.substring(0, 100) + '...' : cleaned
+}
+
+function detectVideoInContent(content: string): boolean {
+    const lines = content.split('\n')
+    for (const line of lines) {
+        if (getVideoEmbedHtml(line) !== null) {
+            return true
+        }
+    }
+    return false
+}
+
+function extractVideoFromContent(content: string): string {
+    const lines = content.split('\n')
+    const videoLines = lines.filter(line => getVideoEmbedHtml(line) !== null)
+    if (videoLines.length === 0) return content
+    return videoLines.map(line => getVideoEmbedHtml(line) ?? line).join('\n')
+}
+
+function removeVideoFromContent(content: string): string {
+    const lines = content.split('\n')
+    const nonVideoLines = lines.filter(line => getVideoEmbedHtml(line) === null)
+    if (nonVideoLines.length === lines.length) return content
+    return nonVideoLines.join('\n')
 }

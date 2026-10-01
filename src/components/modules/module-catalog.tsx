@@ -45,7 +45,6 @@ export function ModuleCatalog({
 
   async function enroll(moduleId: string) {
     setActionId(moduleId)
-    setLoading(true)
 
     try {
       const res = await fetch("/api/enrollments", {
@@ -70,7 +69,6 @@ export function ModuleCatalog({
     if (!confirm("Leave this module? Your progress is kept, but it will be hidden from your list.")) {
       return
     }
-    setLoading(true)
     setActionId(moduleId)
     try {
       const res = await fetch(`/api/enrollments/${moduleId}`, {

@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
   const { conversationId, content, type = 'TEXT', mediaUrl, mediaDuration, replyToId } = body
 
   if (!conversationId) return NextResponse.json({ error: 'conversationId required' }, { status: 400 })
+  if (!['TEXT', 'IMAGE', 'VOICE'].includes(type)) return NextResponse.json({ error: 'Invalid message type' }, { status: 400 })
   if (type === 'TEXT' && !content?.trim()) return NextResponse.json({ error: 'content required' }, { status: 400 })
   if (type !== 'TEXT' && !mediaUrl) return NextResponse.json({ error: 'mediaUrl required for media messages' }, { status: 400 })
 
@@ -118,23 +119,34 @@ export async function POST(req: NextRequest) {
     }),
   ])
 
-  // Broadcast to both users in real-time
-  await pusherServer.trigger(
-    conversationChannel(conversationId),
-    EVENTS.NEW_MESSAGE,
-    message
-  )
-
   const recipientId =
     conversation.user1Id === session.user.id ? conversation.user2Id : conversation.user1Id
 
-  await pusherServer.trigger(
-    userChannel(recipientId),
-    EVENTS.NEW_MESSAGE,
-    { conversationId, message }
-  )
+  // The message is already saved at this point. If Pusher or web-push hiccups,
+  // still return 201 — previously the error bubbled up as a 500, so the sender's
+  // app thought the send failed and dropped the message from the thread.
+  try {
+    // Broadcast to both users in real-time
+    await pusherServer.trigger(
+      conversationChannel(conversationId),
+      EVENTS.NEW_MESSAGE,
+      message
+    )
 
-  await sendChatPushNotifications(recipientId)
+    await pusherServer.trigger(
+      userChannel(recipientId),
+      EVENTS.NEW_MESSAGE,
+      { conversationId, message }
+    )
+  } catch (error) {
+    console.error('Pusher new-message error:', error)
+  }
+
+  try {
+    await sendChatPushNotifications(recipientId)
+  } catch (error) {
+    console.error('Web push error:', error)
+  }
 
   return NextResponse.json(message, { status: 201 })
 }

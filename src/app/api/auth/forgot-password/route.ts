@@ -19,8 +19,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Enter your email address." }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: "insensitive" } },
       select: { email: true, password: true },
     })
 

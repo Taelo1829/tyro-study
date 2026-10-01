@@ -4,17 +4,19 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import NeumorphicEditor from "./rich-text-editor"
-import { Modal, ModalFooter } from "./modal"
+import { Modal } from "./modal"
 
 interface ContentManagerProps {
   topicId: string
   initialContent: string
+  initialAssignment?: string
   onSaved: () => void
 }
 
 export function ContentManager({
   topicId,
   initialContent,
+  initialAssignment = "",
   onSaved,
 }: ContentManagerProps) {
   const [content, setContent] = useState(initialContent)
@@ -22,7 +24,7 @@ export function ContentManager({
   const [flashLoading, setFlashLoading] = useState(false)
   const [toggle, setToggle] = useState(false)
   const [message, setMessage] = useState("")
-  const [assignment, setAssignment] = useState("")
+  const [assignment, setAssignment] = useState(initialAssignment)
 
   async function saveContent() {
     setLoading(true)
@@ -71,18 +73,25 @@ export function ContentManager({
   }
 
   async function saveAssignment() {
+    setLoading(true)
+    setMessage("")
     try {
-      setLoading(true)
-      await fetch(`/api/topics/${topicId}`, {
+      const res = await fetch(`/api/topics/${topicId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assignment }),
       })
-
-      setLoading(false)
-      addAssignmentToggle()
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error ?? "Saving the assignment failed")
+      }
+      setMessage("Assignment saved")
+      setToggle(false)
+      onSaved()
     } catch (error) {
-      console.error(error)
+      setMessage(error instanceof Error ? error.message : "Saving the assignment failed")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -135,7 +144,7 @@ export function ContentManager({
           </CardContent>
 
           <div className="py-4">
-            <Button variant="default" className="float-end" onClick={saveAssignment}>Save Assignment</Button>
+            <Button variant="default" className="float-end" onClick={saveAssignment} disabled={loading}>{loading ? "Saving…" : "Save Assignment"}</Button>
           </div>
         </Card>
       </Modal>

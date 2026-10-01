@@ -114,7 +114,7 @@ export default function StudentModulePage() {
           {mod.chapters.map((ch) => (
             <li key={ch.id}>
               <Card>
-                <Link href={`/modules/${id}}/chapters/${ch.id}`}>
+                <Link href={`/modules/${id}/chapters/${ch.id}`}>
                   <CardContent className="flex items-center justify-between py-4">
                     <div>
                       <p className="font-semibold">{ch.title}</p>

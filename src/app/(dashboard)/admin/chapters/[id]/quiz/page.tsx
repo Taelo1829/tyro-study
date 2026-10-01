@@ -5,6 +5,8 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { ExcelBulkImport } from "@/components/admin/excel-bulk-import"
+import { DeleteQuestionButton } from "@/components/admin/delete-question-button"
+import { MoveQuestionButton } from "@/components/admin/move-question-button"
 import { ManualQuestionForm } from "@/components/admin/manual-question-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -90,9 +92,15 @@ export default function AdminChapterQuizPage() {
                   key={q.id}
                   className="neo-inset rounded-[var(--neo-radius)] p-4"
                 >
-                  <p className="mb-2 font-medium">
-                    {i + 1}. {q.question}
-                  </p>
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <p className="font-medium">
+                      {i + 1}. {q.question}
+                    </p>
+                    <div className="flex shrink-0 items-center">
+                      <MoveQuestionButton questionId={q.id} questionText={q.question} currentChapterId={id} onMoved={load} />
+                      <DeleteQuestionButton questionId={q.id} onDeleted={load} />
+                    </div>
+                  </div>
                   <ul className="space-y-1">
                     {q.answers.map((a) => (
                       <li

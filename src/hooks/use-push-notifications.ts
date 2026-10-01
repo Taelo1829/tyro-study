@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useSyncExternalStore } from "react"
 
 function urlBase64ToUint8Array(value: string) {
   const padded = `${value}${"=".repeat((4 - (value.length % 4)) % 4)}`
@@ -28,12 +28,26 @@ async function showEnabledNotification(registration: ServiceWorkerRegistration) 
   })
 }
 
+function readPermission(): NotificationPermission {
+  return typeof window !== "undefined" && "Notification" in window
+    ? Notification.permission
+    : "default"
+}
+
+const noopSubscribe = () => () => {}
+
 export function usePushNotifications() {
-  const [permission, setPermission] = useState<NotificationPermission>(() =>
-    typeof window !== "undefined" && "Notification" in window
-      ? Notification.permission
-      : "default"
+  // Reading Notification.permission during the first render made the server HTML
+  // (always "default") differ from the browser's, causing a hydration mismatch
+  // on every page with the header. useSyncExternalStore handles that safely.
+  const browserPermission = useSyncExternalStore(
+    noopSubscribe,
+    readPermission,
+    () => "default" as NotificationPermission
   )
+  const [requestedPermission, setPermission] = useState<NotificationPermission | null>(null)
+  const permission = requestedPermission ?? browserPermission
+  const supported = useSyncExternalStore(noopSubscribe, isPushSupported, () => false)
   const [loading, setLoading] = useState(false)
 
   async function enable() {
@@ -77,6 +91,6 @@ export function usePushNotifications() {
     loading,
     permission,
     enabled: permission === "granted",
-    supported: isPushSupported(),
+    supported,
   }
 }

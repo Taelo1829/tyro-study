@@ -2,7 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { randomInt } from "crypto"
+import type { Prisma } from "@/prisma/client"
+
+/** Extra time after an (optional) time limit for a late submit to arrive */
+const SUBMIT_GRACE_MS = 2 * 60_000
+
+const questionInclude = {
+    answers: true,
+    topic: { include: { chapter: { include: { module: true } } } },
+} as const
+
+type PoolQuestion = Prisma.QuestionGetPayload<{ include: typeof questionInclude }>
 
 // POST - Create a new quiz attempt
 export async function POST(req: NextRequest) {
@@ -28,16 +38,16 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json()
-        const { topicId, questionIds, moduleId, settings } = body
+        const { topicId, questionIds, moduleId, chapterId, settings } = body
 
-        if (!topicId && !moduleId && !questionIds) {
+        if (!topicId && !moduleId && !questionIds && !chapterId) {
             return NextResponse.json(
-                { error: "Missing required fields: topicId, moduleId, or questionIds" },
+                { error: "Missing required fields: topicId, chapterId, moduleId, or questionIds" },
                 { status: 400 }
             )
         }
 
-        let questions: any = []
+        let questions: PoolQuestion[] = []
         let quizTopicId = topicId
         let quizModuleId = moduleId
 
@@ -48,35 +58,13 @@ export async function POST(req: NextRequest) {
                 where: {
                     id: { in: questionIds },
                 },
-                include: {
-                    answers: true,
-                    topic: {
-                        include: {
-                            chapter: {
-                                include: {
-                                    module: true,
-                                },
-                            },
-                        },
-                    },
-                },
+                include: questionInclude,
             })
         } else if (topicId) {
             // Get questions for a specific topic
             questions = await prisma.question.findMany({
                 where: { topicId },
-                include: {
-                    answers: true,
-                    topic: {
-                        include: {
-                            chapter: {
-                                include: {
-                                    module: true,
-                                },
-                            },
-                        },
-                    },
-                },
+                include: questionInclude,
             })
             quizTopicId = topicId
         } else if (moduleId) {
@@ -89,20 +77,18 @@ export async function POST(req: NextRequest) {
                         },
                     },
                 },
-                include: {
-                    answers: true,
-                    topic: {
-                        include: {
-                            chapter: {
-                                include: {
-                                    module: true,
-                                },
-                            },
-                        },
-                    },
-                },
+                include: questionInclude,
             })
             quizModuleId = moduleId
+        } else if (chapterId) {
+            // Chapter quiz: questions added to the chapter itself plus every
+            // question from the chapter's topics
+            questions = await prisma.question.findMany({
+                where: {
+                    OR: [{ chapterId }, { topic: { chapterId } }],
+                },
+                include: questionInclude,
+            })
         }
 
         if (questions.length === 0) {
@@ -112,86 +98,73 @@ export async function POST(req: NextRequest) {
             )
         }
 
+        // How many questions go into one quiz. Sensible defaults per quiz type,
+        // capped by how many questions exist. Callers may pass a number.
+        const defaultQuizSize = questionIds?.length
+            ? questions.length
+            : topicId ? 10 : chapterId ? 20 : 25
+        const requestedSize = Number(settings?.questionsPerQuiz)
+        const questionsPerQuiz = Math.min(
+            questions.length,
+            Number.isFinite(requestedSize) && requestedSize >= 1
+                ? Math.floor(requestedSize)
+                : defaultQuizSize
+        )
+
         // Apply quiz settings
         const quizSettings = {
             randomizeQuestions: settings?.randomizeQuestions ?? true,
             randomizeOptions: settings?.randomizeOptions ?? true,
-            questionsPerQuiz: settings?.questionsPerQuiz ?? Math.min(questions.length, 10),
+            questionsPerQuiz,
+            // No time limit by default — the quiz is timed (stopwatch), not limited
             timeLimit: settings?.timeLimit ?? null,
             passingScore: settings?.passingScore ?? 70,
             allowRetry: settings?.allowRetry ?? true,
         }
 
-        // Select questions (random if enabled)
-        let selectedQuestions = [...questions]
-        if (quizSettings.randomizeQuestions) {
-            selectedQuestions = shuffleArray(selectedQuestions)
-        }
+        // ── Rotate questions ────────────────────────────────────────────────
+        // Count how many times this user has answered each question in the pool
+        // (in submitted quizzes). Questions answered the fewest times are picked
+        // first, so you work through every question before any comes back a
+        // second time; then the cycle starts again. Ties are broken randomly.
+        const timesAnswered = await prisma.questionAttempt.groupBy({
+            by: ["questionId"],
+            where: {
+                questionId: { in: questions.map(q => q.id) },
+                status: "ANSWERED",
+                quizAttempt: { userId: user.id },
+            },
+            _count: { _all: true },
+        })
+        const answerCount = new Map(timesAnswered.map(t => [t.questionId, t._count._all]))
+        const countFor = (questionId: string) => answerCount.get(questionId) ?? 0
 
-        // Limit number of questions
-        selectedQuestions = selectedQuestions.slice(0, quizSettings.questionsPerQuiz)
+        const ranked = shuffleArray(questions)
+            .map((q, i) => ({ q, i, count: countFor(q.id) }))
+            .sort((x, y) => x.count - y.count || x.i - y.i)
+
+        let finalQuestions = ranked.slice(0, questionsPerQuiz).map(r => r.q)
+
+        // Present the picked questions in random order (not grouped by count)
+        if (quizSettings.randomizeQuestions) {
+            finalQuestions = shuffleArray(finalQuestions)
+        }
 
         // Randomize options for each question if enabled
         if (quizSettings.randomizeOptions) {
-            selectedQuestions = selectedQuestions.map(q => ({
+            finalQuestions = finalQuestions.map(q => ({
                 ...q,
                 answers: shuffleArray(q.answers),
             }))
         }
 
-        // Get user's previous attempts for this topic/module
-        let previousAttempts = []
-        let unansweredQuestions = []
-        let oldestAnsweredQuestions = []
-
-        if (topicId) {
-            // Get previous answers for this topic
-            const previousAnswers = await prisma.userAnswer.findMany({
-                where: {
-                    userId: user.id,
-                    question: {
-                        topicId,
-                    },
-                },
-                select: {
-                    questionId: true,
-                    answeredAt: true,
-                    isCorrect: true,
-                },
-                orderBy: {
-                    answeredAt: 'asc',
-                },
-            })
-
-            previousAttempts = previousAnswers
-
-            // Identify unanswered questions
-            const answeredQuestionIds = new Set(previousAnswers.map(a => a.questionId))
-            unansweredQuestions = selectedQuestions.filter(q => !answeredQuestionIds.has(q.id))
-
-            // Get oldest answered questions for fallback
-            const answeredQuestionsMap = new Map()
-            previousAnswers.forEach(answer => {
-                if (!answeredQuestionsMap.has(answer.questionId)) {
-                    answeredQuestionsMap.set(answer.questionId, answer)
-                }
-            })
-
-            oldestAnsweredQuestions = Array.from(answeredQuestionsMap.values())
-                .sort((a, b) => a.answeredAt.getTime() - b.answeredAt.getTime())
-                .map(a => selectedQuestions.find(q => q.id === a.questionId))
-                .filter(Boolean)
-        }
-
-        // Determine question order based on retry logic
-        let finalQuestions = selectedQuestions
-        if (unansweredQuestions && unansweredQuestions.length > 0) {
-            // Prioritize unanswered questions
-            const answered = selectedQuestions.filter(q => !unansweredQuestions.includes(q))
-            finalQuestions = [...unansweredQuestions, ...answered]
-        } else if (oldestAnsweredQuestions && oldestAnsweredQuestions.length > 0) {
-            // Fallback to oldest answered questions
-            finalQuestions = [...oldestAnsweredQuestions, ...selectedQuestions.filter(q => !oldestAnsweredQuestions.includes(q))]
+        // Progress through the current cycle, for the client to show if wanted
+        const lowestCount = Math.min(...questions.map(q => countFor(q.id)))
+        const rotation = {
+            totalInPool: questions.length,
+            seenAtLeastOnce: questions.filter(q => countFor(q.id) > 0).length,
+            remainingThisRound: questions.filter(q => countFor(q.id) === lowestCount).length,
+            round: lowestCount + 1,
         }
 
         const quizAttempt = await prisma.quizAttempt.create({
@@ -204,7 +177,7 @@ export async function POST(req: NextRequest) {
                     id: q.id,
                     question: q.question,
                     difficulty: q.difficulty,
-                    answers: q.answers.map((a: any) => ({
+                    answers: q.answers.map(a => ({
                         id: a.id,
                         answer: a.answer,
                     })),
@@ -217,7 +190,7 @@ export async function POST(req: NextRequest) {
 
 
         // Create individual question attempts
-        const questionAttempts = await prisma.questionAttempt?.createMany({
+        await prisma.questionAttempt.createMany({
             data: finalQuestions.map((q, index) => ({
                 quizAttemptId: quizAttempt.id,
                 questionId: q.id,
@@ -234,16 +207,19 @@ export async function POST(req: NextRequest) {
                     id: q.id,
                     text: q.question,
                     difficulty: q.difficulty,
-                    options: q.answers.map((a: any) => ({
+                    options: q.answers.map(a => ({
                         id: a.id,
                         text: a.answer,
                     })),
-                    topic: {
-                        id: q.topic.id,
-                        title: q.topic.title,
-                        chapter: q.topic.chapter.title,
-                        module: q.topic.chapter.module.title,
-                    },
+                    // Chapter-level questions have no topic, so this must be null-safe
+                    topic: q.topic
+                        ? {
+                            id: q.topic.id,
+                            title: q.topic.title,
+                            chapter: q.topic.chapter.title,
+                            module: q.topic.chapter.module.title,
+                        }
+                        : null,
                 })),
                 totalQuestions: finalQuestions.length,
                 settings: quizSettings,
@@ -251,11 +227,7 @@ export async function POST(req: NextRequest) {
                 expiresAt: quizSettings.timeLimit
                     ? new Date(Date.now() + quizSettings.timeLimit * 60000)
                     : null,
-                previousAttempts: {
-                    count: previousAttempts.length,
-                    hasUnanswered: unansweredQuestions.length > 0,
-                    unansweredCount: unansweredQuestions.length,
-                },
+                rotation,
             },
         })
     } catch (error) {
@@ -334,12 +306,6 @@ export async function GET(req: NextRequest) {
             quizAttempt.startedAt &&
             Date.now() > new Date(quizAttempt.startedAt).getTime() + (settings.timeLimit * 60000)
 
-        if (isExpired && quizAttempt.status === "IN_PROGRESS") {
-            await prisma.quizAttempt.update({
-                where: { id: quizAttempt.id },
-                data: { status: "EXPIRED" },
-            })
-        }
 
         return NextResponse.json({
             success: true,
@@ -399,9 +365,19 @@ export async function PUT(req: NextRequest) {
         }
 
         const body = await req.json()
-        const { attemptId, questionId, selectedAnswerId, isCorrect } = body
+        // Note: any `isCorrect` sent by the client is ignored — correctness is
+        // decided on the server so scores can't be faked from the browser.
+        // Send { attemptId, questionId, selectedAnswerId } to answer a question,
+        // and/or { attemptId, finish: true } to end the quiz now (e.g. the timer
+        // ran out) — unanswered questions then count as wrong.
+        const { attemptId, questionId, selectedAnswerId, finish } = body as {
+            attemptId?: string
+            questionId?: string
+            selectedAnswerId?: string
+            finish?: boolean
+        }
 
-        if (!attemptId || !questionId || !selectedAnswerId) {
+        if (!attemptId || (!finish && (!questionId || !selectedAnswerId))) {
             return NextResponse.json(
                 { error: "Missing required fields" },
                 { status: 400 }
@@ -424,86 +400,149 @@ export async function PUT(req: NextRequest) {
             )
         }
 
-        // Update question attempt
-        const questionAttempt = await prisma.questionAttempt.update({
-            where: {
-                quizAttemptId_questionId: {
-                    quizAttemptId: attemptId,
-                    questionId: questionId,
-                },
-            },
-            data: {
-                selectedAnswerId,
-                isCorrect: isCorrect || false,
-                status: "ANSWERED",
-                answeredAt: new Date(),
-            },
-        })
+        const settings = JSON.parse(quizAttempt.settings) as {
+            passingScore: number
+            timeLimit: number | null
+        }
 
-        // Check if all questions are answered
+        // Answers that arrive after the time limit (plus a short grace period
+        // for the auto-submit) are not accepted; the quiz is finished instead.
+        const timeIsUp = !!settings.timeLimit &&
+            Date.now() > quizAttempt.startedAt.getTime() + settings.timeLimit * 60_000 + SUBMIT_GRACE_MS
+
+        let isCorrect: boolean | null = null
+        let correctAnswerId: string | null = null
+
+        if (questionId && selectedAnswerId && !timeIsUp) {
+            // The selected answer must belong to this question
+            const selectedAnswer = await prisma.answer.findFirst({
+                where: { id: selectedAnswerId, questionId },
+                select: { isCorrect: true },
+            })
+
+            if (!selectedAnswer) {
+                return NextResponse.json(
+                    { error: "Answer does not belong to this question" },
+                    { status: 400 }
+                )
+            }
+
+            isCorrect = selectedAnswer.isCorrect
+
+            const correctAnswer = await prisma.answer.findFirst({
+                where: { questionId, isCorrect: true },
+                select: { id: true },
+            })
+            correctAnswerId = correctAnswer?.id ?? null
+
+            await prisma.questionAttempt.update({
+                where: {
+                    quizAttemptId_questionId: {
+                        quizAttemptId: attemptId,
+                        questionId: questionId,
+                    },
+                },
+                data: {
+                    selectedAnswerId,
+                    isCorrect,
+                    status: "ANSWERED",
+                    answeredAt: new Date(),
+                },
+            })
+        }
+
         const allQuestionAttempts = await prisma.questionAttempt.findMany({
-            where: {
-                quizAttemptId: attemptId,
-            },
+            where: { quizAttemptId: attemptId },
         })
 
         const allAnswered = allQuestionAttempts.every(qa => qa.status === "ANSWERED")
 
-        if (allAnswered) {
-            // Calculate final score
-            const correctCount = allQuestionAttempts.filter(qa => qa.isCorrect).length
+        if (allAnswered || finish || timeIsUp) {
+            // Unanswered questions are marked skipped and count as wrong
+            await prisma.questionAttempt.updateMany({
+                where: { quizAttemptId: attemptId, status: { not: "ANSWERED" } },
+                data: { status: "SKIPPED", isCorrect: false },
+            })
+
+            const answered = allQuestionAttempts.filter(qa => qa.status === "ANSWERED")
+            const correctCount = answered.filter(qa => qa.isCorrect).length
             const score = Math.round((correctCount / quizAttempt.totalQuestions) * 100)
 
-            // Update quiz attempt
+            const completedAt = new Date()
             await prisma.quizAttempt.update({
                 where: { id: attemptId },
                 data: {
                     status: "COMPLETED",
-                    completedAt: new Date(),
+                    completedAt,
                     score,
                 },
             })
 
+            // How long the quiz took, from the server's start/finish times
+            const durationSeconds = Math.max(
+                0,
+                Math.round((completedAt.getTime() - quizAttempt.startedAt.getTime()) / 1000)
+            )
+
             // Save user answers to permanent storage
-            for (const qa of allQuestionAttempts) {
-                if (qa.selectedAnswerId) {
-                    const existingUserAnswer = await prisma.userAnswer.findFirst({
-                        where: {
-                            userId: user.id,
-                            questionId: qa.questionId,
+            for (const qa of answered) {
+                if (!qa.selectedAnswerId) continue
+                const existingUserAnswer = await prisma.userAnswer.findFirst({
+                    where: {
+                        userId: user.id,
+                        questionId: qa.questionId,
+                    },
+                })
+
+                if (existingUserAnswer) {
+                    await prisma.userAnswer.update({
+                        where: { id: existingUserAnswer.id },
+                        data: {
+                            selectedAnswerId: qa.selectedAnswerId,
+                            isCorrect: qa.isCorrect || false,
+                            answeredAt: new Date(),
                         },
                     })
-
-                    if (existingUserAnswer) {
-                        await prisma.userAnswer.update({
-                            where: { id: existingUserAnswer.id },
-                            data: {
-                                selectedAnswerId: qa.selectedAnswerId,
-                                isCorrect: qa.isCorrect || false,
-                                answeredAt: new Date(),
-                            },
-                        })
-                    } else {
-                        await prisma.userAnswer.create({
-                            data: {
-                                userId: user.id,
-                                questionId: qa.questionId,
-                                selectedAnswerId: qa.selectedAnswerId,
-                                isCorrect: qa.isCorrect || false,
-                            },
-                        })
-                    }
+                } else {
+                    await prisma.userAnswer.create({
+                        data: {
+                            userId: user.id,
+                            questionId: qa.questionId,
+                            selectedAnswerId: qa.selectedAnswerId,
+                            isCorrect: qa.isCorrect || false,
+                        },
+                    })
                 }
             }
+
+            // Correct answer for every question, for the results review
+            const correctAnswers = await prisma.answer.findMany({
+                where: {
+                    questionId: { in: allQuestionAttempts.map(qa => qa.questionId) },
+                    isCorrect: true,
+                },
+                select: { id: true, questionId: true },
+            })
 
             return NextResponse.json({
                 success: true,
                 completed: true,
+                timedOut: timeIsUp,
+                durationSeconds,
+                isCorrect,
+                correctAnswerId,
                 score,
                 totalQuestions: quizAttempt.totalQuestions,
                 correctCount,
-                passingScore: JSON.parse(quizAttempt.settings).passingScore,
-                passed: score >= JSON.parse(quizAttempt.settings).passingScore,
+                answeredCount: answered.length,
+                passingScore: settings.passingScore,
+                passed: score >= settings.passingScore,
+                review: allQuestionAttempts.map(qa => ({
+                    questionId: qa.questionId,
+                    isCorrect: qa.status === "ANSWERED" && !!qa.isCorrect,
+                    selectedAnswerId: qa.status === "ANSWERED" ? qa.selectedAnswerId : null,
+                    correctAnswerId: correctAnswers.find(a => a.questionId === qa.questionId)?.id ?? null,
+                })),
                 message: `Quiz completed! You scored ${score}%`,
             })
         }
@@ -511,6 +550,8 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({
             success: true,
             completed: false,
+            isCorrect,
+            correctAnswerId,
             message: "Answer saved successfully",
             progress: {
                 answered: allQuestionAttempts.filter(qa => qa.status === "ANSWERED").length,
@@ -534,4 +575,4 @@ function shuffleArray<T>(array: T[]): T[] {
             ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
     return shuffled
-}
+}

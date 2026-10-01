@@ -37,9 +37,15 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-        })
+        // Emails are matched case-insensitively so "Taelo@Mail.com" and
+        // "taelo@mail.com" are the same account (registration and password reset
+        // already normalise to lowercase).
+        const email = credentials.email.trim()
+        const user =
+          (await db.user.findUnique({ where: { email } })) ??
+          (await db.user.findFirst({
+            where: { email: { equals: email, mode: "insensitive" } },
+          }))
 
         if (!user?.password) {
           return null

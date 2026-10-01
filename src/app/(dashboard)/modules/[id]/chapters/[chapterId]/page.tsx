@@ -53,7 +53,7 @@ const ChapterPage = () => {
             {chapter?.topics.map((tp) => (
                 <div key={tp.id} className='my-3'>
                     <Card>
-                        <CardContent onClick={() => router.push(`/modules/${id}/topics/${tp.id}`)} className="flex items-center justify-between py-4">
+                        <CardContent onClick={() => router.push(`/modules/${chapter.module.id}/topics/${tp.id}`)} className="flex cursor-pointer items-center justify-between py-4">
                             <div>
                                 <p className="font-semibold">{tp.title}</p>
                             </div>

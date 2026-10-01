@@ -132,7 +132,6 @@ export function ConversationList({ currentUser, selectedId, onSelect }: Conversa
       </div>
     )
   }
-  console.log(conversations)
   return (
     <div className="flex-1 overflow-y-auto divide-y divide-border">
       {conversations.map(conv => {

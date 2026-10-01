@@ -24,10 +24,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "This reset link is invalid or has expired." }, { status: 400 })
     }
 
+    // The identifier stores the email in lowercase, but older accounts may have
+    // been registered with capitals — look the user up case-insensitively.
     const email = resetToken.identifier.slice(PASSWORD_RESET_TOKEN_PREFIX.length)
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
+      select: { id: true },
+    })
+    if (!user) {
+      await prisma.verificationToken.delete({ where: { token: hashedToken } })
+      return NextResponse.json({ error: "This reset link is invalid or has expired." }, { status: 400 })
+    }
+
     const passwordHash = await bcrypt.hash(password, 12)
     await prisma.$transaction([
-      prisma.user.update({ where: { email }, data: { password: passwordHash } }),
+      prisma.user.update({ where: { id: user.id }, data: { password: passwordHash } }),
       prisma.verificationToken.delete({ where: { token: hashedToken } }),
     ])
 

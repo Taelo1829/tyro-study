@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
+import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
 
 type Params = { params: Promise<{ id: string }> }
 
 export async function GET(_request: Request, { params }: Params) {
+  const { error, session } = await requireAuth()
+  if (error) return error
+  const isAdmin = session?.user?.role === "ADMIN"
+
   const { id } = await params
 
   const topic = await prisma.topic.findUnique({
@@ -20,7 +25,15 @@ export async function GET(_request: Request, { params }: Params) {
         },
       },
       questions: {
-        include: { answers: true },
+        // Only admins get `isCorrect`; students are graded by /api/quiz/attempt
+        include: {
+          answers: { select: { id: true, answer: true, isCorrect: isAdmin } },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      pdfs: true,
+      flashcards: {
+        select: { id: true, front: true, back: true },
         orderBy: { createdAt: "asc" },
       },
       _count: { select: { flashcards: true } },

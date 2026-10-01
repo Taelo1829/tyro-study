@@ -7,6 +7,8 @@ import { Header } from "@/components/layout/header"
 import { ContentManager } from "@/components/admin/content-manager"
 import { TopicPdfManager } from "@/components/admin/topic-pdf-manager"
 import { ExcelBulkImport } from "@/components/admin/excel-bulk-import"
+import { DeleteQuestionButton } from "@/components/admin/delete-question-button"
+import { MoveQuestionButton } from "@/components/admin/move-question-button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -14,6 +16,7 @@ interface TopicDetail {
   id: string
   title: string
   content: string | null
+  assignment: string | null
   chapter: {
     id: string
     title: string
@@ -48,6 +51,7 @@ export default function AdminTopicDetailPage() {
       await res.json().catch(() => null)
       load()
       alert("failed to delete")
+      return
     }
 
     router.back()
@@ -88,6 +92,7 @@ export default function AdminTopicDetailPage() {
         <ContentManager
           topicId={id}
           initialContent={topic.content ?? ""}
+          initialAssignment={topic.assignment ?? ""}
           onSaved={load}
         />
 
@@ -135,9 +140,15 @@ export default function AdminTopicDetailPage() {
             <CardContent className="space-y-4">
               {topic.questions.map((q, i) => (
                 <div key={q.id} className="neo-inset rounded-[var(--neo-radius)] p-4">
-                  <p className="mb-2 font-medium">
-                    {i + 1}. {q.question}
-                  </p>
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <p className="font-medium">
+                      {i + 1}. {q.question}
+                    </p>
+                    <div className="flex shrink-0 items-center">
+                      <MoveQuestionButton questionId={q.id} questionText={q.question} currentTopicId={id} onMoved={load} />
+                      <DeleteQuestionButton questionId={q.id} onDeleted={load} />
+                    </div>
+                  </div>
                   <ul className="space-y-1">
                     {q.answers.map((a) => (
                       <li

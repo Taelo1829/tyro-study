@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import React, { useState } from 'react'
 import { Card } from '../ui/card';
-import { Badge } from 'lucide-react';
+import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 
 function FlashcardDeck({ flashcards }: { flashcards: Array<{ id: string; front: string; back: string }> }) {
@@ -29,11 +29,11 @@ function FlashcardDeck({ flashcards }: { flashcards: Array<{ id: string; front: 
             </div>
 
             <div
-                className="relative cursor-pointer perspective-1000"
+                className="relative cursor-pointer perspective-[1000px]"
                 onClick={() => setIsFlipped(!isFlipped)}
             >
                 <div className={cn(
-                    "relative w-full min-h-[300px] transition-transform duration-500 transform-style-3d",
+                    "relative w-full min-h-[300px] transition-transform duration-500 transform-3d",
                     isFlipped && "rotate-y-180"
                 )}>
                     {/* Front */}
@@ -71,4 +71,4 @@ function FlashcardDeck({ flashcards }: { flashcards: Array<{ id: string; front: 
         </div>
     )
 }
-export default FlashcardDeck
+export default FlashcardDeck
