@@ -1,16 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 /**
  * Shared quiz screen for topic and chapter quizzes.
  *
  * Questions come from POST /api/quiz/attempt (which never includes the correct
- * answers) and every answer is graded and saved by PUT /api/quiz/attempt.
- * The old quiz pages graded in the browser and saved nothing, so progress and
- * best scores never updated — and the correct answers had to be sent to the
- * browser, where anyone could read them.
+ * answers). Each answer is graded and saved by PUT /api/quiz/attempt the moment
+ * you press "Submit", so you get right/wrong feedback straight away. When the
+ * last question of the quiz is answered the attempt is complete and the
+ * results are shown — no further questions are added.
  */
 
 interface QuizOption {
@@ -23,7 +23,7 @@ interface QuizQuestion {
     text: string
     difficulty: string
     options: QuizOption[]
-    topic: { title: string } | null
+    topic: { id: string; title: string; moduleId?: string } | null
 }
 
 interface AnswerResult {
@@ -40,6 +40,14 @@ interface FinalResult {
     durationSeconds: number | null
 }
 
+interface FocusTopic {
+    key: string
+    title: string
+    href: string | null
+    wrong: number
+    total: number
+}
+
 function formatClock(ms: number) {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000))
     const hours = Math.floor(totalSeconds / 3600)
@@ -52,14 +60,14 @@ function formatClock(ms: number) {
 
 interface QuizRunnerProps {
     /** Body for POST /api/quiz/attempt, e.g. { topicId } or { chapterId } */
-    source: { topicId: string } | { chapterId: string }
+    source: { topicId: string } | { chapterId: string } | { moduleId: string }
     /** Heading; defaults to the first question's topic title */
     title?: string
     backHref: string
     backLabel: string
 }
 
-type Phase = "loading" | "error" | "answering" | "submitting" | "results"
+type Phase = "loading" | "error" | "answering" | "results"
 
 export function QuizRunner({ source, title: titleProp, backHref, backLabel }: QuizRunnerProps) {
     const [phase, setPhase] = useState<Phase>("loading")
@@ -69,13 +77,15 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     const [index, setIndex] = useState(0)
     const [selected, setSelected] = useState<Record<string, string>>({})
     const [results, setResults] = useState<Record<string, AnswerResult>>({})
+    const [checking, setChecking] = useState(false)
     const [final, setFinal] = useState<FinalResult | null>(null)
     // Stopwatch: counts up from when the quiz loaded on this device
     const [startedAt, setStartedAt] = useState<number | null>(null)
     const [now, setNow] = useState(() => Date.now())
-    const submittingRef = useRef(false)
 
     const sourceKey = JSON.stringify(source)
+    // Chapter/module quizzes cover several topics, so show which ones to revise
+    const showFocusTopics = !("topicId" in source)
 
     const start = useCallback(async () => {
         setPhase("loading")
@@ -84,8 +94,8 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         setResults({})
         setFinal(null)
         setIndex(0)
+        setChecking(false)
         setStartedAt(null)
-        submittingRef.current = false
 
         try {
             const res = await fetch("/api/quiz/attempt", {
@@ -119,78 +129,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         void start()
     }, [start])
 
-    async function submit() {
-        if (!attemptId || submittingRef.current) return
-        submittingRef.current = true
-        setPhase("submitting")
-        setError("")
-
-        try {
-            let completion: Record<string, unknown> | null = null
-
-            const put = async (payload: Record<string, unknown>) => {
-                const res = await fetch("/api/quiz/attempt", {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ attemptId, ...payload }),
-                })
-                const data = await res.json().catch(() => ({}))
-                if (!res.ok) throw new Error(data.error ?? "Could not submit your answers.")
-                if (data.completed) completion = data
-                return data
-            }
-
-            // Save the answered questions one at a time; answering the last
-            // question completes the attempt on the server.
-            for (const question of questions) {
-                if (completion) break
-                const selectedAnswerId = selected[question.id]
-                if (!selectedAnswerId) continue
-                await put({ questionId: question.id, selectedAnswerId })
-            }
-
-            // Safety net: make sure the attempt is marked finished
-            if (!completion) await put({ finish: true })
-
-            const done = completion as unknown as {
-                score: number
-                correctCount: number
-                totalQuestions: number
-                passed: boolean
-                passingScore: number
-                durationSeconds?: number
-                review?: { questionId: string; isCorrect: boolean; correctAnswerId: string | null }[]
-            } | null
-            if (!done) throw new Error("Could not finish the quiz.")
-
-            const answerResults: Record<string, AnswerResult> = {}
-            for (const item of done.review ?? []) {
-                answerResults[item.questionId] = {
-                    isCorrect: item.isCorrect,
-                    correctAnswerId: item.correctAnswerId,
-                }
-            }
-
-            setResults(answerResults)
-            setFinal({
-                score: done.score,
-                correctCount: done.correctCount,
-                totalQuestions: done.totalQuestions,
-                passed: done.passed,
-                passingScore: done.passingScore,
-                durationSeconds: typeof done.durationSeconds === "number"
-                    ? done.durationSeconds
-                    : startedAt ? Math.round((Date.now() - startedAt) / 1000) : null,
-            })
-            setPhase("results")
-        } catch (err) {
-            submittingRef.current = false
-            setError(err instanceof Error ? err.message : "Could not submit your answers.")
-            setPhase("answering")
-        }
-    }
-
-    // Tick the stopwatch once a second while the quiz is being answered
+    // Tick the stopwatch once a second until the results are shown
     useEffect(() => {
         if (phase !== "answering" || !startedAt) return
         const timer = setInterval(() => setNow(Date.now()), 1000)
@@ -198,6 +137,77 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     }, [phase, startedAt])
 
     const elapsedMs = startedAt ? Math.max(0, now - startedAt) : null
+
+    function readFinal(data: Record<string, unknown>): FinalResult {
+        return {
+            score: Number(data.score),
+            correctCount: Number(data.correctCount),
+            totalQuestions: Number(data.totalQuestions),
+            passed: !!data.passed,
+            passingScore: Number(data.passingScore),
+            durationSeconds: typeof data.durationSeconds === "number"
+                ? data.durationSeconds
+                : startedAt ? Math.round((Date.now() - startedAt) / 1000) : null,
+        }
+    }
+
+    async function put(payload: Record<string, unknown>) {
+        const res = await fetch("/api/quiz/attempt", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ attemptId, ...payload }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error ?? "Could not save your answer.")
+        return data as Record<string, unknown>
+    }
+
+    /** Grade the current question on the server and show right/wrong */
+    async function submitAnswer() {
+        const question = questions[index]
+        const selectedAnswerId = selected[question.id]
+        if (!attemptId || !selectedAnswerId || results[question.id] || checking) return
+
+        setChecking(true)
+        setError("")
+        try {
+            const data = await put({ questionId: question.id, selectedAnswerId })
+            setResults(prev => ({
+                ...prev,
+                [question.id]: {
+                    isCorrect: !!data.isCorrect,
+                    correctAnswerId: (data.correctAnswerId as string | null) ?? null,
+                },
+            }))
+            // Answering the last question completes the attempt on the server
+            if (data.completed) setFinal(readFinal(data))
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Could not save your answer.")
+        } finally {
+            setChecking(false)
+        }
+    }
+
+    /** Move on after seeing the feedback; after the last question show results */
+    async function goNext() {
+        if (index < questions.length - 1) {
+            setIndex(i => i + 1)
+            return
+        }
+        if (!final) {
+            // Safety net in case the completion response was missed
+            try {
+                setChecking(true)
+                setFinal(readFinal(await put({ finish: true })))
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Could not finish the quiz.")
+                return
+            } finally {
+                setChecking(false)
+            }
+        }
+        setPhase("results")
+    }
 
     const title = titleProp ?? questions[0]?.topic?.title ?? "Quiz"
 
@@ -209,6 +219,10 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
             ← {backLabel}
         </Link>
     )
+
+    const primaryButton =
+        "rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground shadow-lg shadow-black/30 transition-all hover:opacity-90 active:scale-[0.98]"
+    const disabledButton = "neo-inset cursor-not-allowed rounded-xl px-6 py-3 font-medium text-muted-foreground"
 
     if (phase === "loading") {
         return (
@@ -256,6 +270,27 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
             messageColor = "text-yellow-400"
         }
 
+        // Topics with wrong answers, worst first
+        const byTopic = new Map<string, FocusTopic>()
+        for (const question of questions) {
+            const key = question.topic?.id ?? "__chapter__"
+            const entry = byTopic.get(key) ?? {
+                key,
+                title: question.topic?.title ?? "General chapter questions",
+                href: question.topic?.moduleId
+                    ? `/modules/${question.topic.moduleId}/topics/${question.topic.id}`
+                    : null,
+                wrong: 0,
+                total: 0,
+            }
+            entry.total += 1
+            if (!results[question.id]?.isCorrect) entry.wrong += 1
+            byTopic.set(key, entry)
+        }
+        const focusTopics = [...byTopic.values()]
+            .filter(t => t.wrong > 0)
+            .sort((a, b) => b.wrong / b.total - a.wrong / a.total || b.wrong - a.wrong)
+
         return (
             <div className="px-4 py-12">
                 <div className="mx-auto max-w-3xl">
@@ -289,10 +324,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             <p className={`mb-8 text-lg font-medium ${messageColor}`}>{message}</p>
 
                             <div className="flex justify-center gap-4">
-                                <button
-                                    onClick={() => void start()}
-                                    className="neo-button rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground transition-all hover:opacity-90"
-                                >
+                                <button onClick={() => void start()} className={primaryButton}>
                                     Take Quiz Again
                                 </button>
                                 <Link
@@ -303,6 +335,44 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 </Link>
                             </div>
                         </div>
+
+                        {showFocusTopics && (
+                            <div className="mt-12 border-t border-[var(--neo-shadow-light)] pt-8">
+                                <h2 className="mb-1 text-xl font-bold text-foreground">Topics to focus on</h2>
+                                {focusTopics.length === 0 ? (
+                                    <p className="text-sm text-accent">You got everything right — no weak topics this time. 🎉</p>
+                                ) : (
+                                    <>
+                                        <p className="mb-4 text-sm text-muted-foreground">
+                                            You missed questions from these topics. Revise them, then try the quiz again.
+                                        </p>
+                                        <ul className="space-y-2">
+                                            {focusTopics.map(topic => {
+                                                const row = (
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <span className="font-medium text-foreground">{topic.title}</span>
+                                                        <span className="shrink-0 text-sm text-red-400">
+                                                            {topic.wrong} of {topic.total} wrong
+                                                        </span>
+                                                    </div>
+                                                )
+                                                return (
+                                                    <li key={topic.key}>
+                                                        {topic.href ? (
+                                                            <Link href={topic.href} className="neo-inset block p-4 transition-colors hover:text-primary">
+                                                                {row}
+                                                            </Link>
+                                                        ) : (
+                                                            <div className="neo-inset p-4">{row}</div>
+                                                        )}
+                                                    </li>
+                                                )
+                                            })}
+                                        </ul>
+                                    </>
+                                )}
+                            </div>
+                        )}
 
                         <div className="mt-12 border-t border-[var(--neo-shadow-light)] pt-8">
                             <h2 className="mb-4 text-xl font-bold text-foreground">Detailed Review</h2>
@@ -326,7 +396,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                                         {idx + 1}. {question.text}
                                                     </p>
                                                     <div className="text-sm text-muted-foreground">
-                                                        <p>Your answer: {yourAnswer?.text ?? "Not answered"}</p>
+                                                        <p>Your answer: {result ? yourAnswer?.text ?? "Not answered" : "Not answered"}</p>
                                                         {!isCorrect && correctAnswer && (
                                                             <p className="mt-1 text-accent">
                                                                 Correct answer: {correctAnswer.text}
@@ -346,12 +416,13 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         )
     }
 
-    // answering / submitting
+    // ── Answering ───────────────────────────────────────────────────────────
     const current = questions[index]
+    const result = results[current.id]
+    const answered = !!result
     const hasSelected = !!selected[current.id]
     const isLast = index === questions.length - 1
-    const allAnswered = questions.every(q => selected[q.id])
-    const submitting = phase === "submitting"
+    const answeredCount = Object.keys(results).length
 
     return (
         <div className="px-4 py-12">
@@ -379,7 +450,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                         <div className="neo-inset h-2 w-full overflow-hidden rounded-full">
                             <div
                                 className="h-2 rounded-full bg-primary transition-all duration-300"
-                                style={{ width: `${((index + 1) / questions.length) * 100}%` }}
+                                style={{ width: `${(answeredCount / questions.length) * 100}%` }}
                             />
                         </div>
                     </div>
@@ -403,15 +474,21 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                     <div className="space-y-3">
                         {current.options.map(option => {
                             const isSelected = selected[current.id] === option.id
+                            const isRightAnswer = answered && option.id === result.correctAnswerId
+                            const isWrongPick = answered && isSelected && !result.isCorrect
+
+                            let style = "border-[var(--neo-shadow-light)] hover:bg-[var(--neo-shadow-light)]/30"
+                            if (isRightAnswer) style = "border-green-500 bg-green-500/10"
+                            else if (isWrongPick) style = "border-red-500 bg-red-500/10"
+                            else if (isSelected) style = "border-primary bg-primary/10"
+                            else if (answered) style = "border-[var(--neo-shadow-light)] opacity-60"
+
                             return (
                                 <button
                                     key={option.id}
-                                    disabled={submitting}
+                                    disabled={answered || checking}
                                     onClick={() => setSelected(prev => ({ ...prev, [current.id]: option.id }))}
-                                    className={`w-full rounded-xl border-2 p-4 text-left transition-all ${isSelected
-                                        ? "border-primary bg-primary/10"
-                                        : "border-[var(--neo-shadow-light)] hover:bg-[var(--neo-shadow-light)]/30"
-                                        }`}
+                                    className={`w-full rounded-xl border-2 p-4 text-left transition-all ${style} ${answered ? "cursor-default" : ""}`}
                                 >
                                     <div className="flex items-start gap-3">
                                         <div
@@ -420,54 +497,48 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                             {isSelected && <div className="h-2 w-2 rounded-full bg-[var(--neo-primary-foreground)]" />}
                                         </div>
                                         <span className="flex-1 text-foreground">{option.text}</span>
+                                        {isRightAnswer && <span className="shrink-0 text-sm font-semibold text-green-400">✓ Correct answer</span>}
+                                        {isWrongPick && <span className="shrink-0 text-sm font-semibold text-red-400">✗ Your answer</span>}
                                     </div>
                                 </button>
                             )
                         })}
                     </div>
+
+                    {answered && (
+                        <div
+                            role="status"
+                            className={`mt-6 rounded-xl border-2 p-4 font-semibold ${result.isCorrect ? "border-green-500 bg-green-500/10 text-green-400" : "border-red-500 bg-red-500/10 text-red-400"}`}
+                        >
+                            {result.isCorrect ? "✓ Correct! Well done." : "✗ Not quite — the correct answer is highlighted in green."}
+                        </div>
+                    )}
                 </div>
 
                 {error && <p className="mb-4 text-center text-sm text-red-400" role="alert">{error}</p>}
 
-                <div className="flex justify-between gap-4">
-                    <button
-                        onClick={() => setIndex(i => i - 1)}
-                        disabled={index === 0 || submitting}
-                        className={`rounded-xl px-6 py-3 font-medium transition-all ${index === 0
-                            ? "neo-inset cursor-not-allowed text-muted-foreground"
-                            : "neo-button text-foreground hover:opacity-90"
-                            }`}
-                    >
-                        Previous
-                    </button>
-
-                    {!isLast ? (
+                <div className="flex justify-end gap-4">
+                    {!answered ? (
                         <button
-                            onClick={() => setIndex(i => i + 1)}
-                            disabled={!hasSelected}
-                            className={`rounded-xl px-6 py-3 font-medium transition-all ${hasSelected
-                                ? "neo-button bg-primary text-primary-foreground hover:opacity-90"
-                                : "neo-inset cursor-not-allowed text-muted-foreground"
-                                }`}
+                            onClick={() => void submitAnswer()}
+                            disabled={!hasSelected || checking}
+                            className={hasSelected && !checking ? primaryButton : disabledButton}
                         >
-                            Next Question
+                            {checking ? "Checking…" : "Submit"}
                         </button>
                     ) : (
                         <button
-                            onClick={() => void submit()}
-                            disabled={!allAnswered || submitting}
-                            className={`rounded-xl px-8 py-3 font-medium transition-all ${allAnswered && !submitting
-                                ? "neo-button bg-primary text-primary-foreground hover:opacity-90"
-                                : "neo-inset cursor-not-allowed text-muted-foreground"
-                                }`}
+                            onClick={() => void goNext()}
+                            disabled={checking}
+                            className={checking ? disabledButton : primaryButton}
                         >
-                            {submitting ? "Submitting…" : "Submit Quiz"}
+                            {isLast ? "See results" : "Next Question"}
                         </button>
                     )}
                 </div>
 
                 <div className="mt-6 text-center text-sm text-muted-foreground">
-                    {Object.keys(selected).length} of {questions.length} questions answered
+                    {answeredCount} of {questions.length} questions answered
                 </div>
             </div>
         </div>

@@ -218,6 +218,7 @@ export async function POST(req: NextRequest) {
                             title: q.topic.title,
                             chapter: q.topic.chapter.title,
                             module: q.topic.chapter.module.title,
+                            moduleId: q.topic.chapter.moduleId,
                         }
                         : null,
                 })),
