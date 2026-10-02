@@ -161,7 +161,7 @@ export default function TimetablePage() {
     <>
       <Header title="Timetable" subtitle="Tap a day to plan study sessions, due dates and exams" />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         {/* Calendar */}
         <Card className="p-4 sm:p-6">
           <div className="mb-5 flex items-center justify-between gap-3">

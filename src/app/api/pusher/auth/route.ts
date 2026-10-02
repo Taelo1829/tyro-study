@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
-import { pusherServer } from '@/lib/pusher'
+import { PRESENCE_CHANNEL, pusherServer } from '@/lib/pusher'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 
@@ -20,6 +20,13 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = session.user.id
+
+  // presence-online — any signed-in user joins as themselves (powers "Online")
+  if (channelName === PRESENCE_CHANNEL) {
+    return NextResponse.json(
+      pusherServer.authorizeChannel(socketId, channelName, { user_id: userId })
+    )
+  }
 
   // private-user-{userId} — only the owner
   if (channelName.startsWith('private-user-')) {

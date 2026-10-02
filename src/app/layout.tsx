@@ -3,6 +3,7 @@ import { Urbanist } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/components/providers/auth-provider'
+import { ApiLoader } from '@/components/ui/api-loader'
 
 const urbanist = Urbanist({
   subsets: ['latin'],
@@ -25,6 +26,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
   themeColor: '#eef1f4'
 }
 
@@ -41,6 +44,7 @@ export default function RootLayout({
           crossOrigin="anonymous"></script>
       </head>
       <body className={`${urbanist.className} bg-background text-foreground`}>
+        <ApiLoader />
         <AuthProvider>
           {children}
           <Toaster />

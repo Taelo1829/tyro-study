@@ -26,6 +26,11 @@ interface MoveQuestionButtonProps {
 }
 
 // Option values are "topic:<id>" or "chapter:<id>"
+
+/** Drop numbering a title may already carry ("2.3 Loops" → "Loops") so it isn't shown twice */
+function stripNumber(title: string) {
+  return title.replace(/^\s*(?:\d+(?:\.\d+)+\.?|\d+[.):\-–])\s+/, "") || title
+}
 function currentValue(topicId?: string | null, chapterId?: string | null) {
   if (topicId) return `topic:${topicId}`
   if (chapterId) return `chapter:${chapterId}`
@@ -116,13 +121,14 @@ export function MoveQuestionButton({
             {!destinations && <option value="">Loading…</option>}
             {destinations?.map(mod => (
               <optgroup key={mod.id} label={mod.title}>
-                {mod.chapters.flatMap(ch => [
+                {/* Numbered in course order: chapter 1, its topics 1.1, 1.2, … */}
+                {mod.chapters.flatMap((ch, c) => [
                   <option key={`c-${ch.id}`} value={`chapter:${ch.id}`}>
-                    {ch.title} — chapter quiz only
+                    {c + 1}. {stripNumber(ch.title)} — chapter quiz only
                   </option>,
-                  ...ch.topics.map(tp => (
+                  ...ch.topics.map((tp, t) => (
                     <option key={`t-${tp.id}`} value={`topic:${tp.id}`}>
-                      {"\u00A0\u00A0\u00A0\u00A0"}{ch.title} › {tp.title}
+                      {"\u00A0\u00A0\u00A0\u00A0"}{c + 1}.{t + 1} {stripNumber(tp.title)}
                     </option>
                   )),
                 ])}

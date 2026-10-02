@@ -12,6 +12,7 @@ import {
 } from '@/lib/pusher'
 import type { Conversation, ChatMessage, ChatUser } from './types'
 import { cn } from '@/lib/utils'
+import { OnlineDot } from '@/components/providers/presence-provider'
 
 interface ConversationListProps {
   currentUser: ChatUser
@@ -21,11 +22,14 @@ interface ConversationListProps {
 
 function Avatar({ user }: { user: ChatUser }) {
   return (
-    <div className="w-11 h-11 rounded-full gradient-primary flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
-      {user.image
-        ? <img src={user.image} alt="" className="w-full h-full object-cover" />
-        : (user.name?.charAt(0) ?? '?').toUpperCase()
-      }
+    <div className="relative shrink-0">
+      <div className="w-11 h-11 rounded-full gradient-primary flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+        {user.image
+          ? <img src={user.image} alt="" className="w-full h-full object-cover" />
+          : (user.name?.charAt(0) ?? '?').toUpperCase()
+        }
+      </div>
+      <OnlineDot userId={user.id} lastSeen={user.lastSeen} />
     </div>
   )
 }

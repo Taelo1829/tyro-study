@@ -83,8 +83,15 @@ export default function AdminModuleDetailPage() {
                   const data = await res.json()
                   throw new Error(data.error ?? "Failed")
                 }
+                // Show the new chapter straight away, then sync in the background
+                const created = (await res.json()) as Omit<ChapterRow, "_count">
+                setMod(prev =>
+                  prev && !prev.chapters.some(c => c.id === created.id)
+                    ? { ...prev, chapters: [...prev.chapters, { ...created, _count: { topics: 0 } }] }
+                    : prev
+                )
                 setShowForm(false)
-                await load()
+                void load()
               }}
             />
           </CardContent>

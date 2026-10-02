@@ -5,6 +5,8 @@ export interface ChatUser {
   name: string | null
   email: string
   image: string | null
+  /** ISO time of last activity (only included where presence is shown) */
+  lastSeen?: string | null
 }
 
 export interface ChatMessageReply {

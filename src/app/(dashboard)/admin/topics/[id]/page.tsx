@@ -7,10 +7,12 @@ import { Header } from "@/components/layout/header"
 import { ContentManager } from "@/components/admin/content-manager"
 import { TopicPdfManager } from "@/components/admin/topic-pdf-manager"
 import { ExcelBulkImport } from "@/components/admin/excel-bulk-import"
+import { AiQuestionGenerator } from "@/components/admin/ai-question-generator"
 import { DeleteQuestionButton } from "@/components/admin/delete-question-button"
 import { MoveQuestionButton } from "@/components/admin/move-question-button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { MathText } from "@/components/ui/math-text"
 
 interface TopicDetail {
   id: string
@@ -107,6 +109,15 @@ export default function AdminTopicDetailPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Generate questions with AI</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AiQuestionGenerator topicId={id} onSaved={load} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Bulk upload questions (Excel)</CardTitle>
           </CardHeader>
           <CardContent>
@@ -142,7 +153,7 @@ export default function AdminTopicDetailPage() {
                 <div key={q.id} className="neo-inset rounded-[var(--neo-radius)] p-4">
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <p className="font-medium">
-                      {i + 1}. {q.question}
+                      {i + 1}. <MathText text={q.question} />
                     </p>
                     <div className="flex shrink-0 items-center">
                       <MoveQuestionButton questionId={q.id} questionText={q.question} currentTopicId={id} onMoved={load} />
@@ -159,7 +170,7 @@ export default function AdminTopicDetailPage() {
                           }`}
                       >
                         {a.isCorrect ? "✓ " : "○ "}
-                        {a.answer}
+                        <MathText text={a.answer} />
                       </li>
                     ))}
                   </ul>

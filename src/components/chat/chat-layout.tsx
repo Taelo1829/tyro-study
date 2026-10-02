@@ -8,8 +8,18 @@ import { UserDirectory } from './user-directory'
 import { FriendRequests } from './friend-requests'
 import type { Conversation, ChatUser } from './types'
 import { cn } from '@/lib/utils'
+import { describePresence, OnlineDot, useUserPresence } from '@/components/providers/presence-provider'
 
 type Tab = 'chats' | 'people' | 'requests'
+
+function PresenceLine({ user }: { user: ChatUser }) {
+  const presence = useUserPresence(user.id, user.lastSeen)
+  return (
+    <p className={cn('text-xs', presence.online ? 'text-emerald-600' : 'text-muted-foreground')}>
+      {describePresence(presence)}
+    </p>
+  )
+}
 
 interface ChatLayoutProps {
   currentUser: ChatUser
@@ -100,16 +110,19 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
                 <ChevronLeft className="w-5 h-5" />
               </button>
 
-              <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center text-white font-bold text-sm overflow-hidden shrink-0">
-                {selected.other.image
-                  ? <img src={selected.other.image} alt="" className="w-full h-full object-cover" />
-                  : (selected.other.name?.charAt(0) ?? '?').toUpperCase()
-                }
+              <div className="relative shrink-0">
+                <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+                  {selected.other.image
+                    ? <img src={selected.other.image} alt="" className="w-full h-full object-cover" />
+                    : (selected.other.name?.charAt(0) ?? '?').toUpperCase()
+                  }
+                </div>
+                <OnlineDot userId={selected.other.id} lastSeen={selected.other.lastSeen} />
               </div>
 
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{selected.other.name ?? selected.other.email}</p>
-                <p className="text-xs text-emerald-500">Online</p>
+                <PresenceLine user={selected.other} />
               </div>
             </div>
 

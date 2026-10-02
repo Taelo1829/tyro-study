@@ -9,6 +9,7 @@ import {
   userChannel,
 } from '@/lib/pusher'
 import type { ChatUser, PendingRequest } from './types'
+import { OnlineDot } from '@/components/providers/presence-provider'
 
 interface FriendRequestsProps {
   currentUserId: string
@@ -89,11 +90,14 @@ export function FriendRequests({ currentUserId, onAccepted }: FriendRequestsProp
         const isProcessing = processing.has(req.id)
         return (
           <div key={req.id} className="flex items-center gap-3 px-4 py-3">
-            <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
-              {req.sender.image
-                ? <img src={req.sender.image} alt="" className="w-full h-full object-cover" />
-                : (req.sender.name?.charAt(0) ?? '?').toUpperCase()
-              }
+            <div className="relative shrink-0">
+              <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+                {req.sender.image
+                  ? <img src={req.sender.image} alt="" className="w-full h-full object-cover" />
+                  : (req.sender.name?.charAt(0) ?? '?').toUpperCase()
+                }
+              </div>
+              <OnlineDot userId={req.sender.id} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{req.sender.name ?? 'Unknown'}</p>

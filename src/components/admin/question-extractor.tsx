@@ -5,6 +5,7 @@ import { CheckCircle2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { ExtractedQuestion } from "@/lib/ai/question-generator"
+import { MathText } from "@/components/ui/math-text"
 
 interface QuestionExtractorProps {
   topicId: string
@@ -82,7 +83,7 @@ export function QuestionExtractor({
           <Card key={i}>
             <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
               <CardTitle className="text-base font-medium">
-                {i + 1}. {q.question}
+                {i + 1}. <MathText text={q.question} />
               </CardTitle>
               <Button
                 type="button"
@@ -106,7 +107,7 @@ export function QuestionExtractor({
                   }`}
                 >
                   {opt === q.correctOption ? "✓ " : "○ "}
-                  {opt}
+                  <MathText text={opt} />
                 </p>
               ))}
             </CardContent>

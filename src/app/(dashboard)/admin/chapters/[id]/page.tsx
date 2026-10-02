@@ -90,8 +90,15 @@ export default function AdminChapterDetailPage() {
                   const data = await res.json()
                   throw new Error(data.error ?? "Failed")
                 }
+                // Show the new topic straight away, then sync counts in the background
+                const created = (await res.json()) as Omit<TopicRow, "_count">
+                setChapter(prev =>
+                  prev && !prev.topics.some(t => t.id === created.id)
+                    ? { ...prev, topics: [...prev.topics, { ...created, _count: { questions: 0 } }] }
+                    : prev
+                )
                 setShowForm(false)
-                await load()
+                void load()
               }}
             />
           </CardContent>

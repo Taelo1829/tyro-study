@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -18,8 +18,6 @@ import {
     PlayCircle,
     FileQuestion,
     Sparkles,
-    FileText,
-    Video
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
@@ -28,6 +26,9 @@ import FlashcardDeck from "@/components/modules/flash-card-decks"
 import { TopicPdfReader } from "@/components/modules/topic-pdf-reader"
 import { Modal } from "@/components/admin/modal"
 import { Input } from "@/components/ui/input"
+import { MathText } from "@/components/ui/math-text"
+import { TopicContentView } from "@/components/topic/topic-content-view"
+import { readingMinutes, renderTopicContent } from "@/lib/topic-content"
 
 interface Topic {
     id: string
@@ -85,7 +86,6 @@ export default function TopicPage() {
     const params = useParams()
     const router = useRouter()
     const { data: session } = useSession()
-    const contentRef = useRef<HTMLDivElement>(null)
     const [topic, setTopic] = useState<Topic | null>(null)
     const [progress, setProgress] = useState<UserProgress | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -107,12 +107,7 @@ export default function TopicPage() {
                 if (!response.ok) throw new Error("Failed to fetch topic")
                 const data: Topic = await response.json()
                 setTopic(data)
-                // Open the Video tab first when the topic has both a video and PDFs.
-                // (Done here rather than in a separate effect: an effect placed after
-                // the early returns below broke React's rules of hooks and crashed the page.)
-                const dataHasVideo = !!data.content && detectVideoInContent(data.content)
-                const dataHasPdfs = (data.pdfs?.length ?? 0) > 0
-                setActiveTab(dataHasVideo && dataHasPdfs ? "video" : "content")
+                setActiveTab("content")
             } catch (error) {
                 console.error("Error fetching topic:", error)
                 toast.error("Error", "Failed to load topic content")
@@ -179,7 +174,6 @@ export default function TopicPage() {
     const hasQuestions = topic.questions?.length > 0
     const hasFlashcards = topic.flashcards?.length > 0
     const hasPdfs = topic.pdfs?.length > 0
-    const hasVideo = !!topic.content && detectVideoInContent(topic.content)
     const isAdmin = session?.user?.role === "ADMIN"
 
     const toggle = () => {
@@ -270,20 +264,8 @@ export default function TopicPage() {
                     <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
                         <TabsTrigger value="content" className="space-x-2">
                             <BookOpen className="h-4 w-4" />
-                            <span>Study Content</span>
+                            <span>Lesson</span>
                         </TabsTrigger>
-                        {hasVideo && hasPdfs && (
-                            <TabsTrigger value="video" className="space-x-2">
-                                <Video className="h-4 w-4" />
-                                <span>Video</span>
-                            </TabsTrigger>
-                        )}
-                        {hasVideo && hasPdfs && (
-                            <TabsTrigger value="pdf" className="space-x-2">
-                                <FileText className="h-4 w-4" />
-                                <span>PDF</span>
-                            </TabsTrigger>
-                        )}
                         {hasFlashcards && (
                             <TabsTrigger value="flashcards" className="space-x-2">
                                 <Sparkles className="h-4 w-4" />
@@ -297,38 +279,38 @@ export default function TopicPage() {
                     </TabsList>
 
                     <TabsContent value="content" className="space-y-6">
+                        {/* The lesson, as written in the app */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Study Material</CardTitle>
+                                <CardTitle>Lesson</CardTitle>
                                 <CardDescription>
-                                    Read through the content carefully. Take notes and make sure you understand the key concepts.
+                                    {topic.content?.trim()
+                                        ? <>{readingMinutes(renderTopicContent(topic.content))} min read · Take notes as you go.</>
+                                        : "Read through the material and make sure you understand the key concepts."}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="topic-content">
-                                    {topic.content ? (
-                                        <div
-                                            ref={contentRef}
-                                            dangerouslySetInnerHTML={{ __html: formatContent(hasVideo ? removeVideoFromContent(topic.content) : topic.content) }}
-                                        />
-                                    ) : (
-                                        <p className="text-muted-foreground italic">
-                                            No content available for this topic yet.
-                                        </p>
-                                    )}
-                                </div>
-                                {!hasVideo && hasPdfs && <TopicPdfReader topicId={topic.id} />}
-                                {hasVideo && !hasPdfs && (
-                                    <div className="topic-content mt-6">
-                                        {topic.content ? (
-                                            <div
-                                                dangerouslySetInnerHTML={{ __html: formatContent(extractVideoFromContent(topic.content)) }}
-                                            />
-                                        ) : null}
-                                    </div>
-                                )}
+                                <TopicContentView
+                                    content={topic.content}
+                                    empty={hasPdfs ? "This topic's material is in the reading below." : "No content available for this topic yet."}
+                                />
                             </CardContent>
                         </Card>
+
+                        {/* Uploaded PDFs, as a reading section under the lesson */}
+                        {hasPdfs && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Reading material</CardTitle>
+                                    <CardDescription>
+                                        Textbook pages and notes for this topic.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <TopicPdfReader topicId={topic.id} />
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {hasQuestions && (
                             <Card>
@@ -343,7 +325,7 @@ export default function TopicPage() {
                                         {topic.questions.slice(0, 5).map((question) => (
                                             <li key={question.id} className="flex items-start gap-2">
                                                 <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                                                <span className="text-sm">{extractKeyPoint(question.question)}</span>
+                                                <span className="text-sm"><MathText text={extractKeyPoint(question.question)} /></span>
                                             </li>
                                         ))}
                                     </ul>
@@ -351,50 +333,6 @@ export default function TopicPage() {
                             </Card>
                         )}
                     </TabsContent>
-
-                    {/* Video Tab */}
-                    {hasVideo && hasPdfs && (
-                        <TabsContent value="video" className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Video Content</CardTitle>
-                                    <CardDescription>
-                                        Watch the video to learn about this topic.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="topic-content">
-                                        {topic.content ? (
-                                            <div
-                                                dangerouslySetInnerHTML={{ __html: formatContent(extractVideoFromContent(topic.content)) }}
-                                            />
-                                        ) : (
-                                            <p className="text-muted-foreground italic">
-                                                No video content available for this topic yet.
-                                            </p>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                    )}
-
-                    {/* PDF Tab */}
-                    {hasVideo && hasPdfs && (
-                        <TabsContent value="pdf" className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>PDF Content</CardTitle>
-                                    <CardDescription>
-                                        Read through the PDF material for additional context.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <TopicPdfReader topicId={topic.id} />
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                    )}
 
                     {/* Flashcards Tab */}
                     {hasFlashcards && (
@@ -527,7 +465,7 @@ export default function TopicPage() {
                         {assignmentSubmissionLoading ? <div>
                             <div>PLEASE WAIT WHILE WE PROCESS YOUR SUBMISSION...</div>
                         </div> : <div>
-                            <div className="topic-content" dangerouslySetInnerHTML={{ __html: topic.assignment || "" }}></div>
+                            <TopicContentView content={topic.assignment} empty="No assignment instructions yet." />
                             <div className="py-4">
                                 <div>Add C++ Submission (Please only upload .cpp files e.g main.cpp)</div>
                                 {!file ? <Input type="file" onChange={onFileChange} /> : <div>{file.name}</div>}
@@ -568,90 +506,9 @@ export default function TopicPage() {
 
 // Helper Functions
 
-
-function getVideoEmbedHtml(rawUrl: string): string | null {
-    const trimmed = rawUrl.trim()
-    if (!trimmed) return null
-
-    let url: URL
-    try {
-        url = new URL(trimmed)
-    } catch {
-        return null
-    }
-
-    if (!["http:", "https:"].includes(url.protocol)) {
-        return null
-    }
-
-    const host = url.hostname.replace(/^www\./, "")
-    let embedUrl = ""
-
-    if (host === "youtube.com" || host === "m.youtube.com") {
-        const id = url.searchParams.get("v") ?? url.pathname.split("/").filter(Boolean).at(-1)
-        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}?enablejsapi=1`
-    } else if (host === "youtu.be") {
-        const id = url.pathname.split("/").filter(Boolean)[0]
-        if (id) embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(id)}?enablejsapi=1`
-    }
-
-    if (embedUrl) {
-        return `<div class="topic-video-embed"><iframe src="${embedUrl}" title="Embedded topic video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
-    }
-
-    if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url.href)) {
-        return `<div class="topic-video-embed"><video src="${url.href}" controls></video></div>`
-    }
-
-    return null
-}
-
-function formatContent(content: string): string {
-    const contentWithVideoEmbeds = content
-        .split(/\n/)
-        .map((line) => getVideoEmbedHtml(line) ?? line)
-        .join("\n")
-
-    // Convert markdown-like syntax to HTML
-    const formatted = contentWithVideoEmbeds
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/\n/g, '<br/>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/### (.*?)(?=<|$)/g, '<h3>$1</h3>')
-        .replace(/## (.*?)(?=<|$)/g, '<h2>$1</h2>')
-        .replace(/# (.*?)(?=<|$)/g, '<h1>$1</h1>')
-        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-
-    return `<p>${formatted}</p>`
-}
-
 function extractKeyPoint(question: string): string {
     // Extract the main concept from a question
     const cleaned = question.replace(/^(What|Which|How|Why|When|Where)\s+(is|are|does|do|can|could|would|should)\s+/i, '')
     return cleaned.length > 100 ? cleaned.substring(0, 100) + '...' : cleaned
 }
 
-function detectVideoInContent(content: string): boolean {
-    const lines = content.split('\n')
-    for (const line of lines) {
-        if (getVideoEmbedHtml(line) !== null) {
-            return true
-        }
-    }
-    return false
-}
-
-function extractVideoFromContent(content: string): string {
-    const lines = content.split('\n')
-    const videoLines = lines.filter(line => getVideoEmbedHtml(line) !== null)
-    if (videoLines.length === 0) return content
-    return videoLines.map(line => getVideoEmbedHtml(line) ?? line).join('\n')
-}
-
-function removeVideoFromContent(content: string): string {
-    const lines = content.split('\n')
-    const nonVideoLines = lines.filter(line => getVideoEmbedHtml(line) === null)
-    if (nonVideoLines.length === lines.length) return content
-    return nonVideoLines.join('\n')
-}

@@ -11,6 +11,7 @@ import {
   userChannel,
 } from "@/lib/pusher"
 import type { ChatMessage } from "@/components/chat/types"
+import { quietFetch } from "@/lib/api-loading"
 
 interface ConversationUnreadState {
   id: string
@@ -23,7 +24,8 @@ interface UserMessagePayload {
 }
 
 async function fetchConversationUnreadState() {
-  const res = await fetch("/api/chat/conversations")
+  // Background badge refresh — don't flash the global loader for it
+  const res = await quietFetch("/api/chat/conversations")
   if (!res.ok) return null
 
   const conversations = (await res.json()) as ConversationUnreadState[]

@@ -5,10 +5,12 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { ExcelBulkImport } from "@/components/admin/excel-bulk-import"
+import { AiQuestionGenerator } from "@/components/admin/ai-question-generator"
 import { DeleteQuestionButton } from "@/components/admin/delete-question-button"
 import { MoveQuestionButton } from "@/components/admin/move-question-button"
 import { ManualQuestionForm } from "@/components/admin/manual-question-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { MathText } from "@/components/ui/math-text"
 
 interface ChapterQuestion {
   id: string
@@ -57,6 +59,15 @@ export default function AdminChapterQuizPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
+            <CardTitle>Generate questions with AI</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AiQuestionGenerator chapterId={id} onSaved={load} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Add a question</CardTitle>
           </CardHeader>
           <CardContent>
@@ -94,7 +105,7 @@ export default function AdminChapterQuizPage() {
                 >
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <p className="font-medium">
-                      {i + 1}. {q.question}
+                      {i + 1}. <MathText text={q.question} />
                     </p>
                     <div className="flex shrink-0 items-center">
                       <MoveQuestionButton questionId={q.id} questionText={q.question} currentChapterId={id} onMoved={load} />
@@ -112,7 +123,7 @@ export default function AdminChapterQuizPage() {
                         }`}
                       >
                         {a.isCorrect ? "✓ " : "○ "}
-                        {a.answer}
+                        <MathText text={a.answer} />
                       </li>
                     ))}
                   </ul>

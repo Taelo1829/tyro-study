@@ -65,6 +65,9 @@ export function newMessageChannel(userId: string) {
   return `all-conversation-${userId}`
 }
 
+/** Everyone signed in joins this; members = who's online right now */
+export const PRESENCE_CHANNEL = 'presence-online'
+
 export const EVENTS = {
   NEW_MESSAGE: 'new-message',
   MESSAGE_READ: 'message-read',

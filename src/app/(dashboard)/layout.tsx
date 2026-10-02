@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { recordDailyVisit } from "@/lib/streak"
 import { TopNav } from "@/components/layout/top-nav"
 import { MobileNav } from "@/components/layout/mobile-nav"
+import { PresenceProvider } from "@/components/providers/presence-provider"
 
 export default async function DashboardLayout({
   children,
@@ -26,13 +27,15 @@ export default async function DashboardLayout({
   )
 
   return (
-    <div className="min-h-dvh bg-background">
-      <TopNav isAdmin={isAdmin} />
-      {/* pt clears the fixed top nav; pb clears the mobile bottom bar */}
-      <main className="mx-auto min-h-dvh max-w-7xl px-4 pb-28 pt-24 sm:px-6 sm:pt-28 lg:pb-10">
-        {children}
-      </main>
-      <MobileNav isAdmin={isAdmin} />
-    </div>
+    <PresenceProvider>
+      <div className="min-h-dvh bg-background">
+        <TopNav isAdmin={isAdmin} />
+        {/* pt clears the fixed top nav; pb clears the mobile bottom bar */}
+        <main className="mx-auto min-h-dvh max-w-7xl px-4 pb-28 pt-24 sm:px-6 sm:pt-28 lg:pb-10">
+          {children}
+        </main>
+        <MobileNav isAdmin={isAdmin} />
+      </div>
+    </PresenceProvider>
   )
 }

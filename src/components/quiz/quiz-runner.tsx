@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
+import { ScratchPad } from "./scratch-pad"
+import { MathText } from "@/components/ui/math-text"
 
 /**
  * Shared quiz screen for topic and chapter quizzes.
@@ -392,14 +394,14 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                                     {isCorrect ? "✓" : "✗"}
                                                 </div>
                                                 <div className="flex-1">
-                                                    <p className="mb-2 font-medium text-foreground">
-                                                        {idx + 1}. {question.text}
+                                                    <p className="mb-2 whitespace-pre-wrap font-medium text-foreground">
+                                                        {idx + 1}. <MathText text={question.text} />
                                                     </p>
                                                     <div className="text-sm text-muted-foreground">
-                                                        <p>Your answer: {result ? yourAnswer?.text ?? "Not answered" : "Not answered"}</p>
+                                                        <p>Your answer: {result && yourAnswer ? <MathText text={yourAnswer.text} /> : "Not answered"}</p>
                                                         {!isCorrect && correctAnswer && (
                                                             <p className="mt-1 font-medium text-green-700">
-                                                                Correct answer: {correctAnswer.text}
+                                                                Correct answer: <MathText text={correctAnswer.text} />
                                                             </p>
                                                         )}
                                                     </div>
@@ -425,7 +427,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     const answeredCount = Object.keys(results).length
 
     return (
-        <div className="px-4 py-12">
+        <div className="px-4 pb-28 pt-12">
             <div className="mx-auto max-w-4xl">
                 <div className="mb-8">
                     {backLink}
@@ -468,7 +470,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 </span>
                             )}
                         </div>
-                        <h2 className="text-xl font-semibold text-foreground">{current.text}</h2>
+                        <h2 className="whitespace-pre-wrap text-xl font-semibold text-foreground"><MathText text={current.text} /></h2>
                     </div>
 
                     <div className="space-y-3">
@@ -496,7 +498,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                         >
                                             {isSelected && <div className="h-2 w-2 rounded-full bg-[var(--neo-primary-foreground)]" />}
                                         </div>
-                                        <span className="flex-1 text-foreground">{option.text}</span>
+                                        <span className="min-w-0 flex-1 text-foreground"><MathText text={option.text} /></span>
                                         {isRightAnswer && <span className="shrink-0 text-sm font-semibold text-green-700">✓ Correct answer</span>}
                                         {isWrongPick && <span className="shrink-0 text-sm font-semibold text-red-600">✗ Your answer</span>}
                                     </div>
@@ -541,6 +543,9 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                     {answeredCount} of {questions.length} questions answered
                 </div>
             </div>
+
+            {/* Floating scrap paper — keyed to the attempt so a new quiz starts blank */}
+            <ScratchPad key={attemptId ?? "pad"} />
         </div>
     )
 }

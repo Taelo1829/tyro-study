@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
           name: true,
           email: true,
           image: true,
+          lastSeen: true,
         },
       },
       user2: {
@@ -38,6 +39,7 @@ export async function GET(req: NextRequest) {
           name: true,
           email: true,
           image: true,
+          lastSeen: true,
         },
       },
       messages: {
@@ -93,4 +95,4 @@ export async function GET(req: NextRequest) {
       updatedAt: c.updatedAt,
     }))
   )
-}
+}

@@ -160,7 +160,7 @@ export default async function DashboardPage() {
         subtitle="Your study overview for today"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <DashboardWidget
           title="Study Progress"
           description="Overall completion across modules"

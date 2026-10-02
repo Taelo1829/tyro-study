@@ -75,8 +75,15 @@ export default function AdminModulesPage() {
                   const data = await res.json()
                   throw new Error(data.error ?? "Failed to create")
                 }
+                // Show the new module straight away, then sync in the background
+                const created = (await res.json()) as Omit<ModuleRow, "_count">
+                setModules(prev =>
+                  prev.some(m => m.id === created.id)
+                    ? prev
+                    : [...prev, { ...created, _count: { chapters: 0 } }]
+                )
                 setShowForm(false)
-                await load()
+                void load()
               }}
             />
           </CardContent>

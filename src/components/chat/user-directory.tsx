@@ -4,20 +4,24 @@ import { useState, useEffect } from 'react'
 import { UserPlus, UserCheck, Clock, UserX, Search, Users } from 'lucide-react'
 import type { UserWithFriendship } from './types'
 import { cn } from '@/lib/utils'
+import { OnlineDot } from '@/components/providers/presence-provider'
 
 interface UserDirectoryProps {
   currentUserId: string
   onRequestSent?: () => void
 }
 
-function Avatar({ user, size = 'md' }: { user: { name?: string | null; image?: string | null }; size?: 'sm' | 'md' }) {
+function Avatar({ user, size = 'md' }: { user: { id: string; name?: string | null; image?: string | null }; size?: 'sm' | 'md' }) {
   const s = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'
   return (
-    <div className={cn('rounded-full gradient-primary flex items-center justify-center font-bold shrink-0 overflow-hidden', s)}>
-      {user.image
-        ? <img src={user.image} alt="" className="w-full h-full object-cover" />
-        : (user.name?.charAt(0) ?? '?').toUpperCase()
-      }
+    <div className="relative shrink-0">
+      <div className={cn('rounded-full gradient-primary flex items-center justify-center font-bold overflow-hidden', s)}>
+        {user.image
+          ? <img src={user.image} alt="" className="w-full h-full object-cover" />
+          : (user.name?.charAt(0) ?? '?').toUpperCase()
+        }
+      </div>
+      <OnlineDot userId={user.id} className={size === 'sm' ? 'h-2.5 w-2.5' : undefined} />
     </div>
   )
 }

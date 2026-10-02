@@ -9,6 +9,13 @@ import {
   runBatched,
 } from "@/lib/bulk-import"
 
+const DIFFICULTIES = new Set(["easy", "medium", "hard"])
+
+function questionDifficulty(q: ExtractedQuestion): string | undefined {
+  const value = (q as ExtractedQuestion & { difficulty?: unknown }).difficulty
+  return typeof value === "string" && DIFFICULTIES.has(value) ? value : undefined
+}
+
 export async function POST(request: Request) {
   const { error } = await requireAdmin()
   if (error) return error
@@ -41,7 +48,8 @@ export async function POST(request: Request) {
             topicId,
             chapterId,
             question: q.question,
-            difficulty: difficulty ?? "medium",
+            // Per-question difficulty (AI drafts) wins over the batch default
+            difficulty: questionDifficulty(q) ?? difficulty ?? "medium",
             answers: {
               create: q.options.map((answer) => ({
                 answer,
