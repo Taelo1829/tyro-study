@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { ChevronRight, UserPlus } from "lucide-react"
-import { Header } from "@/components/layout/header"
+import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -65,13 +65,7 @@ export default function StudentModulePage() {
   if (!mod.isEnrolled) {
     return (
       <>
-        <Header title={mod.title} subtitle="Join to access content" />
-        <Link
-          href="/modules"
-          className="mb-6 inline-block text-sm text-muted-foreground hover:text-primary"
-        >
-          ← All modules
-        </Link>
+        <Breadcrumbs items={[{ label: "Modules", href: "/modules" }, { label: mod.title }]} />
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
             {mod.description && (
@@ -94,14 +88,7 @@ export default function StudentModulePage() {
 
   return (
     <>
-      <Header title={mod.title} subtitle="Chapters in this module" />
-
-      <Link
-        href="/modules"
-        className="mb-6 inline-block text-sm text-muted-foreground hover:text-primary"
-      >
-        ← My modules
-      </Link>
+      <Breadcrumbs items={[{ label: "My modules", href: "/modules" }, { label: mod.title }]} />
 
       {mod.chapters.length === 0 ? (
         <Card>

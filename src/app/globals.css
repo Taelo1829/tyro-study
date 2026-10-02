@@ -419,6 +419,11 @@ body {
 .lesson-editor .callout:empty::before,
 .lesson-editor td:empty::before { content: "\200b"; }
 
+/* Student topic page reads on plain white (set by data-page-bg on that page) */
+:root:has([data-page-bg="white"]) {
+  --neo-bg: #ffffff;
+}
+
 /* ── Global API loader (components/ui/api-loader.tsx) ─────────────────────── */
 @keyframes api-loader-slide {
   0% { transform: translateX(-100%); }

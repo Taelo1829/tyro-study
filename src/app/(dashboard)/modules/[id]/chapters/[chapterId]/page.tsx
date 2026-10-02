@@ -1,5 +1,5 @@
 "use client"
-import { Header } from '@/components/layout/header'
+import { Breadcrumbs } from '@/components/layout/breadcrumbs'
 import { Card, CardContent } from '@/components/ui/card'
 import { ChevronRight, PlayCircle } from 'lucide-react'
 import NextLink from 'next/link'
@@ -9,7 +9,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 interface ChapterDetail {
     title: string
-    module: { id: string }
+    module: { id: string; title: string }
     topics: { id: string; title: string; _count: { questions: number } }[]
 }
 const ChapterPage = () => {
@@ -32,15 +32,14 @@ const ChapterPage = () => {
     if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>
     return (
         <>
-            <Header
-                title={chapter?.title}
-                subtitle="Topics in this Chapter" />
-            <div
-                onClick={() => router.back()}
-                className="mb-6 inline-block text-sm text-muted-foreground hover:text-primary"
-            >
-                ← All Chapters
-            </div>
+            {chapter && (
+                <Breadcrumbs
+                    items={[
+                        { label: chapter.module.title, href: `/modules/${chapter.module.id}` },
+                        { label: chapter.title },
+                    ]}
+                />
+            )}
 
             {chapter && chapter.topics.some((topic) => topic._count.questions > 0) && (
                 <Card className="mb-6 border-primary/30 bg-primary/5">

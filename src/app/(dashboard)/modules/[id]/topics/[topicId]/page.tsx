@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
-import { Header } from "@/components/layout/header"
+import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import FlashcardDeck from "@/components/modules/flash-card-decks"
 import { TopicPdfReader } from "@/components/modules/topic-pdf-reader"
 import { Modal } from "@/components/admin/modal"
@@ -243,25 +243,24 @@ export default function TopicPage() {
     }
 
     return (
-        <div>
-            <Header title={topic.title} subtitle="" />
-            <div>
-                <div className="container max-w-4xl mx-auto px-4 ">
-                    <div className="mb-4">
-                        <Link
-                            href={`/modules/${topic.chapter.module.id}`}
-                            className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center"
-                        >
-                            <ArrowLeft className="mr-1 h-4 w-4" />
-                            Back to {topic.chapter.module.title}
-                        </Link>
-                    </div>
-                </div>
+        // data-page-bg="white": the app background turns white while this page is open (globals.css)
+        <div data-page-bg="white">
+            <div className="container max-w-4xl mx-auto px-4 ">
+                <Breadcrumbs
+                    items={[
+                        { label: topic.chapter.module.title, href: `/modules/${topic.chapter.module.id}` },
+                        { label: topic.chapter.title, href: `/modules/${topic.chapter.module.id}/chapters/${topic.chapter.id}` },
+                        { label: topic.title },
+                    ]}
+                />
             </div>
 
             <div className="container max-w-4xl mx-auto px-4 ">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
+                    <TabsList
+                        className="grid w-full border border-foreground shadow-none"
+                        style={{ gridTemplateColumns: `repeat(${1 + (hasFlashcards ? 1 : 0) + (topic?.questions?.length > 0 ? 1 : 0)}, minmax(0, 1fr))` }}
+                    >
                         <TabsTrigger value="content" className="space-x-2">
                             <BookOpen className="h-4 w-4" />
                             <span>Lesson</span>
@@ -278,49 +277,28 @@ export default function TopicPage() {
                         </TabsTrigger>}
                     </TabsList>
 
-                    <TabsContent value="content" className="space-y-6">
-                        {/* The lesson, as written in the app */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Lesson</CardTitle>
-                                <CardDescription>
-                                    {topic.content?.trim()
-                                        ? <>{readingMinutes(renderTopicContent(topic.content))} min read · Take notes as you go.</>
-                                        : "Read through the material and make sure you understand the key concepts."}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <TopicContentView
-                                    content={topic.content}
-                                    empty={hasPdfs ? "This topic's material is in the reading below." : "No content available for this topic yet."}
-                                />
-                            </CardContent>
-                        </Card>
+                    <TabsContent value="content">
+                        <Sheet>
+                            {/* The lesson, as written in the app */}
+                            <p className="mb-6 text-sm text-muted-foreground">
+                                {topic.content?.trim()
+                                    ? <>{readingMinutes(renderTopicContent(topic.content))} min read · Take notes as you go.</>
+                                    : "Read through the material and make sure you understand the key concepts."}
+                            </p>
+                            <TopicContentView
+                                content={topic.content}
+                                empty={hasPdfs ? "This topic's material is in the reading below." : "No content available for this topic yet."}
+                            />
 
-                        {/* Uploaded PDFs, as a reading section under the lesson */}
-                        {hasPdfs && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Reading material</CardTitle>
-                                    <CardDescription>
-                                        Textbook pages and notes for this topic.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
+                            {/* Uploaded PDFs, as a reading section under the lesson */}
+                            {hasPdfs && (
+                                <Section title="Reading material" description="Textbook pages and notes for this topic.">
                                     <TopicPdfReader topicId={topic.id} />
-                                </CardContent>
-                            </Card>
-                        )}
+                                </Section>
+                            )}
 
-                        {hasQuestions && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Key Takeaways</CardTitle>
-                                    <CardDescription>
-                                        Here&apos;s what you should know before taking the quiz.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
+                            {hasQuestions && (
+                                <Section title="Key takeaways" description="What you should know before taking the quiz.">
                                     <ul className="space-y-2">
                                         {topic.questions.slice(0, 5).map((question) => (
                                             <li key={question.id} className="flex items-start gap-2">
@@ -329,42 +307,33 @@ export default function TopicPage() {
                                             </li>
                                         ))}
                                     </ul>
-                                </CardContent>
-                            </Card>
-                        )}
+                                </Section>
+                            )}
+                        </Sheet>
                     </TabsContent>
 
                     {/* Flashcards Tab */}
                     {hasFlashcards && (
-                        <TabsContent value="flashcards" className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Study Flashcards</CardTitle>
-                                    <CardDescription>
-                                        Review these flashcards to reinforce your learning.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <FlashcardDeck flashcards={topic.flashcards} />
-                                </CardContent>
-                            </Card>
+                        <TabsContent value="flashcards">
+                            <Sheet>
+                                <SheetHeading title="Study flashcards" description="Review these flashcards to reinforce your learning." />
+                                <FlashcardDeck flashcards={topic.flashcards} />
+                            </Sheet>
                         </TabsContent>
                     )}
 
                     {/* Quiz Preparation Tab */}
-                    <TabsContent value="quiz-prep" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Ready to Test Your Knowledge?</CardTitle>
-                                <CardDescription>
-                                    {hasQuestions
+                    <TabsContent value="quiz-prep">
+                        <Sheet>
+                            <SheetHeading
+                                title="Ready to test your knowledge?"
+                                description={hasQuestions
                                         ? topic.questions.length > 10
                                             ? `Each quiz picks 10 of this topic's ${topic.questions.length} questions, starting with ones you haven't done yet.`
                                             : `This quiz contains ${topic.questions.length} questions covering all the key concepts.`
                                         : "No questions available for this topic yet."}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
+                            />
+                            <div className="space-y-4">
                                 {hasQuestions && (
                                     <>
                                         <div className="bg-muted/50 rounded-lg p-4">
@@ -406,6 +375,7 @@ export default function TopicPage() {
                                             <Button
                                                 onClick={handleStartQuiz}
                                                 disabled={isStartingQuiz}
+                                                variant="primary"
                                                 size="lg"
                                                 className="flex-1"
                                             >
@@ -454,8 +424,8 @@ export default function TopicPage() {
                                         )}
                                     </div>
                                 )}
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </Sheet>
                     </TabsContent>
                 </Tabs>
                 {topic.assignment && <Button className="float-end" onClick={toggle}>Attempt Assignment</Button>}
@@ -512,3 +482,30 @@ function extractKeyPoint(question: string): string {
     return cleaned.length > 100 ? cleaned.substring(0, 100) + '...' : cleaned
 }
 
+/** Each tab's content, laid straight onto the white page */
+function Sheet({ children }: { children: React.ReactNode }) {
+    return (
+        <div className="px-1 py-2 sm:px-2">
+            {children}
+        </div>
+    )
+}
+
+function SheetHeading({ title, description }: { title: string; description?: string }) {
+    return (
+        <div className="mb-6">
+            <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+            {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+        </div>
+    )
+}
+
+/** A later part of the same page, set off by a thin rule instead of a card */
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+    return (
+        <section className="mt-10 border-t border-border pt-8">
+            <SheetHeading title={title} description={description} />
+            {children}
+        </section>
+    )
+}

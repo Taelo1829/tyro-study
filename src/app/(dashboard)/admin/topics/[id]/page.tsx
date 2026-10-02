@@ -1,9 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { Header } from "@/components/layout/header"
+import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { ContentManager } from "@/components/admin/content-manager"
 import { TopicPdfManager } from "@/components/admin/topic-pdf-manager"
 import { ExcelBulkImport } from "@/components/admin/excel-bulk-import"
@@ -77,18 +76,15 @@ export default function AdminTopicDetailPage() {
     return <p className="text-sm text-muted-foreground">Loading…</p>
   }
 
-  const breadcrumb = `${topic.chapter.module.title} / ${topic.chapter.title}`
-
   return (
     <>
-      <Header title={topic.title} subtitle={breadcrumb} />
-
-      <Link
-        href={`/admin/chapters/${topic.chapter.id}`}
-        className="mb-6 inline-block text-sm text-muted-foreground hover:text-primary"
-      >
-        ← Back to chapter
-      </Link>
+      <Breadcrumbs
+        items={[
+          { label: topic.chapter.module.title, href: `/admin/modules/${topic.chapter.module.id}` },
+          { label: topic.chapter.title, href: `/admin/chapters/${topic.chapter.id}` },
+          { label: topic.title },
+        ]}
+      />
 
       <div className="space-y-6">
         <ContentManager
