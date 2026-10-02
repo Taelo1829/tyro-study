@@ -18,6 +18,8 @@ import {
     PlayCircle,
     FileQuestion,
     Sparkles,
+    FileText,
+    Video,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
@@ -28,7 +30,7 @@ import { Modal } from "@/components/admin/modal"
 import { Input } from "@/components/ui/input"
 import { MathText } from "@/components/ui/math-text"
 import { TopicContentView } from "@/components/topic/topic-content-view"
-import { readingMinutes, renderTopicContent } from "@/lib/topic-content"
+import { readingMinutes, renderTopicContent, splitTopicVideos } from "@/lib/topic-content"
 
 interface Topic {
     id: string
@@ -174,6 +176,11 @@ export default function TopicPage() {
     const hasQuestions = topic.questions?.length > 0
     const hasFlashcards = topic.flashcards?.length > 0
     const hasPdfs = topic.pdfs?.length > 0
+    // Videos placed in the lesson get their own tab
+    const { lesson: lessonHtml, videos } = splitTopicVideos(renderTopicContent(topic.content))
+    const hasVideo = videos.length > 0
+    const hasLesson = lessonHtml.replace(/<[^>]+>/g, "").trim().length > 0 || /<img/i.test(lessonHtml)
+    const tabCount = 1 + Number(hasVideo) + Number(hasPdfs) + Number(hasFlashcards) + Number(hasQuestions)
     const isAdmin = session?.user?.role === "ADMIN"
 
     const toggle = () => {
@@ -259,43 +266,55 @@ export default function TopicPage() {
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                     <TabsList
                         className="grid w-full border border-foreground shadow-none"
-                        style={{ gridTemplateColumns: `repeat(${1 + (hasFlashcards ? 1 : 0) + (topic?.questions?.length > 0 ? 1 : 0)}, minmax(0, 1fr))` }}
+                        style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}
                     >
-                        <TabsTrigger value="content" className="space-x-2">
-                            <BookOpen className="h-4 w-4" />
+                        <TabsTrigger value="content" className="gap-2 px-2">
+                            <BookOpen className="hidden h-4 w-4 sm:block" />
                             <span>Lesson</span>
                         </TabsTrigger>
+                        {hasVideo && (
+                            <TabsTrigger value="video" className="gap-2 px-2">
+                                <Video className="hidden h-4 w-4 sm:block" />
+                                <span>Video</span>
+                            </TabsTrigger>
+                        )}
+                        {hasPdfs && (
+                            <TabsTrigger value="pdf" className="gap-2 px-2">
+                                <FileText className="hidden h-4 w-4 sm:block" />
+                                <span>PDF</span>
+                            </TabsTrigger>
+                        )}
                         {hasFlashcards && (
-                            <TabsTrigger value="flashcards" className="space-x-2">
-                                <Sparkles className="h-4 w-4" />
+                            <TabsTrigger value="flashcards" className="gap-2 px-2">
+                                <Sparkles className="hidden h-4 w-4 sm:block" />
                                 <span>Flashcards</span>
                             </TabsTrigger>
                         )}
-                        {topic?.questions?.length > 0 && <TabsTrigger value="quiz-prep" className="space-x-2">
-                            <PlayCircle className="h-4 w-4" />
-                            <span>Quiz Preparation</span>
-                        </TabsTrigger>}
+                        {hasQuestions && (
+                            <TabsTrigger value="quiz-prep" className="gap-2 px-2">
+                                <PlayCircle className="hidden h-4 w-4 sm:block" />
+                                <span>Quiz Prep</span>
+                            </TabsTrigger>
+                        )}
                     </TabsList>
 
                     <TabsContent value="content">
                         <Sheet>
-                            {/* The lesson, as written in the app */}
-                            <p className="mb-6 text-sm text-muted-foreground">
-                                {topic.content?.trim()
-                                    ? <>{readingMinutes(renderTopicContent(topic.content))} min read · Take notes as you go.</>
-                                    : "Read through the material and make sure you understand the key concepts."}
-                            </p>
+                            {/* The lesson, as written in the app (videos are in the Video tab) */}
+                            {hasLesson && (
+                                <p className="mb-6 text-sm text-muted-foreground">
+                                    {readingMinutes(lessonHtml)} min read · Take notes as you go.
+                                </p>
+                            )}
                             <TopicContentView
                                 content={topic.content}
-                                empty={hasPdfs ? "This topic's material is in the reading below." : "No content available for this topic yet."}
+                                part="lesson"
+                                empty={
+                                    hasPdfs ? "This topic's material is in the PDF tab."
+                                        : hasVideo ? "Watch the video for this topic in the Video tab."
+                                            : "No content available for this topic yet."
+                                }
                             />
-
-                            {/* Uploaded PDFs, as a reading section under the lesson */}
-                            {hasPdfs && (
-                                <Section title="Reading material" description="Textbook pages and notes for this topic.">
-                                    <TopicPdfReader topicId={topic.id} />
-                                </Section>
-                            )}
 
                             {hasQuestions && (
                                 <Section title="Key takeaways" description="What you should know before taking the quiz.">
@@ -311,6 +330,27 @@ export default function TopicPage() {
                             )}
                         </Sheet>
                     </TabsContent>
+
+                    {hasVideo && (
+                        <TabsContent value="video">
+                            <Sheet>
+                                <SheetHeading
+                                    title={videos.length > 1 ? "Videos" : "Video"}
+                                    description="Watch, pause and rewind as often as you need."
+                                />
+                                <TopicContentView content={topic.content} part="videos" />
+                            </Sheet>
+                        </TabsContent>
+                    )}
+
+                    {hasPdfs && (
+                        <TabsContent value="pdf">
+                            <Sheet>
+                                <SheetHeading title="PDF" description="Textbook pages and notes for this topic." />
+                                <TopicPdfReader topicId={topic.id} />
+                            </Sheet>
+                        </TabsContent>
+                    )}
 
                     {/* Flashcards Tab */}
                     {hasFlashcards && (

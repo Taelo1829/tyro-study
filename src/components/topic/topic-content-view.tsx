@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useSyncExternalStore } from "react"
-import { renderTopicContent } from "@/lib/topic-content"
+import { renderTopicContent, splitTopicVideos } from "@/lib/topic-content"
 import { cn } from "@/lib/utils"
 
 const subscribeNoop = () => () => {}
@@ -15,14 +15,23 @@ export function TopicContentView({
   content,
   className,
   empty = "No content available for this topic yet.",
+  part = "all",
 }: {
   content: string | null | undefined
   className?: string
   empty?: string
+  /** "lesson" = everything except videos, "videos" = only the videos */
+  part?: "all" | "lesson" | "videos"
 }) {
   // Sanitising needs the browser's DOM parser, so render after hydration
   const isClient = useSyncExternalStore(subscribeNoop, () => true, () => false)
-  const html = useMemo(() => (isClient ? renderTopicContent(content) : ""), [content, isClient])
+  const html = useMemo(() => {
+    if (!isClient) return ""
+    const rendered = renderTopicContent(content)
+    if (part === "all") return rendered
+    const { lesson, videos } = splitTopicVideos(rendered)
+    return part === "lesson" ? lesson : videos.join("")
+  }, [content, isClient, part])
 
   if (!isClient) return <div className={cn("topic-content topic-article", className)} />
 

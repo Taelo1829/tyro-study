@@ -363,3 +363,23 @@ export function readingMinutes(html: string): number {
   const words = html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.round(words / 200))
 }
+
+/**
+ * Separate a lesson's videos from the rest of it (for the topic page's Video
+ * tab). Takes sanitised HTML from renderTopicContent. Browser only.
+ */
+export function splitTopicVideos(html: string): { lesson: string; videos: string[] } {
+  if (!html || typeof DOMParser === "undefined") return { lesson: html, videos: [] }
+  const doc = new DOMParser().parseFromString(`<body>${html}</body>`, "text/html")
+  const videos = [...doc.body.querySelectorAll(".topic-video-embed")].map(el => {
+    // A video inside a paragraph takes the (now empty) paragraph with it
+    const holder = el.parentElement?.tagName === "P" && el.parentElement.textContent?.trim() === "" ? el.parentElement : el
+    const markup = el.outerHTML
+    holder.remove()
+    return markup
+  })
+  doc.body.querySelectorAll("p").forEach(p => {
+    if (!p.textContent?.trim() && !p.querySelector("img, iframe, video")) p.remove()
+  })
+  return { lesson: doc.body.innerHTML.trim(), videos }
+}
