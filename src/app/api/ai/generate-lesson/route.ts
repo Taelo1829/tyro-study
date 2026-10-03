@@ -49,10 +49,11 @@ Formatting — return HTML using ONLY these tags: <h2> <h3> <p> <strong> <em> <u
 Respond with JSON only: { "html": "<the lesson HTML>" }`
 
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
-  if (error) return error
-
   try {
+    // Inside the try so any failure (database, AI, PDFs) comes back as a readable JSON error
+    const { error } = await requireAdmin()
+    if (error) return error
+
     const body = (await request.json()) as { topicId?: string; length?: Length; notes?: string }
     const { topicId } = body
     const length: Length = body.length && body.length in LENGTH_GUIDE ? body.length : "standard"

@@ -58,10 +58,11 @@ Respond with JSON only:
 const normalise = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()
 
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
-  if (error) return error
-
   try {
+    // Inside the try so any failure (database, AI, PDFs) comes back as a readable JSON error
+    const { error } = await requireAdmin()
+    if (error) return error
+
     const body = (await request.json()) as {
       topicId?: string
       chapterId?: string
