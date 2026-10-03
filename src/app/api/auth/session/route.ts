@@ -1,74 +1,34 @@
+import NextAuth from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { getServerSession } from "next-auth"
-import { NextResponse } from "next/server"
-// import { authOptions } from "@/lib/auth"
-// import { prisma } from "@/lib/prisma"
 
-export async function GET() {
-    try {
-        const session = await getServerSession(authOptions)
-        // let session: any = {}
-        if (!session || !session.user?.email) {
-            return NextResponse.json(
-                { error: "No active session" },
-                { status: 200 }
-            )
-        }
+/**
+ * This file sits at the same URL as NextAuth's own session endpoint
+ * (/api/auth/session) and, because a specific route beats the
+ * [...nextauth] catch-all, it decides what that URL returns.
+ *
+ * It used to return { error: "No active session" } for signed-out visitors.
+ * NextAuth's browser code treats any non-empty reply as a signed-in session,
+ * so signed-out users were seen as "authenticated" — the home page then
+ * bounced them to /dashboard → /login, and that cached redirect left the
+ * login screen stuck on "Taking you there now".
+ *
+ * Now it simply hands the request to NextAuth as if it had come through
+ * /api/auth/[...nextauth], so the reply is exactly NextAuth's: the session,
+ * or {} when signed out (and the session cookie is refreshed as normal).
+ */
 
-        // Return combined session data
-        return NextResponse.json({
-            user: session.user,
-            expires: session.expires,
-        })
-    } catch (error) {
-        console.error("Session API error:", error)
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        )
-    }
+const nextAuthHandler = NextAuth(authOptions) as (
+  req: Request,
+  context: { params: Promise<{ nextauth: string[] }> }
+) => Promise<Response>
+
+const sessionContext = () => ({ params: Promise.resolve({ nextauth: ["session"] }) })
+
+export function GET(req: Request) {
+  return nextAuthHandler(req, sessionContext())
 }
 
-export async function POST() {
-    try {
-        const session = await getServerSession(authOptions)
-        // let session: any = {}
-        if (!session || !session.user?.email) {
-            return NextResponse.json(
-                { error: "No active session" },
-                { status: 200 }
-            )
-        }
-
-        // Refresh session - just return current session
-        return NextResponse.json({
-            user: session.user,
-            expires: session.expires,
-            refreshed: true,
-        })
-    } catch (error) {
-        console.error("Session refresh error:", error)
-        return NextResponse.json(
-            { error: "Failed to refresh session" },
-            { status: 500 }
-        )
-    }
-}
-
-export async function DELETE() {
-    try {
-        // Session deletion is handled by NextAuth signOut
-        // This endpoint can be used for additional cleanup
-
-        return NextResponse.json({
-            success: true,
-            message: "Session cleared",
-        })
-    } catch (error) {
-        console.error("Session deletion error:", error)
-        return NextResponse.json(
-            { error: "Failed to clear session" },
-            { status: 500 }
-        )
-    }
+/** useSession().update() posts here */
+export function POST(req: Request) {
+  return nextAuthHandler(req, sessionContext())
 }

@@ -53,6 +53,10 @@ export async function PATCH(request: Request, { params }: Params) {
     description?: string
   }
 
+  if (title !== undefined && !title.trim()) {
+    return NextResponse.json({ error: "The module needs a name" }, { status: 400 })
+  }
+
   const updated = await prisma.module.update({
     where: { id },
     data: {

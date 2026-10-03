@@ -7,6 +7,7 @@ import { ChevronRight, Plus } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { TextbookUploader } from "@/components/admin/textbook-uploader"
+import { EditModuleButton } from "@/components/admin/edit-module-button"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -45,7 +46,7 @@ export default function AdminModuleDetailPage() {
 
   return (
     <>
-      <Header title={mod.title} subtitle="Chapters in this module" />
+      <Header title={mod.title} subtitle={mod.description || "Chapters in this module"} />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Link
@@ -55,6 +56,10 @@ export default function AdminModuleDetailPage() {
           ← Modules
         </Link>
         <div className="flex flex-wrap items-center gap-2">
+          <EditModuleButton
+            module={mod}
+            onSaved={updated => setMod(prev => (prev ? { ...prev, ...updated } : prev))}
+          />
           <TextbookUploader moduleId={id} onUploaded={load} />
           <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}>
             <Plus className="h-4 w-4" />

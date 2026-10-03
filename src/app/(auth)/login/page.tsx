@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eye, EyeOff } from "lucide-react"
@@ -24,7 +23,6 @@ function getSafeCallbackUrl() {
 }
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -46,19 +44,30 @@ export default function LoginPage() {
         callbackUrl,
       })
 
-      if (result?.error) {
+      if (!result || result.error || !result.ok) {
         setError("Invalid email or password")
         setLoading(false)
         return
       }
 
       setRedirecting(true)
-      router.replace(callbackUrl)
+      // A full page load (not router.replace) so the dashboard is requested
+      // fresh with the new session cookie. A soft navigation could reuse a
+      // redirect to /login cached while signed out and leave this screen stuck.
+      window.location.assign(callbackUrl)
     } catch {
       setError("Unable to sign in. Please try again.")
       setLoading(false)
     }
   }
+
+  // If the page somehow hasn't changed after a few seconds, offer a way on
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    if (!redirecting) return
+    const timer = setTimeout(() => setSlow(true), 6000)
+    return () => clearTimeout(timer)
+  }, [redirecting])
 
   if (redirecting) {
     return (
@@ -67,6 +76,11 @@ export default function LoginPage() {
         <p className="text-sm text-muted-foreground">
           You&apos;re signed in. Taking you there now.
         </p>
+        {slow && (
+          <Button variant="primary" className="mt-6 w-full" onClick={() => window.location.assign(getSafeCallbackUrl())}>
+            Continue to dashboard
+          </Button>
+        )}
       </>
     )
   }
