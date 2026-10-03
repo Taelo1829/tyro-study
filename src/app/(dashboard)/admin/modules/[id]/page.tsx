@@ -16,6 +16,8 @@ interface ChapterRow {
   title: string
   order: number
   _count: { topics: number }
+  /** Topics in this chapter with no written lesson yet */
+  topicsWithoutContent?: number
 }
 
 interface ModuleDetail {
@@ -114,6 +116,11 @@ export default function AdminModuleDetailPage() {
                     <p className="text-xs text-muted-foreground">
                       {ch._count.topics} topic{ch._count.topics !== 1 ? "s" : ""}
                     </p>
+                    {!!ch.topicsWithoutContent && (
+                      <p className="mt-0.5 text-xs font-medium text-red-600">
+                        {ch.topicsWithoutContent} topic{ch.topicsWithoutContent !== 1 ? "s" : ""} without content
+                      </p>
+                    )}
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </CardContent>

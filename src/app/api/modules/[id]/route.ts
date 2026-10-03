@@ -35,8 +35,27 @@ export async function GET(_request: Request, { params }: Params) {
     enrollments?: { id: string; enrolledAt: Date }[]
   }
 
+  // Topics per chapter with no written lesson (no text, image or video) —
+  // same rule as hasWrittenContent() in lib/topic-content.ts
+  const emptyRows = await prisma.$queryRaw<{ chapterId: string; n: number }[]>`
+    SELECT t."chapterId", COUNT(*)::int AS n
+    FROM "topics" t
+    JOIN "chapters" c ON c."id" = t."chapterId"
+    WHERE c."moduleId" = ${id}
+      AND (
+        t."content" IS NULL
+        OR (
+          t."content" !~* '<(img|iframe|video)'
+          AND regexp_replace(t."content", '<[^>]*>|&nbsp;|\s', '', 'gi') = ''
+        )
+      )
+    GROUP BY t."chapterId"
+  `
+  const emptyByChapter = new Map(emptyRows.map(r => [r.chapterId, r.n]))
+
   return NextResponse.json({
     ...rest,
+    chapters: rest.chapters.map(ch => ({ ...ch, topicsWithoutContent: emptyByChapter.get(ch.id) ?? 0 })),
     isEnrolled: Boolean(enrollment),
     enrolledAt: enrollment?.enrolledAt ?? null,
   })

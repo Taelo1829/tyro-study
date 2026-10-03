@@ -383,3 +383,14 @@ export function splitTopicVideos(html: string): { lesson: string; videos: string
   })
   return { lesson: doc.body.innerHTML.trim(), videos }
 }
+
+/**
+ * True when a topic has a written lesson: real text, an image or a video.
+ * An editor that only holds empty paragraphs/line breaks counts as empty.
+ * (Matches the SQL check in GET /api/modules/[id].)
+ */
+export function hasWrittenContent(content: string | null | undefined): boolean {
+  if (!content) return false
+  if (/<(img|iframe|video)\b/i.test(content)) return true
+  return content.replace(/<[^>]*>|&nbsp;|\s/gi, "").length > 0
+}

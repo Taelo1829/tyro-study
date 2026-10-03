@@ -8,11 +8,13 @@ import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { hasWrittenContent } from "@/lib/topic-content"
 
 interface TopicRow {
   id: string
   title: string
   order: number
+  content: string | null
   _count: { questions: number }
 }
 
@@ -117,6 +119,9 @@ export default function AdminChapterDetailPage() {
                       {t._count.questions} question
                       {t._count.questions !== 1 ? "s" : ""}
                     </p>
+                    {!hasWrittenContent(t.content) && (
+                      <p className="mt-0.5 text-xs font-medium text-red-600">No content</p>
+                    )}
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </CardContent>
