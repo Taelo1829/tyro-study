@@ -106,6 +106,7 @@ model User {
   conversationsAsUser2   Conversation[] @relation("ConversationUser2")
   sentMessages           Message[]      @relation("MessageSender")
   calendarEvents         CalendarEvent[]
+  emailOtps              EmailOtp[]
   @@map("users")
   
 }
@@ -429,4 +430,28 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+
+/// One-time codes emailed to check an address works (sign-up and email change)
+model EmailOtp {
+  id         String   @id @default(cuid())
+  /// "register" or "email-change"
+  purpose    String
+  /// The email for sign-up, the user id for an email change
+  key        String
+  email      String
+  userId     String?
+  codeHash   String
+  /// Sign-up details kept until the code is confirmed (name, password hash)
+  payload    Json?
+  attempts   Int      @default(0)
+  sends      Int      @default(1)
+  expiresAt  DateTime
+  lastSentAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([purpose, key])
+  @@map("email_otps")
 }

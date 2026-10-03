@@ -4,8 +4,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { signOut, useSession } from "next-auth/react"
-import { Bell, BellRing, Brain, ChevronDown, LogOut, Settings, Shield } from "lucide-react"
+import { Bell, BellRing, Brain, ChevronDown, LogOut, Shield, UserRound } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import { MAIN_NAV } from "@/lib/navigation"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
 import { usePushNotifications } from "@/hooks/use-push-notifications"
@@ -14,7 +15,7 @@ interface TopNavProps {
   isAdmin?: boolean
 }
 
-// Links shown in the bar; Settings, Admin and Logout live in the avatar menu
+// Links shown in the bar; Profile, Admin and Logout live in the avatar menu
 const BAR_HREFS = ["/dashboard", "/modules", "/timetable", "/chat"]
 
 export function TopNav({ isAdmin = false }: TopNavProps) {
@@ -118,9 +119,7 @@ export function TopNav({ isAdmin = false }: TopNavProps) {
               aria-expanded={menuOpen}
               className="flex items-center gap-1.5 rounded-full p-1 pr-2 transition-colors hover:bg-muted"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                {name.charAt(0).toUpperCase()}
-              </span>
+              <UserAvatar name={name} image={session?.user?.image} />
               <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", menuOpen && "rotate-180")} />
             </button>
 
@@ -135,13 +134,13 @@ export function TopNav({ isAdmin = false }: TopNavProps) {
                 </div>
                 <div className="my-1 h-px bg-border" />
                 <Link
-                  href="/settings"
+                  href="/profile"
                   role="menuitem"
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center gap-3 rounded-full px-3 py-2.5 text-sm hover:bg-muted"
                 >
-                  <Settings className="h-4 w-4 text-muted-foreground" />
-                  Settings
+                  <UserRound className="h-4 w-4 text-muted-foreground" />
+                  Profile
                 </Link>
                 {isAdmin && (
                   <Link

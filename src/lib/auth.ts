@@ -72,16 +72,31 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          image: user.image,
           role: user.role,
         }
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
         token.role = (user as { role?: string }).role
+      }
+      // The profile page calls useSession().update() after a change: reload
+      // name, email and picture from the database (never from the client)
+      if (trigger === "update" && token.id) {
+        const fresh = await db.user.findUnique({
+          where: { id: token.id },
+          select: { name: true, email: true, image: true, role: true },
+        })
+        if (fresh) {
+          token.name = fresh.name
+          token.email = fresh.email
+          token.picture = fresh.image
+          token.role = fresh.role
+        }
       }
       return token
     },

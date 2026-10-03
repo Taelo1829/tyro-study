@@ -40,6 +40,7 @@ export const config = {
     "/assignments/:path*",
     "/chat/:path*",
     "/settings/:path*",
+    "/profile/:path*",
     "/admin/:path*",
   ],
 }

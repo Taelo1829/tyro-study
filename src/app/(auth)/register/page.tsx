@@ -3,17 +3,22 @@
 import { useState } from "react"
 import Link from "next/link"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { CodeEntry } from "@/components/auth/code-entry"
+
+async function readJson(res: Response) {
+  return (await res.json().catch(() => ({}))) as { error?: string; resendIn?: number; email?: string }
+}
 
 export default function RegisterPage() {
-  const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  // Set once the code has been emailed: step 2 (enter the code)
+  const [pending, setPending] = useState<{ email: string; resendIn: number } | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -25,29 +30,62 @@ export default function RegisterPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     })
+    const data = await readJson(res)
+    setLoading(false)
 
-    const data = await res.json()
     if (!res.ok) {
-      setLoading(false)
       setError(data.error ?? "Registration failed")
       return
     }
+    setPending({ email: data.email ?? email.trim().toLowerCase(), resendIn: data.resendIn ?? 60 })
+  }
 
-    const signInResult = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
+  async function verify(code: string): Promise<string | null> {
+    if (!pending) return "Start again"
+    const res = await fetch("/api/auth/register/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: pending.email, code }),
     })
+    const data = await readJson(res)
+    if (!res.ok) return data.error ?? "That code didn't work"
 
-    setLoading(false)
+    const signInResult = await signIn("credentials", { email: pending.email, password, redirect: false })
+    if (signInResult?.error) return "Your account is ready but signing in failed. Try logging in."
+    // Full page load so the dashboard starts with the new session cookie
+    window.location.assign("/dashboard")
+    return null
+  }
 
-    if (signInResult?.error) {
-      setError("Account created but sign-in failed. Try logging in.")
-      return
-    }
+  async function resend() {
+    if (!pending) return { error: "Start again" }
+    const res = await fetch("/api/auth/register/resend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: pending.email }),
+    })
+    const data = await readJson(res)
+    return { error: res.ok ? undefined : data.error ?? "Couldn't send a new code", resendIn: data.resendIn ?? (res.ok ? 60 : undefined) }
+  }
 
-    router.push("/dashboard")
-    router.refresh()
+  if (pending) {
+    return (
+      <>
+        <h1 className="mb-1 text-2xl font-bold">Check your email</h1>
+        <p className="mb-6 text-sm text-muted-foreground">One last step to create your account</p>
+        <CodeEntry
+          email={pending.email}
+          initialResendIn={pending.resendIn}
+          submitLabel="Confirm and create account"
+          onVerify={verify}
+          onResend={resend}
+          onCancel={() => {
+            setPending(null)
+            setError("")
+          }}
+        />
+      </>
+    )
   }
 
   return (

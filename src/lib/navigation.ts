@@ -4,7 +4,7 @@ import {
   Calendar,
   Layers,
   ClipboardList,
-  Settings,
+  UserRound,
   Shield,
   type LucideIcon,
   MessageCircle,
@@ -29,6 +29,6 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Chats", href: "/chat", icon: MessageCircle, badge: true },
   // { label: "Assignments", href: "/assignments", icon: ClipboardList },
   { label: "Logout", href: "/", icon: LogOut, action: "logout" },
-  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Profile", href: "/profile", icon: UserRound },
   { label: "Admin", href: "/admin", icon: Shield, adminOnly: true },
 ]
