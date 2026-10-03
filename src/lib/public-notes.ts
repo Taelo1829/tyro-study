@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { toPlainText } from "@/lib/plain-text"
 
 /**
  * Public study notes: the written lessons anyone (including search engines
@@ -23,7 +24,7 @@ export interface PublicTopicRow {
 
 /** Every public topic, in course order (module title, chapter order, topic order) */
 export async function listPublicTopics(): Promise<PublicTopicRow[]> {
-  return prisma.$queryRaw<PublicTopicRow[]>`
+  const rows = await prisma.$queryRaw<PublicTopicRow[]>`
     SELECT t."id", t."title",
            c."id" AS "chapterId", c."title" AS "chapterTitle",
            m."id" AS "moduleId", m."title" AS "moduleTitle", m."description" AS "moduleDescription",
@@ -39,6 +40,8 @@ export async function listPublicTopics(): Promise<PublicTopicRow[]> {
       )
     ORDER BY m."title" ASC, c."order" ASC, c."createdAt" ASC, t."order" ASC, t."createdAt" ASC
   `
+  // Descriptions are plain text (older ones may hold editor HTML like "<p>&nbsp;</p>")
+  return rows.map(r => ({ ...r, moduleDescription: toPlainText(r.moduleDescription) || null }))
 }
 
 export interface PublicModule {

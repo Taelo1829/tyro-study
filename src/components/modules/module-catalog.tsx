@@ -1,5 +1,6 @@
 "use client"
 
+import { toPlainText } from "@/lib/plain-text"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { BookOpen, ChevronRight, UserMinus, UserPlus } from "lucide-react"
@@ -126,9 +127,9 @@ export function ModuleCatalog({
                 ) : (
                   <p className="font-semibold">{m.title}</p>
                 )}
-                {m.description && (
+                {toPlainText(m.description) && (
                   <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                    {m.description}
+                    {toPlainText(m.description)}
                   </p>
                 )}
                 <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">

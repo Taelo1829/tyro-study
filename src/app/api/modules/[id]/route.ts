@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { getAuthUserId } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
+import { toPlainText } from "@/lib/plain-text"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -81,7 +82,7 @@ export async function PATCH(request: Request, { params }: Params) {
     data: {
       ...(title !== undefined && { title: title.trim() }),
       ...(description !== undefined && {
-        description: description?.trim() || null,
+        description: toPlainText(description) || null,
       }),
     },
   })

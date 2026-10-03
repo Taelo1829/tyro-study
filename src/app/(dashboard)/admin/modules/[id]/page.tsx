@@ -1,5 +1,6 @@
 "use client"
 
+import { toPlainText } from "@/lib/plain-text"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -48,7 +49,7 @@ export default function AdminModuleDetailPage() {
 
   return (
     <>
-      <Header title={mod.title} subtitle={mod.description || "Chapters in this module"} />
+      <Header title={mod.title} subtitle={toPlainText(mod.description) || "Chapters in this module"} />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Link

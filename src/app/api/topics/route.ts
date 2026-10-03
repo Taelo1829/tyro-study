@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
+import { hasWrittenContent } from "@/lib/topic-content"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
     data: {
       chapterId,
       title: title.trim(),
-      content: content?.trim() || null,
+      content: hasWrittenContent(content) ? content!.trim() : null,
       order: topicOrder,
     },
   })

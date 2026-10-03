@@ -1,5 +1,6 @@
 "use client"
 
+import { toPlainText } from "@/lib/plain-text"
 import { useState } from "react"
 import { Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,19 +16,19 @@ interface EditModuleButtonProps {
 export function EditModuleButton({ module, onSaved }: EditModuleButtonProps) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState(module.title)
-  const [description, setDescription] = useState(module.description ?? "")
+  const [description, setDescription] = useState(toPlainText(module.description))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
 
   function openEditor() {
     // Start from the current values each time
     setTitle(module.title)
-    setDescription(module.description ?? "")
+    setDescription(toPlainText(module.description))
     setError("")
     setOpen(true)
   }
 
-  const unchanged = title.trim() === module.title && description.trim() === (module.description ?? "")
+  const unchanged = title.trim() === module.title && description.trim() === toPlainText(module.description)
 
   async function save(e: React.FormEvent) {
     e.preventDefault()

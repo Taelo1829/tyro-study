@@ -1,4 +1,4 @@
-import { getOpenAIClient } from "@/lib/ai/openai"
+import { chatJson } from "@/lib/ai/openai"
 import { UNISA_CONTEXT, htmlToText, moduleLines } from "@/lib/ai/unisa"
 import { prisma } from "@/lib/prisma"
 
@@ -111,20 +111,8 @@ export async function searchYouTube(query: string, max = 10): Promise<VideoCandi
     .filter(v => v.seconds >= MIN_SECONDS && v.seconds <= MAX_SECONDS)
 }
 
-async function askJson<T>(system: string, user: string): Promise<T> {
-  const openai = getOpenAIClient()
-  const response = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    temperature: 0.2,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-  })
-  const raw = response.choices[0]?.message?.content
-  if (!raw) throw new Error("No response from AI")
-  return JSON.parse(raw) as T
+function askJson<T>(system: string, user: string): Promise<T> {
+  return chatJson<T>({ system, user, temperature: 0.2, maxTokens: 1000 })
 }
 
 const DESCRIBE_PROMPT = `You choose a YouTube video to go with one topic of a UNISA module, for students who study on their own.

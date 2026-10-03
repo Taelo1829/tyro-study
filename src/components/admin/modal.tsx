@@ -77,7 +77,8 @@ export function Modal({ open, onClose, children, size = 'md', persistent = false
         <div
             style={{ maxHeight: "100vh", overflowY: "auto" }}
             ref={overlayRef}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            // Above the mobile bottom nav (z-50), so buttons at the bottom of a pop-up aren't hidden behind it
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
             onClick={e => {
                 if (!persistent && e.target === overlayRef.current) onClose()
             }}
@@ -91,6 +92,9 @@ export function Modal({ open, onClose, children, size = 'md', persistent = false
                 aria-modal="true"
                 className={cn(
                     'relative z-10 w-full flex flex-col',
+                    // Never taller than the screen: the body scrolls, header and footer (Save…) stay in view.
+                    // Pop-ups that don't use ModalBody scroll as a whole instead.
+                    'max-h-[calc(100dvh-2rem)] overflow-y-auto',
                     'bg-card border border-border rounded-2xl shadow-2xl',
                     'animate-in fade-in zoom-in-95 duration-200',
                     SIZE[size],
@@ -133,7 +137,7 @@ export function ModalHeader({ children, onClose, className }: ModalHeaderProps) 
 export function ModalBody({ children, className, noPadding = false }: ModalBodyProps) {
     return (
         <div className={cn(
-            'flex-1 overflow-y-auto',
+            'min-h-0 flex-1 overflow-y-auto',
             !noPadding && 'px-6 py-5',
             className,
         )}>

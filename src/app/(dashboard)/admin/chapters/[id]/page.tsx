@@ -74,7 +74,7 @@ export default function AdminChapterDetailPage() {
                 {
                   name: "content",
                   label: "Content (optional)",
-                  type: "textarea",
+                  type: "richtext",
                 },
               ]}
               submitLabel="Create topic"

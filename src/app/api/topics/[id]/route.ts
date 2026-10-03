@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
+import { hasWrittenContent } from "@/lib/topic-content"
 import { getLockedFlags, getTopicLock, lockedResponseBody, setTopicLocked } from "@/lib/topic-locks"
 
 type Params = { params: Promise<{ id: string }> }
@@ -85,7 +86,7 @@ export async function PATCH(request: Request, { params }: Params) {
     where: { id },
     data: {
       ...(title !== undefined && { title: title.trim() }),
-      ...(content !== undefined && { content: content?.trim() || null }),
+      ...(content !== undefined && { content: hasWrittenContent(content) ? content!.trim() : null }),
       ...(order !== undefined && { order }),
       ...(assignment !== undefined && { assignment }),
     },

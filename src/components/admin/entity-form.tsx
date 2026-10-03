@@ -8,7 +8,8 @@ import NeumorphicEditor from "./rich-text-editor"
 interface Field {
   name: string
   label: string
-  type?: "text" | "textarea"
+  /** text: one line · textarea: plain text · richtext: the lesson editor (saves HTML) */
+  type?: "text" | "textarea" | "richtext"
   placeholder?: string
   required?: boolean
 }
@@ -51,10 +52,19 @@ export function EntityForm({
           <label className="mb-1.5 block text-sm font-medium">
             {field.label}
           </label>
-          {field.type === "textarea" ? (
+          {field.type === "richtext" ? (
             <NeumorphicEditor
               value={values[field.name] ?? ""}
               setHtml={(e) => setValues((v) => ({ ...v, [field.name]: e }))}
+            />
+          ) : field.type === "textarea" ? (
+            <textarea
+              placeholder={field.placeholder}
+              required={field.required}
+              rows={3}
+              value={values[field.name] ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.value }))}
+              className="neo-inset w-full resize-y rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/50"
             />
           ) : (
             <Input

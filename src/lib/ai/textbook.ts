@@ -1,4 +1,4 @@
-import { getOpenAIClient } from "@/lib/ai/openai"
+import { chatJson } from "@/lib/ai/openai"
 import { moduleLines } from "@/lib/ai/unisa"
 
 /**
@@ -41,6 +41,35 @@ interface OutlineItem {
   items?: OutlineItem[]
 }
 
+/** The PDF has no selectable text (a scanned book): its pages need OCR */
+export class NoTextError extends Error {
+  constructor(public pageCount: number) {
+    super("No text could be read from this PDF.")
+  }
+}
+
+/** The most pages a scanned book may have for OCR (each page is one AI call) */
+export const MAX_OCR_PAGES = 1000
+
+/**
+ * Page text read by OCR in the admin's browser (scanned books), checked and
+ * tidied into the same shape readTextbookPdf returns.
+ */
+export function textbookFromOcr(input: { pages?: unknown; labels?: unknown; outline?: unknown }): TextbookData {
+  const pages = (Array.isArray(input.pages) ? input.pages : [])
+    .slice(0, MAX_OCR_PAGES)
+    .map(p => String(p ?? "").replace(/[ \t]+/g, " ").trim().slice(0, 20_000))
+  const labels = pages.map((_, i) => {
+    const l = Array.isArray(input.labels) ? input.labels[i] : null
+    return typeof l === "string" && l.trim() ? l.trim().slice(0, 20) : null
+  })
+  const outline = (Array.isArray(input.outline) ? input.outline : [])
+    .filter((l): l is string => typeof l === "string" && !!l.trim())
+    .slice(0, 600)
+    .map(l => l.slice(0, 200))
+  return { pageCount: pages.length, pages, labels, outline }
+}
+
 /** Read every page's text, the printed page numbers and the bookmarks */
 export async function readTextbookPdf(buffer: Buffer): Promise<TextbookData> {
   const { CanvasFactory } = await import("pdf-parse/worker")
@@ -54,7 +83,7 @@ export async function readTextbookPdf(buffer: Buffer): Promise<TextbookData> {
       if (page.num >= 1 && page.num <= pageCount) pages[page.num - 1] = page.text.replace(/[ \t]+/g, " ").trim()
     }
     if (!pages.some(p => p.length > 20)) {
-      throw new Error("No text could be read from this PDF. If it's a scanned book, it needs OCR (selectable text) first.")
+      throw new NoTextError(pageCount)
     }
 
     let labels: (string | null)[] = pages.map(() => null)
@@ -148,19 +177,12 @@ export async function proposeOutline(data: TextbookData, mod: { title: string; d
     `\nPage index (PDF page: first lines):\n${index}`,
   ].join("\n")
 
-  const openai = getOpenAIClient()
-  const response = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+  const parsed = await chatJson<{ lastPage?: unknown; chapters?: unknown }>({
+    system: OUTLINE_PROMPT,
+    user: userPrompt,
     temperature: 0.2,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: OUTLINE_PROMPT },
-      { role: "user", content: userPrompt },
-    ],
+    maxTokens: 10000,
   })
-  const raw = response.choices[0]?.message?.content
-  if (!raw) throw new Error("No response from AI")
-  const parsed = JSON.parse(raw) as { lastPage?: unknown; chapters?: unknown }
   return tidyOutline(parsed, data.pageCount)
 }
 

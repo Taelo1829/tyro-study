@@ -6,6 +6,7 @@ import { AlertCircle, BookOpen, Check, CheckCircle2, FileText, Loader2, RotateCc
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Modal, ModalBody, ModalHeader } from "./modal"
+import { ocrScannedPdf } from "./pdf-ocr"
 
 /**
  * "Upload textbook": reads a textbook PDF and builds the module from it.
@@ -52,7 +53,7 @@ interface Task {
   note?: string
 }
 
-type Step = "pick" | "uploading" | "reading" | "review" | "creating" | "writing" | "done"
+type Step = "pick" | "uploading" | "reading" | "ocr" | "review" | "creating" | "writing" | "done"
 type Length = "short" | "standard" | "detailed"
 
 const CONCURRENCY = 2
@@ -82,7 +83,8 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
   const [tasks, setTasks] = useState<Task[]>([])
   const stopRef = useRef(false)
 
-  const busy = step === "uploading" || step === "reading" || step === "creating" || step === "writing"
+  const [ocr, setOcr] = useState({ done: 0, total: 0 })
+  const busy = step === "uploading" || step === "reading" || step === "ocr" || step === "creating" || step === "writing"
 
   // Leaving the page mid-import would stop it
   useEffect(() => {
@@ -136,10 +138,31 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
       })
 
       setStep("reading")
-      const result = await postJson<{ pagesUrl: string; pageCount: number; chapters: Omit<ReviewChapter, "include">[] }>(
-        "/api/admin/textbooks/analyze",
-        { moduleId, url: blob.url }
-      )
+      type Analysis = { pagesUrl: string; pageCount: number; chapters: Omit<ReviewChapter, "include">[] }
+      const first = await postJson<Analysis | { needsOcr: true; pageCount: number }>("/api/admin/textbooks/analyze", {
+        moduleId,
+        url: blob.url,
+      })
+
+      let result: Analysis
+      if ("needsOcr" in first) {
+        // A scanned book: read each page's text from its image, then carry on as normal
+        if (first.pageCount > 1000) throw new Error("That scanned book is too long (over 1,000 pages). Split it into parts.")
+        stopRef.current = false
+        setOcr({ done: 0, total: first.pageCount })
+        setStep("ocr")
+        const read = await ocrScannedPdf(file, {
+          onProgress: (done, total) => setOcr({ done, total }),
+          shouldStop: () => stopRef.current,
+        })
+        setStep("reading")
+        result = await postJson<Analysis>("/api/admin/textbooks/analyze", {
+          moduleId,
+          ocr: { pages: read.pages, labels: read.labels, outline: read.outline },
+        })
+      } else {
+        result = first
+      }
       setPagesUrl(result.pagesUrl)
       setPageCount(result.pageCount)
       setChapters(
@@ -267,7 +290,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
           </h2>
         </ModalHeader>
         <ModalBody className="space-y-5">
-          {(step === "pick" || step === "uploading" || step === "reading") && (
+          {(step === "pick" || step === "uploading" || step === "reading" || step === "ocr") && (
             <>
               <p className="text-sm text-muted-foreground">
                 Upload the textbook as a PDF. The AI finds its chapters and sections and suggests chapters and topics for this
@@ -301,7 +324,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
                       <Upload className="h-4 w-4" />
                       Choose PDF
                     </Button>
-                    <p className="text-xs text-muted-foreground">The PDF needs selectable text (not a scan). Up to 300MB.</p>
+                    <p className="text-xs text-muted-foreground">Up to 300MB. Scanned books work too: their pages are read with OCR.</p>
                   </>
                 )}
                 {step === "uploading" && (
@@ -311,6 +334,27 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
                       <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
                     </div>
                     <p className="text-xs text-muted-foreground">Uploading… {progress}%</p>
+                  </div>
+                )}
+                {step === "ocr" && (
+                  <div className="w-full max-w-sm space-y-2">
+                    <p className="text-sm font-medium">This is a scanned book. Reading the text from each page…</p>
+                    <div className="h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary transition-all"
+                        style={{ width: `${ocr.total ? Math.round((ocr.done / ocr.total) * 100) : 0}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Page {ocr.done} of {ocr.total}. Keep this window open; a big book takes several minutes.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => (stopRef.current = true)}
+                      className="text-xs text-muted-foreground underline hover:text-foreground"
+                    >
+                      Stop and use the pages read so far
+                    </button>
                   </div>
                 )}
                 {step === "reading" && (

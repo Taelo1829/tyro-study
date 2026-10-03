@@ -1,5 +1,6 @@
 "use client"
 
+import { toPlainText } from "@/lib/plain-text"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { ChevronRight, Plus } from "lucide-react"
@@ -61,6 +62,7 @@ export default function AdminModulesPage() {
                   name: "description",
                   label: "Description",
                   type: "textarea",
+                  placeholder: "e.g. COS1511 Introduction to Programming I: first-year C++",
                 },
               ]}
               submitLabel="Create module"
@@ -107,9 +109,9 @@ export default function AdminModulesPage() {
                   <CardContent className="flex flex-1 items-center justify-between py-4">
                     <div>
                       <p className="font-semibold">{m.title}</p>
-                      {m.description && (
+                      {toPlainText(m.description) && (
                         <p className="text-sm text-muted-foreground line-clamp-1">
-                          {m.description}
+                          {toPlainText(m.description)}
                         </p>
                       )}
                       <p className="mt-1 text-xs text-muted-foreground">

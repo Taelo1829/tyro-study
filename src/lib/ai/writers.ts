@@ -1,4 +1,4 @@
-import { getOpenAIClient } from "@/lib/ai/openai"
+import { chatJson } from "@/lib/ai/openai"
 import { UNISA_CONTEXT } from "@/lib/ai/unisa"
 
 /**
@@ -39,21 +39,8 @@ Respond with JSON only: { "html": "<the lesson HTML>" }`
 
 /** Write a lesson from a prompt describing the topic; returns the lesson HTML */
 export async function writeLessonHtml(userPrompt: string): Promise<string> {
-  const openai = getOpenAIClient()
-  const response = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    temperature: 0.5,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: LESSON_SYSTEM_PROMPT },
-      { role: "user", content: userPrompt },
-    ],
-  })
-
-  const raw = response.choices[0]?.message?.content
-  if (!raw) throw new Error("No response from AI")
-
-  const parsed = JSON.parse(raw) as { html?: unknown }
+  // Detailed lessons are ~2,500 words of HTML: leave plenty of room
+  const parsed = await chatJson<{ html?: unknown }>({ system: LESSON_SYSTEM_PROMPT, user: userPrompt, temperature: 0.5, maxTokens: 12000 })
   const html = typeof parsed.html === "string"
     ? parsed.html.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "").trim()
     : ""
@@ -106,20 +93,7 @@ const normalise = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").tri
  * and repeats of `existing`; may return an empty list.
  */
 export async function writeQuestions(userPrompt: string, existing: string[], difficulty: DifficultyChoice): Promise<GeneratedQuestion[]> {
-  const openai = getOpenAIClient()
-  const response = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    temperature: 0.6,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: QUESTIONS_SYSTEM_PROMPT },
-      { role: "user", content: userPrompt },
-    ],
-  })
-
-  const raw = response.choices[0]?.message?.content
-  if (!raw) throw new Error("No response from AI")
-  const parsed = JSON.parse(raw) as { questions?: unknown }
+  const parsed = await chatJson<{ questions?: unknown }>({ system: QUESTIONS_SYSTEM_PROMPT, user: userPrompt, temperature: 0.6, maxTokens: 8000 })
   if (!Array.isArray(parsed.questions)) throw new Error("Invalid AI response")
 
   // Keep only well-formed questions that aren't duplicates

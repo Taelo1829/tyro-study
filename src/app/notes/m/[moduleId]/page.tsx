@@ -1,3 +1,4 @@
+import { toPlainText } from "@/lib/plain-text"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!mod) return { title: `Not found | ${SITE_NAME}` }
   return {
     title: `${mod.title} study notes | ${SITE_NAME}`,
-    description: mod.description || `Free study notes for ${mod.title}, organised by chapter and topic.`,
+    description: toPlainText(mod.description) || `Free study notes for ${mod.title}, organised by chapter and topic.`,
     alternates: { canonical: `/notes/m/${mod.id}` },
   }
 }
@@ -30,7 +31,7 @@ export default async function PublicModulePage({ params }: Props) {
       <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
         <Breadcrumbs className="px-0" items={[{ label: "Study notes", href: "/notes" }, { label: mod.title }]} />
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{mod.title}</h1>
-        {mod.description && <p className="mt-3 text-muted-foreground">{mod.description}</p>}
+        {toPlainText(mod.description) && <p className="mt-3 text-muted-foreground">{toPlainText(mod.description)}</p>}
 
         <div className="mt-10 space-y-8">
           {mod.chapters.map((chapter, ci) => (

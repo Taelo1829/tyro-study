@@ -1,3 +1,4 @@
+import { toPlainText } from "@/lib/plain-text"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
@@ -71,7 +72,7 @@ export default async function NotesIndexPage({ searchParams }: Props) {
                       <Link href={`/notes/m/${mod.id}`} className="group flex items-center justify-between gap-4 py-5">
                         <div className="min-w-0">
                           <p className="text-lg font-semibold tracking-tight group-hover:text-primary">{mod.title}</p>
-                          {mod.description && <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{mod.description}</p>}
+                          {toPlainText(mod.description) && <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(mod.description)}</p>}
                           <p className="mt-1 text-xs text-muted-foreground">
                             {mod.topicCount} topic{mod.topicCount !== 1 ? "s" : ""} · {mod.chapters.length} chapter
                             {mod.chapters.length !== 1 ? "s" : ""}

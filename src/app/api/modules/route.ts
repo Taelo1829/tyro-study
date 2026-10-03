@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { getAuthUserId } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
+import { toPlainText } from "@/lib/plain-text"
 
 export async function GET() {
   const userId = await getAuthUserId()
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
   const created = await prisma.module.create({
     data: {
       title: title.trim(),
-      description: description?.trim() || null,
+      description: toPlainText(description) || null,
     },
   })
 

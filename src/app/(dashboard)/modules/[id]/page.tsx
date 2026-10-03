@@ -1,5 +1,6 @@
 "use client"
 
+import { toPlainText } from "@/lib/plain-text"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -68,9 +69,9 @@ export default function StudentModulePage() {
         <Breadcrumbs items={[{ label: "Modules", href: "/modules" }, { label: mod.title }]} />
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-            {mod.description && (
+            {toPlainText(mod.description) && (
               <p className="max-w-md text-sm text-muted-foreground">
-                {mod.description}
+                {toPlainText(mod.description)}
               </p>
             )}
             <p className="text-sm text-muted-foreground">
