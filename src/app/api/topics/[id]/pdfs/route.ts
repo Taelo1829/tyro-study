@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth"
 import { requireAdmin } from "@/lib/admin"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTopicLock } from "@/lib/topic-locks"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -54,8 +55,10 @@ async function canReadTopicPdfs(topicId: string) {
     },
     select: { id: true },
   })
+  if (!enrollment) return false
 
-  return Boolean(enrollment)
+  // Locked topics' PDFs open only after the previous topic's quiz is passed
+  return !(await getTopicLock(session.user.id, topicId))
 }
 
 export async function GET(_request: Request, { params }: Params) {

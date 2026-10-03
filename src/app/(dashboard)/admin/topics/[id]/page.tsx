@@ -8,6 +8,7 @@ import { ContentManager } from "@/components/admin/content-manager"
 import { TopicPdfManager } from "@/components/admin/topic-pdf-manager"
 import { ExcelBulkImport } from "@/components/admin/excel-bulk-import"
 import { FlashcardTools } from "@/components/admin/flashcard-tools"
+import { LockTopicToggle } from "@/components/admin/lock-topic-toggle"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AiQuestionGenerator } from "@/components/admin/ai-question-generator"
 import { DeleteQuestionButton } from "@/components/admin/delete-question-button"
@@ -20,6 +21,7 @@ interface TopicDetail {
   title: string
   content: string | null
   assignment: string | null
+  locked?: boolean
   chapter: {
     id: string
     title: string
@@ -88,6 +90,12 @@ export default function AdminTopicDetailPage() {
           { label: topic.chapter.title, href: `/admin/chapters/${topic.chapter.id}` },
           { label: topic.title },
         ]}
+      />
+
+      <LockTopicToggle
+        topicId={id}
+        locked={!!topic.locked}
+        onChanged={locked => setTopic(prev => (prev ? { ...prev, locked } : prev))}
       />
 
       {/* Tabs stay mounted (forceMount) so switching tabs never loses an unsaved lesson */}

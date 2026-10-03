@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ChevronRight, ClipboardList, Plus } from "lucide-react"
+import { ChevronRight, ClipboardList, Lock, Plus } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ interface TopicRow {
   title: string
   order: number
   content: string | null
+  locked?: boolean
   _count: { questions: number }
 }
 
@@ -114,7 +115,14 @@ export default function AdminChapterDetailPage() {
               <Card>
                 <CardContent className="flex items-center justify-between py-4">
                   <div>
-                    <p className="font-semibold">{t.title}</p>
+                    <p className="flex items-center gap-2 font-semibold">
+                      {t.title}
+                      {t.locked && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-semibold text-orange-700">
+                          <Lock className="h-3 w-3" /> Locked
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {t._count.questions} question
                       {t._count.questions !== 1 ? "s" : ""}

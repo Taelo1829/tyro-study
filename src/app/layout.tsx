@@ -4,6 +4,7 @@ import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { ApiLoader } from '@/components/ui/api-loader'
+import { ADSENSE_CLIENT } from '@/lib/site'
 
 const urbanist = Urbanist({
   subsets: ['latin'],
@@ -15,6 +16,10 @@ export const metadata: Metadata = {
   title: 'Tyro Study - ReImagined Learning',
   description: 'Structured studying with quizzes and flashcards',
   manifest: '/manifest.json',
+  // Lets AdSense confirm the site is yours. The ad code itself is only loaded
+  // on pages with real content (components/ads/adsense-script.tsx) — not here,
+  // or it would also run on the login screen.
+  other: { "google-adsense-account": ADSENSE_CLIENT },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -40,8 +45,6 @@ export default function RootLayout({
     <html lang="en" className={urbanist.variable}>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4704249489359180"
-          crossOrigin="anonymous"></script>
       </head>
       <body className={`${urbanist.className} bg-background text-foreground`}>
         <ApiLoader />

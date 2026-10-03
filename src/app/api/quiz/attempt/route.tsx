@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTopicLock, lockedResponseBody } from "@/lib/topic-locks"
 import type { Prisma } from "@/prisma/client"
 
 /** Extra time after an (optional) time limit for a late submit to arrive */
@@ -45,6 +46,12 @@ export async function POST(req: NextRequest) {
                 { error: "Missing required fields: topicId, chapterId, moduleId, or questionIds" },
                 { status: 400 }
             )
+        }
+
+        // A locked topic's quiz can't be started until the previous topic's quiz is passed
+        if (topicId && user.role !== "ADMIN") {
+            const lock = await getTopicLock(user.id, topicId)
+            if (lock) return NextResponse.json(lockedResponseBody(lock), { status: 403 })
         }
 
         let questions: PoolQuestion[] = []

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
+import { getLockedFlags, getModuleLocks } from "@/lib/topic-locks"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -32,7 +33,26 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({ error: "Chapter not found" }, { status: 404 })
   }
 
-  return NextResponse.json(chapter)
+  // locked: an admin has locked the topic.
+  // lockedBy: (students) the topic they must pass first — absent when it's open.
+  const lockedFlags = await getLockedFlags(chapter.topics.map(t => t.id))
+  const studentLocks = !isAdmin && session?.user?.id
+    ? await getModuleLocks(session.user.id, chapter.module.id)
+    : new Map()
+
+  return NextResponse.json({
+    ...chapter,
+    topics: chapter.topics.map(t => {
+      const lockedBy = studentLocks.get(t.id)?.previousTopic ?? null
+      return {
+        ...t,
+        // Don't hand out a still-locked topic's lesson or questions
+        ...(lockedBy && { content: null, assignment: null, questions: [] }),
+        locked: lockedFlags.has(t.id),
+        lockedBy,
+      }
+    }),
+  })
 }
 
 export async function PATCH(request: Request, { params }: Params) {

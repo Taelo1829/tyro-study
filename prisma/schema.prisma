@@ -203,6 +203,8 @@ model Topic {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   assignment String? @db.Text
+  /// Students must pass the previous topic's quiz before this topic opens
+  locked    Boolean  @default(false)
 
   chapter      Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   questions    Question[]

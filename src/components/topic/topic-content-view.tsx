@@ -16,12 +16,16 @@ export function TopicContentView({
   className,
   empty = "No content available for this topic yet.",
   part = "all",
+  serverHtml,
 }: {
   content: string | null | undefined
   className?: string
   empty?: string
   /** "lesson" = everything except videos, "videos" = only the videos */
   part?: "all" | "lesson" | "videos"
+  /** Clean HTML prepared on the server (public pages): shown in the first
+   *  render so the lesson is in the page's HTML for search engines */
+  serverHtml?: string
 }) {
   // Sanitising needs the browser's DOM parser, so render after hydration
   const isClient = useSyncExternalStore(subscribeNoop, () => true, () => false)
@@ -33,7 +37,11 @@ export function TopicContentView({
     return part === "lesson" ? lesson : videos.join("")
   }, [content, isClient, part])
 
-  if (!isClient) return <div className={cn("topic-content topic-article", className)} />
+  if (!isClient) {
+    return serverHtml
+      ? <div className={cn("topic-content topic-article", className)} dangerouslySetInnerHTML={{ __html: serverHtml }} />
+      : <div className={cn("topic-content topic-article", className)} />
+  }
 
   if (!html) {
     return <p className="text-muted-foreground italic">{empty}</p>

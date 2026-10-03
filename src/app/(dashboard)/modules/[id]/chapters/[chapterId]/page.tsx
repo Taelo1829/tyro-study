@@ -1,7 +1,7 @@
 "use client"
 import { Breadcrumbs } from '@/components/layout/breadcrumbs'
 import { Card, CardContent } from '@/components/ui/card'
-import { ChevronRight, PlayCircle } from 'lucide-react'
+import { ChevronRight, Lock, PlayCircle } from 'lucide-react'
 import NextLink from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useParams, useRouter } from 'next/navigation'
@@ -10,7 +10,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 interface ChapterDetail {
     title: string
     module: { id: string; title: string }
-    topics: { id: string; title: string; _count: { questions: number } }[]
+    topics: { id: string; title: string; lockedBy?: { id: string; title: string } | null; _count: { questions: number } }[]
 }
 const ChapterPage = () => {
     const [chapter, setChapter] = useState<ChapterDetail | null>(null)
@@ -52,12 +52,32 @@ const ChapterPage = () => {
             {chapter?.topics.map((tp) => (
                 <div key={tp.id} className='my-3'>
                     <Card>
-                        <CardContent onClick={() => router.push(`/modules/${chapter.module.id}/topics/${tp.id}`)} className="flex cursor-pointer items-center justify-between py-4">
-                            <div>
-                                <p className="font-semibold">{tp.title}</p>
-                            </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                        </CardContent>
+                        {tp.lockedBy ? (
+                            // Locked until the previous topic's quiz is passed
+                            <CardContent className="flex cursor-not-allowed items-center justify-between gap-3 py-4 opacity-55 grayscale" aria-disabled="true" title="Locked">
+                                <div className="min-w-0">
+                                    <p className="flex items-center gap-2 font-semibold text-muted-foreground">
+                                        <Lock className="h-4 w-4 shrink-0" />
+                                        {tp.title}
+                                    </p>
+                                    <p className="mt-0.5 text-xs text-muted-foreground">
+                                        Pass the{" "}
+                                        <NextLink href={`/modules/${chapter.module.id}/topics/${tp.lockedBy.id}`} className="font-medium text-foreground underline underline-offset-2">
+                                            {tp.lockedBy.title}
+                                        </NextLink>{" "}
+                                        quiz to unlock
+                                    </p>
+                                </div>
+                                <Lock className="h-5 w-5 shrink-0 text-muted-foreground" />
+                            </CardContent>
+                        ) : (
+                            <CardContent onClick={() => router.push(`/modules/${chapter.module.id}/topics/${tp.id}`)} className="flex cursor-pointer items-center justify-between py-4">
+                                <div>
+                                    <p className="font-semibold">{tp.title}</p>
+                                </div>
+                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </CardContent>
+                        )}
                     </Card>
                 </div>
             ))}

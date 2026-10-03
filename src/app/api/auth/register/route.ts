@@ -49,6 +49,15 @@ export async function POST(request: Request) {
         ? String((error as { code: string }).code)
         : ""
 
+    // Two sign-ups with the same email at the same moment: the database's
+    // unique rule stops the second one
+    if (code === "P2002") {
+      return NextResponse.json(
+        { error: "Email already registered" },
+        { status: 409 }
+      )
+    }
+
     if (code === "ECONNREFUSED" || code === "P1001") {
       return NextResponse.json(
         {

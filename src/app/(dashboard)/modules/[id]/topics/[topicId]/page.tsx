@@ -18,6 +18,7 @@ import {
     PlayCircle,
     FileQuestion,
     Sparkles,
+    Lock,
     FileText,
     Video,
 } from "lucide-react"
@@ -30,6 +31,7 @@ import { Modal } from "@/components/admin/modal"
 import { Input } from "@/components/ui/input"
 import { MathText } from "@/components/ui/math-text"
 import { TopicContentView } from "@/components/topic/topic-content-view"
+import { AdSenseScript } from "@/components/ads/adsense-script"
 import { readingMinutes, renderTopicContent, splitTopicVideos } from "@/lib/topic-content"
 
 interface Topic {
@@ -100,12 +102,21 @@ export default function TopicPage() {
     const [result, setResult] = useState<AssignmentResult | null>(null)
     const [assignmentSubmissionLoading, setAssignmentSubmissionLoading] = useState(false)
     const topicId = params.topicId as string
+    // Set when the topic is locked for this student (previous quiz not passed yet)
+    const [lockedInfo, setLockedInfo] = useState<{ previousTopic: { id: string; title: string }; passMark: number } | null>(null)
 
     // Fetch topic data
     useEffect(() => {
         const fetchTopic = async () => {
             try {
                 const response = await fetch(`/api/topics/${topicId}`)
+                if (response.status === 403) {
+                    const data = await response.json().catch(() => ({}))
+                    if (data.locked && data.previousTopic) {
+                        setLockedInfo({ previousTopic: data.previousTopic, passMark: data.passMark ?? 70 })
+                        return
+                    }
+                }
                 if (!response.ok) throw new Error("Failed to fetch topic")
                 const data: Topic = await response.json()
                 setTopic(data)
@@ -150,6 +161,32 @@ export default function TopicPage() {
 
     if (isLoading) {
         return <div>Loading...</div>
+    }
+
+    if (lockedInfo) {
+        const moduleId = params.id as string
+        return (
+            <div data-page-bg="white" className="container mx-auto max-w-xl px-4 py-16 text-center">
+                <span className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-orange-700">
+                    <Lock className="h-7 w-7" />
+                </span>
+                <h1 className="text-2xl font-semibold tracking-tight">This topic is locked</h1>
+                <p className="mt-2 text-muted-foreground">
+                    Pass the <span className="font-medium text-foreground">{lockedInfo.previousTopic.title}</span> quiz
+                    with {lockedInfo.passMark}% or more to open it.
+                </p>
+                <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+                    <Button asChild variant="primary">
+                        <Link href={`/modules/${moduleId}/topics/${lockedInfo.previousTopic.id}`}>
+                            Go to {lockedInfo.previousTopic.title}
+                        </Link>
+                    </Button>
+                    <Button asChild variant="default">
+                        <Link href={`/modules/${moduleId}`}>Back to module</Link>
+                    </Button>
+                </div>
+            </div>
+        )
     }
 
     if (!topic) {
@@ -252,6 +289,8 @@ export default function TopicPage() {
     return (
         // data-page-bg="white": the app background turns white while this page is open (globals.css)
         <div data-page-bg="white">
+            {/* Ads only where there's a real lesson to read */}
+            {hasLesson && <AdSenseScript />}
             <div className="container max-w-4xl mx-auto px-4 ">
                 <Breadcrumbs
                     items={[

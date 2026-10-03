@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
         // Emails are matched case-insensitively so "Taelo@Mail.com" and
         // "taelo@mail.com" are the same account (registration and password reset
         // already normalise to lowercase).
-        const email = credentials.email.trim()
+        const email = credentials.email.trim().toLowerCase()
         const user =
           (await db.user.findUnique({ where: { email } })) ??
           (await db.user.findFirst({

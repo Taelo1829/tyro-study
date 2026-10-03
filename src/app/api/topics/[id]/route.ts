@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
+import { getLockedFlags, getTopicLock, lockedResponseBody, setTopicLocked } from "@/lib/topic-locks"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -11,6 +12,12 @@ export async function GET(_request: Request, { params }: Params) {
   const isAdmin = session?.user?.role === "ADMIN"
 
   const { id } = await params
+
+  // Students can't open a locked topic until they pass the previous topic's quiz
+  if (!isAdmin && session?.user?.id) {
+    const lock = await getTopicLock(session.user.id, id)
+    if (lock) return NextResponse.json(lockedResponseBody(lock), { status: 403 })
+  }
 
   const topic = await prisma.topic.findUnique({
     where: { id },
@@ -52,6 +59,7 @@ export async function GET(_request: Request, { params }: Params) {
 
   return NextResponse.json({
     ...topic,
+    locked: (await getLockedFlags([topic.id])).has(topic.id),
     nextTopic: nextTopic?.id ?? null,
   })
 }
@@ -61,11 +69,16 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const { id } = await params
   const body = await request.json()
-  const { title, content, order, assignment } = body as {
+  const { title, content, order, assignment, locked } = body as {
     title?: string
     content?: string
     order?: number
     assignment?: string
+    locked?: boolean
+  }
+
+  if (locked !== undefined) {
+    await setTopicLocked(id, Boolean(locked))
   }
 
   const topic = await prisma.topic.update({
@@ -78,7 +91,7 @@ export async function PATCH(request: Request, { params }: Params) {
     },
   })
 
-  return NextResponse.json(topic)
+  return NextResponse.json({ ...topic, locked: (await getLockedFlags([id])).has(id) })
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
