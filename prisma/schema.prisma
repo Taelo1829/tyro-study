@@ -87,6 +87,8 @@ model User {
   image         String?
   password      String?
   role          Role      @default(STUDENT)
+  /// Superusers manage admins: change roles, grant superuser, delete admins
+  isSuperuser   Boolean   @default(false)
   streakDays    Int       @default(0)
   lastVisitDate DateTime?
   createdAt     DateTime  @default(now())

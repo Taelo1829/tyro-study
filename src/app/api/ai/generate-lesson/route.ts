@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
-import { getOpenAIClient } from "@/lib/ai/openai"
-import { moduleLines, readPdfText, UNISA_CONTEXT } from "@/lib/ai/unisa"
+import { moduleLines, readPdfText } from "@/lib/ai/unisa"
+import { LENGTH_GUIDE, type Length, writeLessonHtml } from "@/lib/ai/writers"
 import { prisma } from "@/lib/prisma"
 
 /**
@@ -16,37 +16,8 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const maxDuration = 120
 
-type Length = "short" | "standard" | "detailed"
-
-const LENGTH_GUIDE: Record<Length, string> = {
-  short: "about 400–600 words",
-  standard: "about 900–1,300 words",
-  detailed: "about 1,800–2,500 words",
-}
-
 /** Max characters of PDF text sent to the model */
 const PDF_TEXT_LIMIT = 40_000
-
-const SYSTEM_PROMPT = `You are an experienced lecturer writing study material for students at UNISA (the University of South Africa).
-
-${UNISA_CONTEXT}
-- Define every technical term the first time it appears.
-
-What to write: the lesson for ONE topic, written for the student ("you").
-Structure:
-1. A short opening paragraph: what this topic is and why it matters.
-2. A "Key idea" box with the outcomes: what the student should be able to do after this topic.
-3. The main teaching, split under clear headings (<h2>) and subheadings (<h3>), from basics to harder ideas, each with at least one worked example.
-4. "Watch out" boxes for common mistakes students make in exams and assignments.
-5. A short summary list at the end, then 2–4 self-check questions (questions only, no answers) under a heading "Check your understanding".
-
-Formatting: return HTML using ONLY these tags: <h2> <h3> <p> <strong> <em> <ul> <ol> <li> <blockquote> <pre> <code> <table> <thead> <tbody> <tr> <th> <td> <hr> <div class="callout">, <div class="callout callout-tip">, <div class="callout callout-warning">.
-- Callout boxes: <div class="callout"><p><strong>Key idea:</strong> …</p></div>, <div class="callout callout-tip"><p><strong>Tip:</strong> …</p></div>, <div class="callout callout-warning"><p><strong>Watch out:</strong> …</p></div>
-- Code goes in <pre><code>…</code></pre> with < and > escaped as &lt; &gt;.
-- Matrices: write them inline as [[1, 2], [3, 4]] (rows in brackets); the app draws them as matrices. Other maths: plain text such as x^2, √x, ≤, × (the app shows x^2 as a superscript). Equations go in <p>, never in <pre> or <code> - those are only for program code.
-- No <h1> (the topic title is already shown), no inline styles, no images, no links, no markdown.
-
-Respond with JSON only: { "html": "<the lesson HTML>" }`
 
 export async function POST(request: Request) {
   try {
@@ -128,25 +99,7 @@ export async function POST(request: Request) {
       .filter(line => line !== "")
       .join("\n")
 
-    const openai = getOpenAIClient()
-    const response = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      temperature: 0.5,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: userPrompt },
-      ],
-    })
-
-    const raw = response.choices[0]?.message?.content
-    if (!raw) throw new Error("No response from AI")
-
-    const parsed = JSON.parse(raw) as { html?: unknown }
-    const html = typeof parsed.html === "string"
-      ? parsed.html.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "").trim()
-      : ""
-    if (!html) throw new Error("The AI didn't return any lesson content")
+    const html = await writeLessonHtml(userPrompt)
 
     return NextResponse.json({
       html,

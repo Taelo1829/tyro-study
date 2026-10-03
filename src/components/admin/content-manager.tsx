@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import NeumorphicEditor from "./rich-text-editor"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "./modal"
-import { Sparkles } from "lucide-react"
-import { sanitizeTopicHtml } from "@/lib/topic-content"
+import { Sparkles, MonitorPlay } from "lucide-react"
+import { getVideoEmbedHtml, sanitizeTopicHtml } from "@/lib/topic-content"
+import { VideoFinder } from "./video-finder"
 import { cn } from "@/lib/utils"
 
 type LessonLength = "short" | "standard" | "detailed"
@@ -40,6 +41,7 @@ export function ContentManager({
   const [aiNotes, setAiNotes] = useState("")
   const [aiBusy, setAiBusy] = useState(false)
   const [aiError, setAiError] = useState("")
+  const [videoOpen, setVideoOpen] = useState(false)
 
   const hasContent = content.replace(/<[^>]+>/g, "").trim().length > 0
 
@@ -89,6 +91,25 @@ export function ContentManager({
     } finally {
       setLoading(false)
     }
+  }
+
+  /** Add a video to the end of the lesson and save the lesson (with any unsaved edits) */
+  async function addVideo(url: string) {
+    const embed = getVideoEmbedHtml(url)
+    if (!embed) throw new Error("That video link can't be embedded")
+    const next = `${content}${embed}`
+    const res = await fetch(`/api/topics/${topicId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: next }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error ?? "Couldn't save the lesson")
+    }
+    setContent(next)
+    setMessage("Video added to the end of the lesson and saved. Students see it in the Video tab.")
+    onSaved()
   }
 
   async function addAssignmentToggle() {
@@ -144,6 +165,10 @@ export function ContentManager({
           >
             <Sparkles className="h-4 w-4" />
             Write with AI
+          </Button>
+          <Button variant="default" onClick={() => setVideoOpen(true)}>
+            <MonitorPlay className="h-4 w-4" />
+            Find video with AI
           </Button>
           <Button
             variant="default"
@@ -221,6 +246,8 @@ export function ContentManager({
           </Button>
         </ModalFooter>
       </Modal>
+
+      {videoOpen && <VideoFinder topicId={topicId} onClose={() => setVideoOpen(false)} onAdd={addVideo} />}
 
       <Modal open={toggle} onClose={addAssignmentToggle}>
         <Card>

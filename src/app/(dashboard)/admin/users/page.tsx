@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-import { KeyRound, Search, Shield, ShieldOff, Trash2, Users } from "lucide-react"
+import { Crown, KeyRound, Search, Shield, ShieldOff, Trash2, Users } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,7 +18,14 @@ interface AdminUser {
   createdAt: string
   lastVisitDate: string | null
   streakDays: number
+  isSuperuser: boolean
   _count: { enrollments: number; quizAttempts: number }
+}
+
+interface Viewer {
+  isSuperuser: boolean
+  /** Superusers manage admins (before the first superuser exists, every admin can) */
+  canManageAdmins: boolean
 }
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" })
@@ -29,6 +36,8 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
   const [admins, setAdmins] = useState(0)
+  const [superusers, setSuperusers] = useState(0)
+  const [viewer, setViewer] = useState<Viewer>({ isSuperuser: false, canManageAdmins: false })
   const [query, setQuery] = useState("")
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -41,6 +50,8 @@ export default function AdminUsersPage() {
       setUsers(data.users)
       setTotal(data.total)
       setAdmins(data.admins)
+      setSuperusers(data.superusers ?? 0)
+      if (data.me) setViewer(data.me)
     } catch (err) {
       toast.error("Error", err instanceof Error ? err.message : "Could not load users")
     } finally {
@@ -85,6 +96,22 @@ export default function AdminUsersPage() {
     )
   }
 
+  function toggleSuperuser(user: AdminUser) {
+    const label = user.name ?? user.email
+    const value = !user.isSuperuser
+    if (value && !confirm(`Make ${label} a superuser? They'll be able to manage admins, including you.`)) return
+    if (!value && !confirm(`Remove superuser from ${label}? They'll stay an admin.`)) return
+    void act(
+      user,
+      () => fetch(`/api/admin/users/${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isSuperuser: value }),
+      }),
+      value ? `${label} is now a superuser` : `${label} is no longer a superuser`
+    )
+  }
+
   function sendReset(user: AdminUser) {
     if (!confirm(`Email a password-reset link to ${user.email}?`)) return
     void act(
@@ -115,6 +142,12 @@ export default function AdminUsersPage() {
           <span className="tint-blue rounded-full px-4 py-2 text-sm">
             <span className="font-semibold">{admins}</span> <span className="text-muted-foreground">admin{admins !== 1 ? "s" : ""}</span>
           </span>
+          {superusers > 0 && (
+            <span className="rounded-full bg-amber-100 px-4 py-2 text-sm">
+              <span className="font-semibold">{superusers}</span>{" "}
+              <span className="text-muted-foreground">superuser{superusers !== 1 ? "s" : ""}</span>
+            </span>
+          )}
         </div>
       </div>
 
@@ -142,7 +175,11 @@ export default function AdminUsersPage() {
             const isMe = user.id === myId
             const isAdmin = user.role === "ADMIN"
             const lastAdmin = isAdmin && admins <= 1
+            const lastSuperuser = user.isSuperuser && superusers <= 1
             const busy = busyId === user.id
+            // Changing roles and deleting admins is for superusers (or any admin before the first superuser exists)
+            const roleLocked = !viewer.canManageAdmins
+            const deleteLocked = isAdmin && !viewer.canManageAdmins
 
             return (
               <li key={user.id}>
@@ -168,6 +205,11 @@ export default function AdminUsersPage() {
                         >
                           {isAdmin ? "Admin" : "Student"}
                         </span>
+                        {user.isSuperuser && (
+                          <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+                            <Crown className="h-3 w-3" /> Superuser
+                          </span>
+                        )}
                         {isMe && <span className="text-xs text-muted-foreground">(you)</span>}
                       </div>
                       <p className="truncate text-sm text-muted-foreground">{user.email}</p>
@@ -180,15 +222,29 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {viewer.isSuperuser && isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => toggleSuperuser(user)}
+                        disabled={busy || lastSuperuser}
+                        title={lastSuperuser ? "There must be at least one superuser" : undefined}
+                        className="neo-button flex h-10 items-center gap-2 px-3.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
+                      >
+                        <Crown className="h-4 w-4" />
+                        {user.isSuperuser ? "Remove superuser" : "Make superuser"}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => toggleRole(user)}
-                      disabled={busy || (isAdmin && (isMe || lastAdmin))}
+                      disabled={busy || roleLocked || (isAdmin && (isMe || lastAdmin || lastSuperuser))}
                       title={
-                        isAdmin && isMe ? "You can't remove your own admin access"
-                          : isAdmin && lastAdmin ? "There must be at least one admin"
-                            : undefined
+                        roleLocked ? "Only a superuser can change roles"
+                          : isAdmin && isMe ? "You can't remove your own admin access"
+                            : isAdmin && lastAdmin ? "There must be at least one admin"
+                              : lastSuperuser ? "There must be at least one superuser"
+                                : undefined
                       }
                       className="neo-button flex h-10 items-center gap-2 px-3.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
                     >
@@ -209,9 +265,15 @@ export default function AdminUsersPage() {
                     <button
                       type="button"
                       onClick={() => remove(user)}
-                      disabled={busy || isMe || lastAdmin}
+                      disabled={busy || isMe || lastAdmin || lastSuperuser || deleteLocked}
                       aria-label={`Delete ${user.name ?? user.email}`}
-                      title={isMe ? "You can't delete your own account here" : lastAdmin ? "There must be at least one admin" : "Delete user"}
+                      title={
+                        isMe ? "You can't delete your own account here"
+                          : deleteLocked ? "Only a superuser can delete admins"
+                            : lastAdmin ? "There must be at least one admin"
+                              : lastSuperuser ? "There must be at least one superuser"
+                                : "Delete user"
+                      }
                       className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Trash2 className="h-4 w-4" />
