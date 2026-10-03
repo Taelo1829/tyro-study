@@ -21,14 +21,14 @@ export async function POST(req: NextRequest) {
 
   const userId = session.user.id
 
-  // presence-online — any signed-in user joins as themselves (powers "Online")
+  // presence-online - any signed-in user joins as themselves (powers "Online")
   if (channelName === PRESENCE_CHANNEL) {
     return NextResponse.json(
       pusherServer.authorizeChannel(socketId, channelName, { user_id: userId })
     )
   }
 
-  // private-user-{userId} — only the owner
+  // private-user-{userId} - only the owner
   if (channelName.startsWith('private-user-')) {
     const channelUserId = channelName.slice('private-user-'.length)
     if (channelUserId !== userId) {
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(pusherServer.authorizeChannel(socketId, channelName))
   }
 
-  // private-conversation-{id} — verify user is in the conversation
+  // private-conversation-{id} - verify user is in the conversation
   if (channelName.startsWith('private-conversation-')) {
     const conversationId = channelName.slice('private-conversation-'.length)
     const conv = await prisma.conversation.findFirst({
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(pusherServer.authorizeChannel(socketId, channelName))
   }
 
-  // Any other channel name is not one this app uses — refuse it rather than
+  // Any other channel name is not one this app uses - refuse it rather than
   // authorising arbitrary private channels for any signed-in user.
   return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 }

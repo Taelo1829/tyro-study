@@ -124,7 +124,7 @@ export function MoveQuestionButton({
                 {/* Numbered in course order: chapter 1, its topics 1.1, 1.2, … */}
                 {mod.chapters.flatMap((ch, c) => [
                   <option key={`c-${ch.id}`} value={`chapter:${ch.id}`}>
-                    {c + 1}. {stripNumber(ch.title)} — chapter quiz only
+                    {c + 1}. {stripNumber(ch.title)} (chapter quiz only)
                   </option>,
                   ...ch.topics.map((tp, t) => (
                     <option key={`t-${tp.id}`} value={`topic:${tp.id}`}>

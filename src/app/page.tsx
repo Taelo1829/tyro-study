@@ -47,7 +47,7 @@ const FEATURES = [
   {
     icon: MessageCircle,
     title: "Study with friends",
-    text: "Chat with classmates taking the same modules — share notes, voice notes and questions.",
+    text: "Chat with classmates taking the same modules, share notes, voice notes and questions.",
   },
 ]
 
@@ -66,7 +66,7 @@ export default async function HomePage() {
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
           {SITE_NAME} gives distance learners clear study notes for each topic, then helps you check your understanding with
-          quizzes and flashcards — so you walk into assignments and exams prepared.
+          quizzes and flashcards, so you walk into assignments and exams prepared.
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link href="/notes" className="rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/85">
@@ -99,13 +99,12 @@ export default async function HomePage() {
         <section className="border-t border-border">
           <div className="mx-auto max-w-5xl px-4 py-14">
             <h2 className="text-2xl font-semibold tracking-tight">Free study notes</h2>
-            <p className="mt-2 text-muted-foreground">Start reading now — no account needed.</p>
+            <p className="mt-2 text-muted-foreground">Start reading now, no account needed.</p>
             <ul className="mt-6 divide-y divide-border border-y border-border">
               {modules.map(mod => {
-                const first = mod.chapters[0]?.topics[0]
                 return (
                   <li key={mod.id}>
-                    <Link href={first ? `/notes/${first.id}` : "/notes"} className="flex items-center justify-between gap-4 py-4 hover:text-primary">
+                    <Link href={`/notes/m/${mod.id}`} className="flex items-center justify-between gap-4 py-4 hover:text-primary">
                       <div className="min-w-0">
                         <p className="font-medium">{mod.title}</p>
                         <p className="text-sm text-muted-foreground">

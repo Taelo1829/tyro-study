@@ -38,8 +38,8 @@ import { cn } from "@/lib/utils";
  * What you see while writing is what students see: the editing area uses the
  * same `.topic-content` styles as the student page, and "Preview" shows the
  * exact student rendering. Pasted content (Word, Google Docs, PDFs, web
- * pages) is cleaned to plain structure — headings, lists, bold, links,
- * tables — so it matches the rest of the app instead of bringing its own
+ * pages) is cleaned to plain structure - headings, lists, bold, links,
+ * tables - so it matches the rest of the app instead of bringing its own
  * fonts and colours. Images can be uploaded, pasted or dropped in.
  */
 
@@ -210,7 +210,7 @@ export default function NeumorphicEditor({ value, setHtml, placeholder = "Start 
 
     /**
      * Insert block content (boxes, images, tables, videos, lines) after the
-     * paragraph the caret is in — replacing it if it's empty — and move the
+     * paragraph the caret is in - replacing it if it's empty - and move the
      * caret into the element marked data-caret. Done by hand because the
      * browser's insertHTML splits a box apart when the caret is inside a <p>.
      */
@@ -443,7 +443,7 @@ export default function NeumorphicEditor({ value, setHtml, placeholder = "Start 
                 </div>
             ) : (
                 <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-border focus-within:ring-2 focus-within:ring-accent/50">
-                    {/* Toolbar — scrolls sideways on small screens */}
+                    {/* Toolbar - scrolls sideways on small screens */}
                     <div className="flex items-center gap-0.5 overflow-x-auto border-b border-border px-2 py-1.5 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible">
                         <ToolButton label="Paragraph" active={blockTag === "p" || blockTag === "div" || blockTag === ""} onClick={() => block("p")}>
                             <Pilcrow className="h-4 w-4" />

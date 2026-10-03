@@ -14,7 +14,7 @@ export default function AboutPage() {
     <ProsePage title={`About ${SITE_NAME}`}>
       <p>
         {SITE_NAME} is a study app for students at the University of South Africa (UNISA). UNISA is a distance-learning
-        university, so most of the studying happens on your own — often part-time, around work and family. {SITE_NAME} is
+        university, so most of the studying happens on your own, often part-time, around work and family. {SITE_NAME} is
         built to make that easier.
       </p>
       <h2>What you&apos;ll find here</h2>
@@ -34,7 +34,7 @@ export default function AboutPage() {
       <h2>Independent</h2>
       <p>
         {SITE_NAME} is an independent project. It is not affiliated with, endorsed by or connected to the University of South
-        Africa. Always follow your official UNISA study guides, tutorial letters and myUnisa announcements — they take
+        Africa. Always follow your official UNISA study guides, tutorial letters and myUnisa announcements, as they take
         priority over anything on this site.
       </p>
       <h2>Contact</h2>

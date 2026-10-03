@@ -1,13 +1,5 @@
 @import "tailwindcss";
 
-/*
- * Tyro Study theme — light, soft and rounded.
- * Soft grey canvas, white cards with large radii, near-black for primary
- * actions/active states, sky blue as the highlight colour, and pale blue /
- * mint tints for feature panels.
- *
- * The --neo-* names are kept so existing class names keep working.
- */
 :root {
   --neo-bg: #ffffff; /* the dashboard switches this back to light grey */
   --neo-surface: #ffffff;
@@ -96,7 +88,7 @@ body {
 /*
  * Grid children default to "min-width: auto", so one long line of text (even
  * one cut off with an ellipsis) stretched a whole column past the screen edge
- * on phones — that's what pushed the dashboard off-centre. Let them shrink.
+ * on phones - that's what pushed the dashboard off-centre. Let them shrink.
  */
 @layer base {
   .grid > * {
@@ -400,6 +392,23 @@ body {
 }
 .tc-matrix::before { left: 0; border-right: 0; border-radius: 3px 0 0 3px; }
 .tc-matrix::after { right: 0; border-left: 0; border-radius: 0 3px 3px 0; }
+/* Other bracket styles (LaTeX pmatrix, vmatrix, Vmatrix, Bmatrix, matrix) */
+.tc-matrix-p::before { border-radius: 999px 0 0 999px; }
+.tc-matrix-p::after { border-radius: 0 999px 999px 0; }
+.tc-matrix-v::before,
+.tc-matrix-v::after { width: 0; border: 0; border-left: 2px solid currentColor; border-radius: 0; }
+.tc-matrix-V::before,
+.tc-matrix-V::after { width: 0.3rem; border: 0; border-inline: 2px solid currentColor; border-radius: 0; }
+.tc-matrix-B { padding-inline: 0.9rem; }
+.tc-matrix-B::before,
+.tc-matrix-B::after {
+  border: 0; width: auto; top: 50%; bottom: auto; transform: translateY(-50%) scaleY(1.6);
+  font-size: 1.5em; font-weight: 300; line-height: 1;
+}
+.tc-matrix-B::before { content: "{"; }
+.tc-matrix-B::after { content: "}"; }
+.tc-matrix-none::before,
+.tc-matrix-none::after { display: none; }
 .tc-matrix-grid {
   display: inline-grid;
   column-gap: 1rem;
@@ -423,7 +432,7 @@ body {
    The app background is white. The dashboard keeps the light grey
    background and real cards (it marks itself with data-page-bg="grey" and
    data-keep-cards). Everywhere else inside the app (data-app-main), the
-   shared card surface (.neo-flat — used by <Card>) becomes a plain section:
+   shared card surface (.neo-flat - used by <Card>) becomes a plain section:
    no box or shadow, just a thin divider underneath, so stacked cards read
    as one page and lists of cards read as rows. Pop-ups keep their own box. */
 :root:has([data-page-bg="grey"]) {
@@ -442,7 +451,7 @@ body {
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
-/* A section that holds rows doesn't draw its own line — its rows already do */
+/* A section that holds rows doesn't draw its own line - its rows already do */
 [data-app-main] .neo-flat:not([data-keep-cards] .neo-flat):has(.neo-flat) {
   border-bottom: 0;
 }

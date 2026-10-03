@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     // The identifier stores the email in lowercase, but older accounts may have
-    // been registered with capitals — look the user up case-insensitively.
+    // been registered with capitals - look the user up case-insensitively.
     const email = resetToken.identifier.slice(PASSWORD_RESET_TOKEN_PREFIX.length)
     const user = await prisma.user.findFirst({
       where: { email: { equals: email, mode: "insensitive" } },

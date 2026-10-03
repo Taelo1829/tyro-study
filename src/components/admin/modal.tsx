@@ -10,7 +10,7 @@ interface ModalProps {
     open: boolean
     onClose: () => void
     children: React.ReactNode
-    /** 'sm' | 'md' | 'lg' | 'xl' | 'full' — default 'md' */
+    /** 'sm' | 'md' | 'lg' | 'xl' | 'full' - default 'md' */
     size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
     /** Prevent closing when clicking the backdrop */
     persistent?: boolean
@@ -32,7 +32,7 @@ interface ModalBodyProps {
 interface ModalFooterProps {
     children: React.ReactNode
     className?: string
-    /** 'start' | 'center' | 'end' | 'between' — default 'end' */
+    /** 'start' | 'center' | 'end' | 'between' - default 'end' */
     align?: 'start' | 'center' | 'end' | 'between'
 }
 
@@ -168,4 +168,4 @@ export function ModalFooter({ children, className, align = 'end' }: ModalFooterP
 
 Modal.Header = ModalHeader
 Modal.Body = ModalBody
-Modal.Footer = ModalFooter
+Modal.Footer = ModalFooter

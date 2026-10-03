@@ -10,7 +10,7 @@ import { prisma } from "@/lib/prisma"
  * Drafts the lesson for a topic using its module → chapter → topic context.
  * Every module in the app is a UNISA module, so the prompt is written for
  * UNISA's distance-learning students. The draft is returned to the editor
- * for the admin to review — nothing is saved here.
+ * for the admin to review - nothing is saved here.
  */
 
 export const runtime = "nodejs"
@@ -40,10 +40,10 @@ Structure:
 4. "Watch out" boxes for common mistakes students make in exams and assignments.
 5. A short summary list at the end, then 2–4 self-check questions (questions only, no answers) under a heading "Check your understanding".
 
-Formatting — return HTML using ONLY these tags: <h2> <h3> <p> <strong> <em> <ul> <ol> <li> <blockquote> <pre> <code> <table> <thead> <tbody> <tr> <th> <td> <hr> <div class="callout">, <div class="callout callout-tip">, <div class="callout callout-warning">.
+Formatting: return HTML using ONLY these tags: <h2> <h3> <p> <strong> <em> <ul> <ol> <li> <blockquote> <pre> <code> <table> <thead> <tbody> <tr> <th> <td> <hr> <div class="callout">, <div class="callout callout-tip">, <div class="callout callout-warning">.
 - Callout boxes: <div class="callout"><p><strong>Key idea:</strong> …</p></div>, <div class="callout callout-tip"><p><strong>Tip:</strong> …</p></div>, <div class="callout callout-warning"><p><strong>Watch out:</strong> …</p></div>
 - Code goes in <pre><code>…</code></pre> with < and > escaped as &lt; &gt;.
-- Matrices: write them inline as [[1, 2], [3, 4]] (rows in brackets); the app draws them as matrices. Other maths: plain text such as x^2, √x, ≤, ×.
+- Matrices: write them inline as [[1, 2], [3, 4]] (rows in brackets); the app draws them as matrices. Other maths: plain text such as x^2, √x, ≤, × (the app shows x^2 as a superscript). Equations go in <p>, never in <pre> or <code> - those are only for program code.
 - No <h1> (the topic title is already shown), no inline styles, no images, no links, no markdown.
 
 Respond with JSON only: { "html": "<the lesson HTML>" }`
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
       quizLines ? `\nThe topic's quiz asks questions like these, so the lesson must prepare students to answer them:\n${quizLines}` : "",
       pdfText
         ? `\nSource material uploaded for this topic (base the lesson on it; it takes priority over general knowledge):\n${pdfText}`
-        : "\nNo source material was uploaded for this topic — use standard content for this UNISA module at this level.",
+        : "\nNo source material was uploaded for this topic. Use standard content for this UNISA module at this level.",
       notes ? `\nInstructions from the lecturer: ${notes}` : "",
       "",
       `Length: ${LENGTH_GUIDE[length]}.`,

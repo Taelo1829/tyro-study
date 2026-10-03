@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
   })
 }
 
-// POST /api/chat/messages — send a message
+// POST /api/chat/messages - send a message
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
 
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
     conversation.user1Id === session.user.id ? conversation.user2Id : conversation.user1Id
 
   // The message is already saved at this point. If Pusher or web-push hiccups,
-  // still return 201 — previously the error bubbled up as a 500, so the sender's
+  // still return 201 - previously the error bubbled up as a 500, so the sender's
   // app thought the send failed and dropped the message from the thread.
   try {
     // Broadcast to both users in real-time

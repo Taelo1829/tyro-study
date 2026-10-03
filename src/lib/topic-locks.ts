@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
  * Locked topics.
  *
  * An admin can lock a topic. A locked topic only opens for a student once
- * they have passed the quiz of the topic before it — the previous topic in
+ * they have passed the quiz of the topic before it - the previous topic in
  * course order (chapter order, then topic order; for a chapter's first topic
  * that's the last topic of the chapter before).
  *

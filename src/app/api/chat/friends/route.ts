@@ -4,7 +4,7 @@ import { pusherServer, userChannel, EVENTS } from '@/lib/pusher'
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth'
 
-// GET /api/chat/friends  — list friends + pending requests
+// GET /api/chat/friends  - list friends + pending requests
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
   
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(friends)
 }
 
-// POST /api/chat/friends — send a friend request
+// POST /api/chat/friends - send a friend request
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(friendship, { status: 201 })
 }
 
-// PATCH /api/chat/friends — accept or decline
+// PATCH /api/chat/friends - accept or decline
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -149,7 +149,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ success: true })
   }
 
-  // Accept — update friendship and create conversation
+  // Accept - update friendship and create conversation
   const [updated, conversation] = await Promise.all([
     prisma.friendship.update({
       where: { id: friendshipId },
@@ -184,7 +184,7 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json({ friendship: updated, conversationId: conversation.id })
 }
 
-// DELETE /api/chat/friends — unfriend / cancel request
+// DELETE /api/chat/friends - unfriend / cancel request
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

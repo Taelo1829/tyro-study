@@ -8,7 +8,7 @@ import { authOptions } from "@/lib/auth"
  *
  * It used to return { error: "No active session" } for signed-out visitors.
  * NextAuth's browser code treats any non-empty reply as a signed-in session,
- * so signed-out users were seen as "authenticated" — the home page then
+ * so signed-out users were seen as "authenticated" - the home page then
  * bounced them to /dashboard → /login, and that cached redirect left the
  * login screen stuck on "Taking you there now".
  *

@@ -77,7 +77,7 @@ export function EditModuleButton({ module, onSaved }: EditModuleButtonProps) {
                 autoFocus
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Keep the UNISA module code at the start (e.g. COS1511) — the AI uses it to pitch lessons and questions at the right year level.
+                Keep the UNISA module code at the start (e.g. COS1511). The AI uses it to pitch lessons and questions at the right year level.
               </p>
             </div>
             <div>

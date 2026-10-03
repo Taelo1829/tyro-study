@@ -26,7 +26,7 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as unknown as Adapter,
   session: { strategy: "jwt" },
-  // Same cookie the route guard (src/proxy.ts) reads — see lib/auth-cookies.ts
+  // Same cookie the route guard (src/proxy.ts) reads - see lib/auth-cookies.ts
   useSecureCookies: USE_SECURE_COOKIES,
   cookies: {
     sessionToken: {

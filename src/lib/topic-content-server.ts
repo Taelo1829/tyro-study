@@ -4,7 +4,7 @@ import { legacyToHtml, looksLikeHtml } from "@/lib/topic-content"
 /**
  * Server-side version of renderTopicContent (lib/topic-content.ts): turns a
  * stored lesson into clean HTML on the server, so public pages contain the
- * lesson text in the page itself — that's what Google (and AdSense review)
+ * lesson text in the page itself - that's what Google (and AdSense review)
  * reads. Same allow-list as the browser cleaner.
  */
 const OPTIONS: sanitizeHtml.IOptions = {

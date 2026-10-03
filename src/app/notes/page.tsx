@@ -2,7 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { PublicShell } from "@/components/public/public-shell"
-import { listPublicModules } from "@/lib/public-notes"
+import { NotesSearch } from "@/components/public/notes-search"
+import { listPublicModules, searchPublicTopics } from "@/lib/public-notes"
 import { SITE_NAME } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
@@ -14,8 +15,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/notes" },
 }
 
-export default async function NotesIndexPage() {
-  const modules = await listPublicModules()
+type Props = { searchParams: Promise<{ q?: string | string[] }> }
+
+export default async function NotesIndexPage({ searchParams }: Props) {
+  const raw = (await searchParams).q
+  const q = (Array.isArray(raw) ? raw[0] : raw ?? "").trim()
+  const [modules, results] = await Promise.all([listPublicModules(), q ? searchPublicTopics(q) : Promise.resolve(null)])
 
   return (
     <PublicShell ads={modules.length > 0}>
@@ -27,33 +32,59 @@ export default async function NotesIndexPage() {
         </p>
 
         {modules.length === 0 ? (
-          <p className="mt-10 text-muted-foreground">Notes are being written — check back soon.</p>
+          <p className="mt-10 text-muted-foreground">Notes are being written. Check back soon.</p>
         ) : (
-          <div className="mt-10 space-y-12">
-            {modules.map(mod => (
-              <section key={mod.id} aria-labelledby={`m-${mod.id}`}>
-                <h2 id={`m-${mod.id}`} className="text-xl font-semibold tracking-tight">{mod.title}</h2>
-                {mod.description && <p className="mt-1 text-sm text-muted-foreground">{mod.description}</p>}
-                <div className="mt-4 space-y-6">
-                  {mod.chapters.map(chapter => (
-                    <div key={chapter.id}>
-                      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{chapter.title}</h3>
-                      <ul className="mt-2 divide-y divide-border border-y border-border">
-                        {chapter.topics.map(topic => (
-                          <li key={topic.id}>
-                            <Link href={`/notes/${topic.id}`} className="flex items-center justify-between gap-3 py-3 hover:text-primary">
-                              <span>{topic.title}</span>
-                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
+          <>
+            <div className="mt-8">
+              <NotesSearch key={q} initial={q} />
+            </div>
+
+            {results ? (
+              <section aria-labelledby="results" className="mt-8">
+                <h2 id="results" className="text-sm text-muted-foreground">
+                  {results.length === 0
+                    ? `No notes match “${q}”.`
+                    : `${results.length}${results.length === 40 ? "+" : ""} result${results.length !== 1 ? "s" : ""} for “${q}”`}
+                </h2>
+                {results.length > 0 && (
+                  <ul className="mt-3 divide-y divide-border border-y border-border">
+                    {results.map(r => (
+                      <li key={r.id}>
+                        <Link href={`/notes/${r.id}`} className="group block py-4">
+                          <p className="text-xs text-muted-foreground">
+                            {r.moduleTitle} / {r.chapterTitle}
+                          </p>
+                          <p className="mt-0.5 font-medium group-hover:text-primary">{r.title}</p>
+                          {r.snippet && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{r.snippet}</p>}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
-            ))}
-          </div>
+            ) : (
+              <section aria-labelledby="modules" className="mt-8">
+                <h2 id="modules" className="sr-only">Modules</h2>
+                <ul className="divide-y divide-border border-y border-border">
+                  {modules.map(mod => (
+                    <li key={mod.id}>
+                      <Link href={`/notes/m/${mod.id}`} className="group flex items-center justify-between gap-4 py-5">
+                        <div className="min-w-0">
+                          <p className="text-lg font-semibold tracking-tight group-hover:text-primary">{mod.title}</p>
+                          {mod.description && <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{mod.description}</p>}
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {mod.topicCount} topic{mod.topicCount !== 1 ? "s" : ""} · {mod.chapters.length} chapter
+                            {mod.chapters.length !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
         )}
       </div>
     </PublicShell>

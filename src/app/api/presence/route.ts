@@ -3,7 +3,7 @@ import { getAuthUserId } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
 
 /**
- * POST — heartbeat: stamp the signed-in user's lastSeen (sent every minute
+ * POST - heartbeat: stamp the signed-in user's lastSeen (sent every minute
  * while the app is open, and via sendBeacon when the page is hidden/closed).
  * Raw SQL so the frequent ping doesn't also bump users.updatedAt.
  */
@@ -18,7 +18,7 @@ export async function POST() {
 }
 
 /**
- * GET ?ids=a,b — lastSeen for people you have a conversation with (used when
+ * GET ?ids=a,b - lastSeen for people you have a conversation with (used when
  * live presence isn't available). Anyone else is left out.
  */
 export async function GET(req: NextRequest) {

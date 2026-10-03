@@ -13,7 +13,7 @@ async function ownEventOr404(id: string, userId: string) {
   return owner === userId
 }
 
-// PATCH /api/calendar/:id { completed } — tick an entry off
+// PATCH /api/calendar/:id { completed } - tick an entry off
 export async function PATCH(request: Request, { params }: Params) {
   const { error, userId } = await requireAuth()
   if (error) return error

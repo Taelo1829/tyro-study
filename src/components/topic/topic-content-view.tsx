@@ -8,7 +8,7 @@ const subscribeNoop = () => () => {}
 
 /**
  * Shows a topic's lesson (or assignment) the way it was written in the
- * editor: headings, lists, images, callouts, tables, videos and matrices —
+ * editor: headings, lists, images, callouts, tables, videos and matrices -
  * cleaned up and styled as a readable article.
  */
 export function TopicContentView({

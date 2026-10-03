@@ -40,12 +40,12 @@ export default function PrivacyPage() {
       <h2>Service providers</h2>
       <p>We use trusted providers to run {SITE_NAME}. They only process information to provide their service to us:</p>
       <ul>
-        <li><strong>Vercel</strong> — website hosting and file storage (uploaded images, voice notes and PDFs).</li>
-        <li><strong>Our database provider</strong> — stores account and study data.</li>
-        <li><strong>Pusher</strong> — delivers chat messages and online status in real time.</li>
-        <li><strong>Resend</strong> — sends account emails such as password resets.</li>
-        <li><strong>OpenAI</strong> — generates automatic feedback on assignment submissions (the code you submit is sent for this), and helps our team draft study material.</li>
-        <li><strong>Google AdSense</strong> — shows advertising (see below).</li>
+        <li><strong>Vercel</strong>: website hosting and file storage (uploaded images, voice notes and PDFs).</li>
+        <li><strong>Our database provider</strong>: stores account and study data.</li>
+        <li><strong>Pusher</strong>: delivers chat messages and online status in real time.</li>
+        <li><strong>Resend</strong>: sends account emails such as password resets.</li>
+        <li><strong>OpenAI</strong>: generates automatic feedback on assignment submissions (the code you submit is sent for this), and helps our team draft study material.</li>
+        <li><strong>Google AdSense</strong>: shows advertising (see below).</li>
       </ul>
       <p>Some of these providers store data outside South Africa, with safeguards required by POPIA.</p>
 

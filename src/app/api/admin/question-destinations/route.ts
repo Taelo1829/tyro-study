@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { getQuestionModuleId } from "@/lib/questions"
 
-// GET /api/admin/question-destinations?questionId=… — admin only.
+// GET /api/admin/question-destinations?questionId=… - admin only.
 // The chapters and topics of the question's own module, for the
 // "Move question" picker (moves are limited to the same module).
 export async function GET(request: Request) {

@@ -5,7 +5,7 @@ import { issuePasswordReset } from "@/lib/password-reset"
 
 type Params = { params: Promise<{ id: string }> }
 
-// POST /api/admin/users/:id/reset-password — admin only.
+// POST /api/admin/users/:id/reset-password - admin only.
 // Emails the user a password-reset link (the same link "Forgot password" sends).
 export async function POST(_request: Request, { params }: Params) {
   const { error } = await requireAdmin()

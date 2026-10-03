@@ -12,7 +12,7 @@ import { MathText } from "@/components/ui/math-text"
  * answers). Each answer is graded and saved by PUT /api/quiz/attempt the moment
  * you press "Submit", so you get right/wrong feedback straight away. When the
  * last question of the quiz is answered the attempt is complete and the
- * results are shown — no further questions are added.
+ * results are shown - no further questions are added.
  */
 
 interface QuizOption {
@@ -342,7 +342,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             <div className="mt-12 border-t border-border pt-8">
                                 <h2 className="mb-1 text-xl font-bold text-foreground">Topics to focus on</h2>
                                 {focusTopics.length === 0 ? (
-                                    <p className="text-sm text-green-700">You got everything right — no weak topics this time. 🎉</p>
+                                    <p className="text-sm text-green-700">You got everything right, no weak topics this time. 🎉</p>
                                 ) : (
                                     <>
                                         <p className="mb-4 text-sm text-muted-foreground">
@@ -512,7 +512,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             role="status"
                             className={`mt-6 rounded-2xl border p-4 font-semibold ${result.isCorrect ? "border-green-200 bg-tint-mint text-green-800" : "border-red-200 bg-red-50 text-red-700"}`}
                         >
-                            {result.isCorrect ? "✓ Correct! Well done." : "✗ Not quite — the correct answer is highlighted in green."}
+                            {result.isCorrect ? "✓ Correct! Well done." : "✗ Not quite. The correct answer is highlighted in green."}
                         </div>
                     )}
                 </div>
@@ -544,7 +544,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                 </div>
             </div>
 
-            {/* Floating scrap paper — keyed to the attempt so a new quiz starts blank */}
+            {/* Floating scrap paper - keyed to the attempt so a new quiz starts blank */}
             <ScratchPad key={attemptId ?? "pad"} />
         </div>
     )

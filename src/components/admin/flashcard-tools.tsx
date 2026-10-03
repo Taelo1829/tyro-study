@@ -55,7 +55,7 @@ export function FlashcardTools({
           <p className="text-sm text-muted-foreground">
             {hasLesson
               ? "Creates 10 flashcards from this topic's saved lesson."
-              : "Write and save a lesson first — the AI makes flashcards from it."}
+              : "Write and save a lesson first. The AI makes flashcards from it."}
           </p>
           <Button variant="primary" className="shrink-0" onClick={generate} disabled={busy || !hasLesson}>
             <Sparkles className="h-4 w-4" />

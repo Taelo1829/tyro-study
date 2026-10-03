@@ -69,7 +69,7 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
     try {
       channel = subscribeToPusherChannel(PRESENCE_CHANNEL) as PresenceChannel
     } catch {
-      // Pusher isn't configured — fall back to lastSeen (async to avoid a render cascade)
+      // Pusher isn't configured - fall back to lastSeen (async to avoid a render cascade)
       const timer = setTimeout(() => setLive(false), 0)
       return () => clearTimeout(timer)
     }

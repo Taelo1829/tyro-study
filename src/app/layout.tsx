@@ -16,9 +16,6 @@ export const metadata: Metadata = {
   title: 'Tyro Study - ReImagined Learning',
   description: 'Structured studying with quizzes and flashcards',
   manifest: '/manifest.json',
-  // Lets AdSense confirm the site is yours. The ad code itself is only loaded
-  // on pages with real content (components/ads/adsense-script.tsx) — not here,
-  // or it would also run on the login screen.
   other: { "google-adsense-account": ADSENSE_CLIENT },
   appleWebApp: {
     capable: true,

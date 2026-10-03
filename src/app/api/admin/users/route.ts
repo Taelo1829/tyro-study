@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 
-// GET /api/admin/users?q=… — admin only. Lists users, newest first.
+// GET /api/admin/users?q=… - admin only. Lists users, newest first.
 export async function GET(request: Request) {
   const { error } = await requireAdmin()
   if (error) return error

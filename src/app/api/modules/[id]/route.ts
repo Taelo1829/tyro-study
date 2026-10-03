@@ -35,7 +35,7 @@ export async function GET(_request: Request, { params }: Params) {
     enrollments?: { id: string; enrolledAt: Date }[]
   }
 
-  // Topics per chapter with no written lesson (no text, image or video) —
+  // Topics per chapter with no written lesson (no text, image or video) -
   // same rule as hasWrittenContent() in lib/topic-content.ts
   const emptyRows = await prisma.$queryRaw<{ chapterId: string; n: number }[]>`
     SELECT t."chapterId", COUNT(*)::int AS n

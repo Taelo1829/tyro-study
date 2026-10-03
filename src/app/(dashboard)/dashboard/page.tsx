@@ -125,7 +125,7 @@ async function getTimetableSummary(userId: string) {
       dueSoon: soon.filter(e => !e.completed && (e.type === "ASSIGNMENT" || e.type === "EXAM")).slice(0, 4),
     }
   } catch (error) {
-    // e.g. the calendar migration hasn't been run yet — don't break the dashboard
+    // e.g. the calendar migration hasn't been run yet - don't break the dashboard
     console.error("Timetable summary failed:", error)
     return { today: [] as CalendarEventRow[], dueSoon: [] as CalendarEventRow[] }
   }

@@ -24,7 +24,7 @@ interface UserMessagePayload {
 }
 
 async function fetchConversationUnreadState() {
-  // Background badge refresh — don't flash the global loader for it
+  // Background badge refresh - don't flash the global loader for it
   const res = await quietFetch("/api/chat/conversations")
   if (!res.ok) return null
 

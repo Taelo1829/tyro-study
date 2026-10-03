@@ -4,7 +4,7 @@
  * It is loaded lazily, only when a PDF is actually read. pdf-parse pulls in a
  * native module (@napi-rs/canvas); if that can't load on the server (a known
  * problem on Vercel), a top-level import crashes every route that imports this
- * file *before* its error handling runs — the request just dies with an HTML
+ * file *before* its error handling runs - the request just dies with an HTML
  * 500. Loading it here, inside the call, turns that into a normal error the
  * caller can catch (and the AI routes simply skip the PDFs).
  */

@@ -34,7 +34,7 @@ export async function GET(_request: Request, { params }: Params) {
   }
 
   // locked: an admin has locked the topic.
-  // lockedBy: (students) the topic they must pass first — absent when it's open.
+  // lockedBy: (students) the topic they must pass first - absent when it's open.
   const lockedFlags = await getLockedFlags(chapter.topics.map(t => t.id))
   const studentLocks = !isAdmin && session?.user?.id
     ? await getModuleLocks(session.user.id, chapter.module.id)

@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       messages: [
         {
           role: "system",
-          content: `Generate flashcards as JSON: { "flashcards": [{ "front": "string", "back": "string" }] }. Create ${count} concise cards.`,
+          content: `Generate flashcards as JSON: { "flashcards": [{ "front": "string", "back": "string" }] }. Create ${count} concise cards. Never use the em dash character (—); use a comma, colon or brackets instead.`,
         },
         {
           role: "user",

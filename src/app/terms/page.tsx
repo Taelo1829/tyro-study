@@ -25,7 +25,7 @@ export default function TermsPage() {
       <p>
         We work hard to keep our notes and quizzes accurate, but they are study aids, not official course material. Always
         follow your official UNISA study guides, tutorial letters and announcements. We can&apos;t guarantee results in
-        assignments or exams. Our notes are for your personal study — please don&apos;t copy and republish them.
+        assignments or exams. Our notes are for your personal study, so please don&apos;t copy and republish them.
       </p>
 
       <h2>Your account</h2>

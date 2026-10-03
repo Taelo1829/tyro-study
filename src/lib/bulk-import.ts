@@ -1,4 +1,4 @@
-/** Prisma default transaction timeout is 5s — bulk imports need more. */
+/** Prisma default transaction timeout is 5s - bulk imports need more. */
 export const BULK_TX_OPTIONS = {
   maxWait: 15_000,
   timeout: 60_000,

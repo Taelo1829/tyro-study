@@ -424,7 +424,7 @@ export default function TopicPage() {
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <Clock className="h-4 w-4 text-primary" />
-                                                    <span>No time limit — a timer shows how long you take</span>
+                                                    <span>No time limit. A timer shows how long you take</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <Trophy className="h-4 w-4 text-primary" />

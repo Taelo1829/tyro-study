@@ -3,7 +3,7 @@
 /**
  * Counts in-flight calls to this app's /api routes so a single global loader
  * can show while anything is being waited on. Installed once by <ApiLoader />
- * by wrapping window.fetch — no changes needed at each call site.
+ * by wrapping window.fetch - no changes needed at each call site.
  *
  * Background calls the user isn't waiting for (heartbeats, typing pings,
  * session refresh, unread badge) are skipped: either by URL below or by

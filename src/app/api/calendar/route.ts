@@ -16,7 +16,7 @@ function isValidDate(value: unknown): value is string {
   return typeof value === "string" && !Number.isNaN(new Date(value).getTime())
 }
 
-// GET /api/calendar?from=ISO&to=ISO — the signed-in user's events in that range
+// GET /api/calendar?from=ISO&to=ISO - the signed-in user's events in that range
 export async function GET(request: Request) {
   const { error, userId } = await requireAuth()
   if (error) return error
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   return NextResponse.json(events)
 }
 
-// POST /api/calendar — add an event (optionally repeating weekly)
+// POST /api/calendar - add an event (optionally repeating weekly)
 export async function POST(request: Request) {
   const { error, userId } = await requireAuth()
   if (error) return error

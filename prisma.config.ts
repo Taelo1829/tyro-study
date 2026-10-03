@@ -1,9 +1,3 @@
-// Prisma CLI config (migrate, generate, studio).
-//
-// Next.js keeps environment variables in .env.local, but `import "dotenv/config"`
-// only reads .env — so Prisma couldn't find the database and `migrate deploy`
-// failed with "datasource.url property is required". Read .env.local first,
-// then .env (values already set in the shell or on Vercel always win).
 import { config } from "dotenv";
 import { defineConfig } from "prisma/config";
 

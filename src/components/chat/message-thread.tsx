@@ -378,7 +378,7 @@ export function MessageThread({ conversationId, currentUser }: MessageThreadProp
       const saved: ChatMessage = await res.json()
 
       // Swap the temporary bubble for the saved message straight away instead of
-      // removing it and waiting for Pusher to add it back — if the Pusher event was
+      // removing it and waiting for Pusher to add it back - if the Pusher event was
       // slow or missed, the message used to vanish from the thread.
       setMessages(prev => {
         const withoutTemp = prev.filter(m => m.id !== temporaryId)

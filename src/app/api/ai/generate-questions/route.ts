@@ -10,7 +10,7 @@ import { prisma } from "@/lib/prisma"
  * Drafts multiple-choice questions for a topic quiz or a chapter quiz, written
  * for UNISA students, using the module → chapter → topic context, the lesson
  * text and uploaded PDFs. Existing questions are passed in so the AI doesn't
- * repeat them. Nothing is saved here — the admin reviews the drafts first and
+ * repeat them. Nothing is saved here - the admin reviews the drafts first and
  * saves the ones they keep through POST /api/questions.
  */
 
@@ -44,11 +44,11 @@ ${UNISA_CONTEXT}
 
 Write questions like a good UNISA MCQ assignment or exam paper:
 - Each question tests ONE clear idea from the material and has exactly 4 options with exactly ONE correct answer.
-- Wrong options (distractors) must be plausible — based on real misconceptions and common mistakes — not silly or obviously wrong. Keep all options a similar length and style.
+- Wrong options (distractors) must be plausible (based on real misconceptions and common mistakes), not silly or obviously wrong. Keep all options a similar length and style.
 - Do not use "All of the above", "None of the above" or "Both A and B". Avoid negative wording ("Which is NOT…") unless it is essential, and then write NOT in capitals.
-- The question must make sense on its own (the quiz shows questions in random order) — don't refer to "the passage", "the text above" or other questions.
+- The question must make sense on its own (the quiz shows questions in random order), so don't refer to "the passage", "the text above" or other questions.
 - Options are shuffled in the quiz, so never refer to option letters or positions.
-- Code: put it in the question as plain text with line breaks (no markdown). Matrices: write them as [[1, 2], [3, 4]] — the app draws them as matrices.
+- Code: put it in the question as plain text with line breaks (no markdown). Matrices: write them as [[1, 2], [3, 4]]; the app draws them as matrices.
 - Cover the material broadly instead of asking several questions about the same detail, and never repeat or closely rephrase an existing question you are given.
 - Give a one-sentence explanation of why the answer is correct.
 
@@ -167,9 +167,9 @@ export async function POST(request: Request) {
       `Difficulty: ${DIFFICULTY_GUIDE[difficulty]}.`,
       source
         ? `\nBase the questions on this material (it takes priority over general knowledge):\n${source}`
-        : "\nNo lesson or material has been added yet — use standard content for this UNISA module at this level.",
+        : "\nNo lesson or material has been added yet. Use standard content for this UNISA module at this level.",
       existing.length
-        ? `\nExisting questions — do NOT repeat or closely rephrase these:\n${existing.slice(0, 150).map(q => `- ${q}`).join("\n")}`
+        ? `\nExisting questions (do NOT repeat or closely rephrase these):\n${existing.slice(0, 150).map(q => `- ${q}`).join("\n")}`
         : "",
       notes ? `\nInstructions from the lecturer: ${notes}` : "",
     ]
@@ -216,7 +216,7 @@ export async function POST(request: Request) {
       })
     }
 
-    if (questions.length === 0) throw new Error("The AI didn't return any usable questions — try again")
+    if (questions.length === 0) throw new Error("The AI didn't return any usable questions. Try again")
     return NextResponse.json({ questions })
   } catch (err) {
     console.error("Generate questions error:", err)

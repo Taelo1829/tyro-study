@@ -50,7 +50,7 @@ export function VoiceRecorder({ onSend, onCancel, disabled }: VoiceRecorderProps
 
   function stopRecording() {
     clearTimer()
-    // Work out the length from the start time rather than from React state —
+    // Work out the length from the start time rather than from React state -
     // the auto-stop at 2 minutes ran inside an interval whose closure only
     // ever saw `elapsed === 0`, so long notes were saved as 1 second.
     const seconds = Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000))

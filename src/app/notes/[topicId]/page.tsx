@@ -37,7 +37,7 @@ export default async function PublicLessonPage({ params }: Props) {
           className="px-0"
           items={[
             { label: "Study notes", href: "/notes" },
-            { label: topic.moduleTitle, href: `/notes#m-${topic.moduleId}` },
+            { label: topic.moduleTitle, href: `/notes/m/${topic.moduleId}` },
             { label: topic.chapterTitle },
           ]}
         />
@@ -59,7 +59,7 @@ export default async function PublicLessonPage({ params }: Props) {
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link href="/register" className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/85">
-              Get started — it&apos;s free
+              Get started, it&apos;s free
             </Link>
             <Link href="/login" className="rounded-full px-5 py-2.5 text-sm font-medium ring-1 ring-border hover:bg-white">
               Sign in

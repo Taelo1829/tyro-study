@@ -10,7 +10,7 @@
  * nothing unsafe (scripts, event handlers, odd iframes) can get through.
  */
 
-import { splitMath } from "@/components/ui/math-text"
+import { findMath, findPowers, looksLikeProgram } from "@/components/ui/math-text"
 
 // ── Video embeds ─────────────────────────────────────────────────────────────
 
@@ -285,41 +285,146 @@ function cleanNode(node: Node, doc: Document): Node | null {
   return null // comments, processing instructions, …
 }
 
-/** Turn `[[1,2],[3,4]]` in text into matrix markup (styled by .tc-matrix) */
+const MATH_BLOCKS = new Set([
+  "P", "DIV", "LI", "UL", "OL", "H1", "H2", "H3", "H4", "H5", "H6", "BLOCKQUOTE", "PRE",
+  "TABLE", "THEAD", "TBODY", "TR", "TD", "TH", "FIGURE", "FIGCAPTION", "HR", "ASIDE", "SECTION",
+])
+
+/**
+ * Turn matrices in a lesson into real matrices: `[[1, 2], [3, 4]]` and LaTeX
+ * `\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}` (also inside \( \) / \[ \]).
+ *
+ * The lesson is flattened to text first (block boundaries marked so nothing
+ * matches across paragraphs, <br> as a newline), so a matrix still converts
+ * when the editor split it over lines or bolded part of it. Inline <code>
+ * around a matrix is dropped. In code, a literal passed to a function
+ * (`np.array([[1, 2], [3, 4]])`) is left as code.
+ */
 function renderMatrices(root: Element, doc: Document) {
+  type Piece = { start: number; end: number; node: Node; kind: "text" | "br" }
+  const pieces: Piece[] = []
+  let text = ""
+  const walk = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const value = node.textContent ?? ""
+      if (value) pieces.push({ start: text.length, end: text.length + value.length, node, kind: "text" })
+      text += value
+      return
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return
+    const el = node as Element
+    if (el.tagName === "BR") {
+      pieces.push({ start: text.length, end: text.length + 1, node, kind: "br" })
+      text += "\n"
+      return
+    }
+    if (el.matches("iframe, video, img, .topic-video-embed")) {
+      text += "\u0001"
+      return
+    }
+    const block = MATH_BLOCKS.has(el.tagName)
+    if (block) text += "\u0001"
+    el.childNodes.forEach(walk)
+    if (block) text += "\u0001"
+  }
+  walk(root)
+
+  const tokens = findMath(text)
+  if (tokens.length === 0) return
+
+  const pieceAt = (offset: number, isEnd: boolean) =>
+    pieces.find(p => (isEnd ? p.start < offset && offset <= p.end : p.start <= offset && offset < p.end))
+
+  const rangeFor = (start: number, end: number): Range | null => {
+    const first = pieceAt(start, false)
+    const last = pieceAt(end, true)
+    if (!first || !last) return null
+    const range = doc.createRange()
+    if (first.kind === "text") range.setStart(first.node, start - first.start)
+    else range.setStartBefore(first.node)
+    if (last.kind === "text") range.setEnd(last.node, end - last.start)
+    else range.setEndAfter(last.node)
+    return range
+  }
+
+  // In code, `name([[…]])` is a function call - keep the whole code span as code
+  const inCode = (offset: number) => pieceAt(offset, false)?.node.parentElement?.closest("pre, code") ?? null
+  const skip = new Set<number>()
+  tokens.forEach((token, i) => {
+    if (token.type === "matrix" && inCode(token.start) && /\(\s*$/.test(text.slice(0, token.start))) skip.add(i)
+  })
+
+  const matrices: Element[] = []
+  // Work backwards so earlier offsets stay valid
+  for (let i = tokens.length - 1; i >= 0; i--) {
+    if (skip.has(i)) continue
+    const token = tokens[i]
+    const range = rangeFor(token.start, token.end)
+    if (!range) continue
+    range.deleteContents()
+    if (token.type === "text") {
+      if (token.value) range.insertNode(doc.createTextNode(token.value))
+      continue
+    }
+    const m = doc.createElement("span")
+    m.className = token.bracket === "b" ? "tc-matrix" : `tc-matrix tc-matrix-${token.bracket}`
+    m.setAttribute("role", "math")
+    m.setAttribute("aria-label", `Matrix ${token.rows.map(r => r.join(", ")).join("; ")}`)
+    const grid = doc.createElement("span")
+    grid.className = "tc-matrix-grid"
+    grid.setAttribute("aria-hidden", "true")
+    grid.style.gridTemplateColumns = `repeat(${token.rows[0].length}, auto)`
+    for (const row of token.rows) {
+      for (const cell of row) {
+        const c = doc.createElement("span")
+        c.textContent = cell
+        grid.appendChild(c)
+      }
+    }
+    m.appendChild(grid)
+    range.insertNode(m)
+    matrices.push(m)
+  }
+
+  // Inline code was only there to make the matrix look "mathsy" - unwrap it
+  for (const m of matrices) {
+    const code = m.parentElement?.closest("code")
+    if (code && !code.closest("pre")) code.replaceWith(...code.childNodes)
+  }
+  // Formatting tags emptied by the swap
+  root.querySelectorAll("strong, b, em, i, u, code, span:not(.tc-matrix *, .tc-matrix)").forEach(el => {
+    if (!el.hasChildNodes()) el.remove()
+  })
+}
+
+/**
+ * Show powers as superscripts: λ^2 → λ², x^{n+1}, 2^(k-1), e^-x. Code blocks
+ * that hold a real program are left alone (there `x^2` is XOR); code blocks
+ * that are just an equation (λ^2 - 7λ + 10 = 0) convert.
+ */
+function renderPowers(root: Element, doc: Document) {
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT)
   const textNodes: Text[] = []
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-    if ((n.parentElement?.closest("pre, code"))) continue
-    if (n.textContent?.includes("[[")) textNodes.push(n as Text)
+    if (n.textContent?.includes("^") && !n.parentElement?.closest(".tc-matrix, sup")) textNodes.push(n as Text)
   }
-  for (const text of textNodes) {
-    const parts = splitMath(text.textContent ?? "")
-    if (parts.every(p => p.type === "text")) continue
+  for (const node of textNodes) {
+    const text = node.textContent ?? ""
+    const code = node.parentElement?.closest("pre, code")
+    if (code && looksLikeProgram((code.closest("pre") ?? code).textContent ?? "")) continue
+    const powers = findPowers(text)
+    if (powers.length === 0) continue
     const frag = doc.createDocumentFragment()
-    for (const part of parts) {
-      if (part.type === "text") {
-        frag.appendChild(doc.createTextNode(part.value))
-        continue
-      }
-      const m = doc.createElement("span")
-      m.className = "tc-matrix"
-      m.setAttribute("role", "math")
-      m.setAttribute("aria-label", `Matrix ${part.rows.map(r => r.join(", ")).join("; ")}`)
-      const grid = doc.createElement("span")
-      grid.className = "tc-matrix-grid"
-      grid.style.gridTemplateColumns = `repeat(${part.rows[0].length}, auto)`
-      for (const row of part.rows) {
-        for (const cell of row) {
-          const c = doc.createElement("span")
-          c.textContent = cell
-          grid.appendChild(c)
-        }
-      }
-      m.appendChild(grid)
-      frag.appendChild(m)
+    let last = 0
+    for (const p of powers) {
+      if (p.start > last) frag.appendChild(doc.createTextNode(text.slice(last, p.start)))
+      const sup = doc.createElement("sup")
+      sup.textContent = p.exponent
+      frag.appendChild(sup)
+      last = p.end
     }
-    text.replaceWith(frag)
+    if (last < text.length) frag.appendChild(doc.createTextNode(text.slice(last)))
+    node.replaceWith(frag)
   }
 }
 
@@ -341,7 +446,10 @@ export function sanitizeTopicHtml(html: string, { matrices = false } = {}): stri
   root.querySelectorAll("p").forEach(p => {
     if (!p.textContent?.trim() && !p.querySelector("img, iframe, video, br")) p.remove()
   })
-  if (matrices) renderMatrices(root, doc)
+  if (matrices) {
+    renderMatrices(root, doc)
+    renderPowers(root, doc)
+  }
   return root.innerHTML
 }
 

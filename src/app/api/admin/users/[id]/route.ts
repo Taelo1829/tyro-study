@@ -10,7 +10,7 @@ async function isLastAdmin(userId: string) {
   return (await prisma.user.count({ where: { role: "ADMIN" } })) <= 1
 }
 
-// PATCH /api/admin/users/:id { role: "STUDENT" | "ADMIN" } — admin only.
+// PATCH /api/admin/users/:id { role: "STUDENT" | "ADMIN" } - admin only.
 export async function PATCH(request: Request, { params }: Params) {
   const { error, user: me } = await requireAdmin()
   if (error) return error
@@ -41,7 +41,7 @@ export async function PATCH(request: Request, { params }: Params) {
   return NextResponse.json(updated)
 }
 
-// DELETE /api/admin/users/:id — admin only. Permanently deletes the account
+// DELETE /api/admin/users/:id - admin only. Permanently deletes the account
 // and everything linked to it (enrollments, quiz history, chats, timetable…).
 export async function DELETE(_request: Request, { params }: Params) {
   const { error, user: me } = await requireAdmin()

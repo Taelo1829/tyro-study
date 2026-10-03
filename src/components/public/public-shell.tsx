@@ -5,7 +5,7 @@ import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site"
 
 /**
  * Header + footer for the public pages (home, study notes, about, privacy,
- * terms). `ads` loads AdSense — only pass it on pages with real content.
+ * terms). `ads` loads AdSense - only pass it on pages with real content.
  */
 export function PublicShell({ children, ads = false }: { children: React.ReactNode; ads?: boolean }) {
   return (

@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
             randomizeQuestions: settings?.randomizeQuestions ?? true,
             randomizeOptions: settings?.randomizeOptions ?? true,
             questionsPerQuiz,
-            // No time limit by default — the quiz is timed (stopwatch), not limited
+            // No time limit by default - the quiz is timed (stopwatch), not limited
             timeLimit: settings?.timeLimit ?? null,
             passingScore: settings?.passingScore ?? 70,
             allowRetry: settings?.allowRetry ?? true,
@@ -373,11 +373,11 @@ export async function PUT(req: NextRequest) {
         }
 
         const body = await req.json()
-        // Note: any `isCorrect` sent by the client is ignored — correctness is
+        // Note: any `isCorrect` sent by the client is ignored - correctness is
         // decided on the server so scores can't be faked from the browser.
         // Send { attemptId, questionId, selectedAnswerId } to answer a question,
         // and/or { attemptId, finish: true } to end the quiz now (e.g. the timer
-        // ran out) — unanswered questions then count as wrong.
+        // ran out) - unanswered questions then count as wrong.
         const { attemptId, questionId, selectedAnswerId, finish } = body as {
             attemptId?: string
             questionId?: string

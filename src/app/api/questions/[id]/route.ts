@@ -5,7 +5,7 @@ import { getQuestionModuleId } from "@/lib/questions"
 
 type Params = { params: Promise<{ id: string }> }
 
-// DELETE /api/questions/:id — admin only.
+// DELETE /api/questions/:id - admin only.
 // The question's answers and any student answers/quiz attempts for it are
 // removed with it (onDelete: Cascade in the schema).
 export async function DELETE(_request: Request, { params }: Params) {
@@ -23,7 +23,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   return NextResponse.json({ success: true })
 }
 
-// PATCH /api/questions/:id — admin only. Moves a question within its module.
+// PATCH /api/questions/:id - admin only. Moves a question within its module.
 // Body: { topicId } to put it in a topic, or { chapterId } to make it a
 // chapter-level question (shown in that chapter's quiz only).
 // A question belongs to exactly one place, so the other field is cleared.
