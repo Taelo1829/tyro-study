@@ -4,6 +4,7 @@ import type { Adapter } from "next-auth/adapters"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
+import { AUTH_SECRET, SESSION_COOKIE_NAME, USE_SECURE_COOKIES } from "@/lib/auth-cookies"
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -25,6 +26,14 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as unknown as Adapter,
   session: { strategy: "jwt" },
+  // Same cookie the route guard (src/proxy.ts) reads — see lib/auth-cookies.ts
+  useSecureCookies: USE_SECURE_COOKIES,
+  cookies: {
+    sessionToken: {
+      name: SESSION_COOKIE_NAME,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: USE_SECURE_COOKIES },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -87,5 +96,5 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
-  secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
+  secret: AUTH_SECRET,
 }

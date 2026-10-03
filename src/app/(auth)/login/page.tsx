@@ -50,6 +50,19 @@ export default function LoginPage() {
         return
       }
 
+      // Make sure the browser actually kept the session cookie before leaving.
+      // If it didn't, going on would only bounce straight back to this page.
+      const check = await fetch("/api/auth/session", { cache: "no-store" })
+      const session = await check.json().catch(() => ({}))
+      if (!session?.user) {
+        setError(
+          "You were signed in, but your browser didn't keep the login cookie. " +
+          "Make sure you open the app on the same address as NEXTAUTH_URL (e.g. http://localhost:3000), then try again."
+        )
+        setLoading(false)
+        return
+      }
+
       setRedirecting(true)
       // A full page load (not router.replace) so the dashboard is requested
       // fresh with the new session cookie. A soft navigation could reuse a

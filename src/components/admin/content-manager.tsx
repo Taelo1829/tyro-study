@@ -32,7 +32,6 @@ export function ContentManager({
 }: ContentManagerProps) {
   const [content, setContent] = useState(initialContent)
   const [loading, setLoading] = useState(false)
-  const [flashLoading, setFlashLoading] = useState(false)
   const [toggle, setToggle] = useState(false)
   const [message, setMessage] = useState("")
   const [assignment, setAssignment] = useState(initialAssignment)
@@ -92,26 +91,6 @@ export function ContentManager({
     }
   }
 
-  async function generateFlashcards() {
-    setFlashLoading(true)
-    setMessage("")
-    try {
-      const res = await fetch("/api/ai/generate-flashcards", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topicId, count: 10 }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? "Generation failed")
-      setMessage(`Created ${data.count} flashcards`)
-      onSaved()
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Generation failed")
-    } finally {
-      setFlashLoading(false)
-    }
-  }
-
   async function addAssignmentToggle() {
     setToggle(!toggle)
   }
@@ -165,13 +144,6 @@ export function ContentManager({
           >
             <Sparkles className="h-4 w-4" />
             Write with AI
-          </Button>
-          <Button
-            variant="default"
-            onClick={generateFlashcards}
-            disabled={flashLoading || !content.trim()}
-          >
-            {flashLoading ? "Generating…" : "AI flashcards"}
           </Button>
           <Button
             variant="default"

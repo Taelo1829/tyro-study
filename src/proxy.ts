@@ -1,10 +1,14 @@
 import { withAuth } from "next-auth/middleware"
+import { AUTH_SECRET, SESSION_COOKIE_NAME } from "@/lib/auth-cookies"
 
 export default withAuth(
   function proxy() {
     // You can leave this empty or add logging if needed
   },
   {
+    // Read exactly the cookie NextAuth writes (lib/auth-cookies.ts)
+    secret: AUTH_SECRET,
+    cookies: { sessionToken: { name: SESSION_COOKIE_NAME } },
     pages: {
       signIn: "/login",
     },
@@ -38,4 +42,4 @@ export const config = {
     "/settings/:path*",
     "/admin/:path*",
   ],
-}
+}
