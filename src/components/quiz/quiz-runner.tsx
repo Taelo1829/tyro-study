@@ -42,6 +42,11 @@ interface FinalResult {
     durationSeconds: number | null
 }
 
+interface NextStep {
+    next: { id: string; title: string; chapterTitle: string; href: string; locked: boolean } | null
+    moduleHref: string
+}
+
 interface FocusTopic {
     key: string
     title: string
@@ -81,6 +86,8 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     const [results, setResults] = useState<Record<string, AnswerResult>>({})
     const [checking, setChecking] = useState(false)
     const [final, setFinal] = useState<FinalResult | null>(null)
+    // After a pass: the topic to study next (topic and chapter quizzes)
+    const [nextStep, setNextStep] = useState<NextStep | null>(null)
     // Stopwatch: counts up from when the quiz loaded on this device
     const [startedAt, setStartedAt] = useState<number | null>(null)
     const [now, setNow] = useState(() => Date.now())
@@ -95,6 +102,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         setSelected({})
         setResults({})
         setFinal(null)
+        setNextStep(null)
         setIndex(0)
         setChecking(false)
         setStartedAt(null)
@@ -137,6 +145,20 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         const timer = setInterval(() => setNow(Date.now()), 1000)
         return () => clearInterval(timer)
     }, [phase, startedAt])
+
+    // Passed: look up the next topic so the results can offer it
+    const nextQuery = "topicId" in source ? `topicId=${source.topicId}` : "chapterId" in source ? `chapterId=${source.chapterId}` : null
+    useEffect(() => {
+        if (!final?.passed || !nextQuery) return
+        let live = true
+        fetch(`/api/quiz/next?${nextQuery}`)
+            .then(res => (res.ok ? res.json() : null))
+            .then((data: NextStep | null) => live && data && setNextStep(data))
+            .catch(() => {})
+        return () => {
+            live = false
+        }
+    }, [final?.passed, nextQuery])
 
     const elapsedMs = startedAt ? Math.max(0, now - startedAt) : null
 
@@ -325,8 +347,45 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
 
                             <p className={`mb-8 text-lg font-medium ${messageColor}`}>{message}</p>
 
-                            <div className="flex justify-center gap-4">
-                                <button onClick={() => void start()} className={primaryButton}>
+                            {final?.passed && nextStep && (
+                                <div className="mb-6">
+                                    {nextStep.next && !nextStep.next.locked ? (
+                                        <Link
+                                            href={nextStep.next.href}
+                                            className={`${primaryButton} inline-flex max-w-full items-center gap-2`}
+                                        >
+                                            <span className="truncate">Next topic: {nextStep.next.title}</span>
+                                            <span aria-hidden="true">→</span>
+                                        </Link>
+                                    ) : nextStep.next ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            Next up is “{nextStep.next.title}”, but it&apos;s still locked.
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <p className="mb-3 text-sm font-medium text-green-700">
+                                                That was the last topic in this module. Well done! 🎓
+                                            </p>
+                                            <Link href={nextStep.moduleHref} className={`${primaryButton} inline-flex items-center`}>
+                                                Back to module
+                                            </Link>
+                                        </>
+                                    )}
+                                    {nextStep.next && !nextStep.next.locked && nextStep.next.chapterTitle && (
+                                        <p className="mt-2 text-xs text-muted-foreground">{nextStep.next.chapterTitle}</p>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="flex flex-wrap justify-center gap-4">
+                                <button
+                                    onClick={() => void start()}
+                                    className={
+                                        final?.passed && nextStep
+                                            ? "neo-button px-6 py-3 font-medium text-foreground transition-all hover:opacity-90"
+                                            : primaryButton
+                                    }
+                                >
                                     Take Quiz Again
                                 </button>
                                 <Link

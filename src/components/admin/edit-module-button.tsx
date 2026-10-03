@@ -2,23 +2,29 @@
 
 import { toPlainText } from "@/lib/plain-text"
 import { useState } from "react"
-import { Pencil } from "lucide-react"
+import { Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "./modal"
+import { DeleteModuleButton, useIsSuperuser } from "./delete-module-button"
 
 interface EditModuleButtonProps {
   module: { id: string; title: string; description: string | null }
   onSaved: (updated: { title: string; description: string | null }) => void
+  /** For the delete warning (superusers can delete from this window) */
+  chapterCount?: number
+  topicCount?: number
 }
 
 /** "Edit module" button + pop-up for changing a module's name and description */
-export function EditModuleButton({ module, onSaved }: EditModuleButtonProps) {
+export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount = 0 }: EditModuleButtonProps) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState(module.title)
   const [description, setDescription] = useState(toPlainText(module.description))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const superuser = useIsSuperuser()
 
   function openEditor() {
     // Start from the current values each time
@@ -98,16 +104,45 @@ export function EditModuleButton({ module, onSaved }: EditModuleButtonProps) {
             </div>
             {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
           </ModalBody>
-          <ModalFooter>
+          <ModalFooter align="between">
+            {superuser ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false)
+                  setDeleteOpen(true)
+                }}
+                disabled={saving}
+                className="flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete module
+              </button>
+            ) : (
+              <span />
+            )}
+            <div className="flex items-center gap-3">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={saving}>
               Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={saving || unchanged || !title.trim()}>
               {saving ? "Saving…" : "Save changes"}
             </Button>
+            </div>
           </ModalFooter>
         </form>
       </Modal>
+
+      {superuser && (
+        <DeleteModuleButton
+          module={module}
+          chapterCount={chapterCount}
+          topicCount={topicCount}
+          hideTrigger
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+        />
+      )}
     </>
   )
 }

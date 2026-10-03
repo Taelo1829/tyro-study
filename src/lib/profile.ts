@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { pendingEmailChange } from "@/lib/email-otp"
+import { isSuperuser } from "@/lib/superuser"
 
 /** What the profile page shows about the signed-in user */
 export const PROFILE_SELECT = {
@@ -27,9 +28,10 @@ export function publicProfile(user: NonNullable<ProfileRow>) {
   return { ...rest, hasPassword: !!password }
 }
 
-/** The profile plus any email change waiting for its code */
+/** The profile plus any email change waiting for its code, and whether they're a superuser */
 export async function profileResponse(user: NonNullable<ProfileRow>) {
-  return { ...publicProfile(user), pendingEmail: await pendingEmailChange(user.id) }
+  const [pendingEmail, superuser] = await Promise.all([pendingEmailChange(user.id), isSuperuser(user.id)])
+  return { ...publicProfile(user), pendingEmail, isSuperuser: superuser }
 }
 
 /** The signed-in user's id, or a 401 response */

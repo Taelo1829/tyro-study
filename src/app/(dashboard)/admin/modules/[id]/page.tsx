@@ -9,6 +9,7 @@ import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { TextbookUploader } from "@/components/admin/textbook-uploader"
 import { EditModuleButton } from "@/components/admin/edit-module-button"
+import { DeleteModuleButton } from "@/components/admin/delete-module-button"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -62,12 +63,19 @@ export default function AdminModuleDetailPage() {
           <EditModuleButton
             module={mod}
             onSaved={updated => setMod(prev => (prev ? { ...prev, ...updated } : prev))}
+            chapterCount={mod.chapters.length}
+            topicCount={mod.chapters.reduce((n, c) => n + c._count.topics, 0)}
           />
           <TextbookUploader moduleId={id} onUploaded={load} />
           <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}>
             <Plus className="h-4 w-4" />
             New chapter
           </Button>
+          <DeleteModuleButton
+            module={mod}
+            chapterCount={mod.chapters.length}
+            topicCount={mod.chapters.reduce((n, c) => n + c._count.topics, 0)}
+          />
         </div>
       </div>
 
