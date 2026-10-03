@@ -9,7 +9,7 @@
  * The --neo-* names are kept so existing class names keep working.
  */
 :root {
-  --neo-bg: #eef1f4;
+  --neo-bg: #ffffff; /* the dashboard switches this back to light grey */
   --neo-surface: #ffffff;
   --neo-surface-soft: #f4f6f8;
   --neo-text: #16181d;
@@ -419,9 +419,37 @@ body {
 .lesson-editor .callout:empty::before,
 .lesson-editor td:empty::before { content: "\200b"; }
 
-/* Student topic page reads on plain white (set by data-page-bg on that page) */
-:root:has([data-page-bg="white"]) {
-  --neo-bg: #ffffff;
+/* ── Plain white app, cards only on the dashboard ──────────────────────────
+   The app background is white. The dashboard keeps the light grey
+   background and real cards (it marks itself with data-page-bg="grey" and
+   data-keep-cards). Everywhere else inside the app (data-app-main), the
+   shared card surface (.neo-flat — used by <Card>) becomes a plain section:
+   no box or shadow, just a thin divider underneath, so stacked cards read
+   as one page and lists of cards read as rows. Pop-ups keep their own box. */
+:root:has([data-page-bg="grey"]) {
+  --neo-bg: #eef1f4;
+}
+[data-app-main] .neo-flat:not([data-keep-cards] .neo-flat) {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-left: 0;
+  padding-right: 0;
+}
+/* Rows inside a section: tighter, and no second line under the last one */
+[data-app-main] .neo-flat:not([data-keep-cards] .neo-flat) .neo-flat {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+/* A section that holds rows doesn't draw its own line — its rows already do */
+[data-app-main] .neo-flat:not([data-keep-cards] .neo-flat):has(.neo-flat) {
+  border-bottom: 0;
+}
+[data-app-main] [role="dialog"] .neo-flat {
+  border-bottom: 0;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 /* ── Global API loader (components/ui/api-loader.tsx) ─────────────────────── */

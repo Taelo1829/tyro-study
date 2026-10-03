@@ -31,7 +31,7 @@ export default async function DashboardLayout({
       <div className="min-h-dvh bg-background">
         <TopNav isAdmin={isAdmin} />
         {/* pt clears the fixed top nav; pb clears the mobile bottom bar */}
-        <main className="mx-auto min-h-dvh max-w-7xl px-4 pb-28 pt-24 sm:px-6 sm:pt-28 lg:pb-10">
+        <main data-app-main className="mx-auto min-h-dvh max-w-7xl px-4 pb-28 pt-24 sm:px-6 sm:pt-28 lg:pb-10">
           {children}
         </main>
         <MobileNav isAdmin={isAdmin} />

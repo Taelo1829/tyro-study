@@ -201,10 +201,10 @@ export default function AdminTopicDetailPage() {
   )
 }
 
-/** White panel holding one tab's content */
+/** One tab's content, laid straight onto the white page */
 function Panel({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-[var(--neo-radius-lg)] bg-card p-5 shadow-sm ring-1 ring-border sm:p-8">
+    <div className="px-1 py-2">
       <div className="mb-6">
         <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
         {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}

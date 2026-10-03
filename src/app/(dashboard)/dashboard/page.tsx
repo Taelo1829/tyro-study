@@ -154,7 +154,8 @@ export default async function DashboardPage() {
   ])
 
   return (
-    <>
+    // The one page that keeps a grey background and real cards (globals.css)
+    <div data-page-bg="grey" data-keep-cards>
       <Header
         title="Dashboard"
         subtitle="Your study overview for today"
@@ -290,6 +291,6 @@ export default async function DashboardPage() {
           )}
         </DashboardWidget>
       </div>
-    </>
+    </div>
   )
 }
