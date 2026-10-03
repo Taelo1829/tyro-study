@@ -4,7 +4,6 @@ import { toPlainText } from "@/lib/plain-text"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { BookOpen, ChevronRight, UserMinus, UserPlus } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModuleStore } from "@/app/(dashboard)/modules/store"
 
@@ -111,68 +110,55 @@ export function ModuleCatalog({
     )
   }
 
-  return (
-    <ul className="space-y-3">
-      {filtered.map((m) => (
-        <li key={m.id}>
-          <Card>
-            <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1">
-                {m.isEnrolled ? (
-                  <Link href={`/modules/${m.id}`} className="group block">
-                    <p className="font-semibold group-hover:text-primary">
-                      {m.title}
-                    </p>
-                  </Link>
-                ) : (
-                  <p className="font-semibold">{m.title}</p>
-                )}
-                {toPlainText(m.description) && (
-                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                    {toPlainText(m.description)}
-                  </p>
-                )}
-                <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                  <BookOpen className="h-3.5 w-3.5" />
-                  {m._count.chapters} chapter{m._count.chapters !== 1 ? "s" : ""}
-                </p>
-              </div>
+  // Card with a black action bar along the bottom: Open | Leave once joined, Join before
+  const bar =
+    "flex min-h-12 flex-1 items-center justify-center gap-2 px-4 text-sm font-semibold text-background transition-colors hover:bg-white/10 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70"
 
-              <div className="flex shrink-0 items-center gap-2">
-                {m.isEnrolled ? (
-                  <>
-                    <Button variant="primary" size="sm" asChild>
-                      <Link href={`/modules/${m.id}`}>
-                        Open
-                        <ChevronRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={actionId === m.id}
-                      onClick={() => unenroll(m.id)}
-                    >
-                      <UserMinus className="h-4 w-4" />
-                      Leave
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    disabled={actionId === m.id}
-                    onClick={() => enroll(m.id)}
-                  >
-                    <UserPlus className="h-4 w-4" />
-                    {actionId === m.id ? "Joining…" : "Join module"}
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </li>
-      ))}
+  return (
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {filtered.map((m) => {
+        const busy = actionId === m.id
+        const description = toPlainText(m.description)
+        return (
+          <li key={m.id} className="flex flex-col overflow-hidden rounded-[2rem] border-2 border-foreground bg-white">
+            <div className="flex-1 px-5 pb-4 pt-5">
+              {m.isEnrolled ? (
+                <Link href={`/modules/${m.id}`} className="font-semibold leading-snug hover:underline">
+                  {m.title}
+                </Link>
+              ) : (
+                <p className="font-semibold leading-snug">{m.title}</p>
+              )}
+              {description && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{description}</p>}
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <BookOpen className="h-3.5 w-3.5" />
+                {m._count.chapters} chapter{m._count.chapters !== 1 ? "s" : ""}
+              </p>
+            </div>
+
+            <div className="flex items-stretch bg-foreground">
+              {m.isEnrolled ? (
+                <>
+                  <Link href={`/modules/${m.id}`} className={bar}>
+                    Open
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                  <span aria-hidden="true" className="w-0.5 shrink-0 bg-background" />
+                  <button type="button" className={bar} disabled={busy} onClick={() => unenroll(m.id)}>
+                    <UserMinus className="h-4 w-4" />
+                    {busy ? "Leaving…" : "Leave"}
+                  </button>
+                </>
+              ) : (
+                <button type="button" className={bar} disabled={busy} onClick={() => enroll(m.id)}>
+                  <UserPlus className="h-4 w-4" />
+                  {busy ? "Joining…" : "Join module"}
+                </button>
+              )}
+            </div>
+          </li>
+        )
+      })}
     </ul>
   )
 }
