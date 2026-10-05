@@ -25,6 +25,7 @@ import {
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
+import { useCourseCrumb } from "@/components/modules/use-course-crumb"
 import FlashcardDeck from "@/components/modules/flash-card-decks"
 import { TopicPdfReader } from "@/components/modules/topic-pdf-reader"
 import { Modal } from "@/components/admin/modal"
@@ -88,6 +89,7 @@ interface AssignmentResult {
 
 export default function TopicPage() {
     const params = useParams()
+    const courseCrumb = useCourseCrumb(params.id as string)
     const router = useRouter()
     const { data: session } = useSession()
     const [topic, setTopic] = useState<Topic | null>(null)
@@ -294,6 +296,7 @@ export default function TopicPage() {
             <div className="container max-w-4xl mx-auto px-4 ">
                 <Breadcrumbs
                     items={[
+                        ...courseCrumb,
                         { label: topic.chapter.module.title, href: `/modules/${topic.chapter.module.id}` },
                         { label: topic.chapter.title, href: `/modules/${topic.chapter.module.id}/chapters/${topic.chapter.id}` },
                         { label: topic.title },

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { ChevronRight, UserPlus } from "lucide-react"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
+import { useCourseCrumb } from "@/components/modules/use-course-crumb"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -27,6 +28,7 @@ interface ModuleDetail {
 export default function StudentModulePage() {
   const params = useParams()
   const id = params.id as string
+  const courseCrumb = useCourseCrumb(id)
   const [mod, setMod] = useState<ModuleDetail | null>(null)
   const [joining, setJoining] = useState(false)
 
@@ -36,7 +38,7 @@ export default function StudentModulePage() {
   }, [id])
 
   useEffect(() => {
-    load()
+    queueMicrotask(load)
   }, [load])
 
   async function joinModule() {
@@ -66,7 +68,7 @@ export default function StudentModulePage() {
   if (!mod.isEnrolled) {
     return (
       <>
-        <Breadcrumbs items={[{ label: "Modules", href: "/modules" }, { label: mod.title }]} />
+        <Breadcrumbs items={[{ label: "Modules", href: "/modules" }, ...courseCrumb, { label: mod.title }]} />
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
             {toPlainText(mod.description) && (
@@ -89,7 +91,7 @@ export default function StudentModulePage() {
 
   return (
     <>
-      <Breadcrumbs items={[{ label: "My modules", href: "/modules" }, { label: mod.title }]} />
+      <Breadcrumbs items={[{ label: "My modules", href: "/modules" }, ...courseCrumb, { label: mod.title }]} />
 
       {mod.chapters.length === 0 ? (
         <Card>

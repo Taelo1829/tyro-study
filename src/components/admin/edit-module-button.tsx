@@ -2,15 +2,21 @@
 
 import { toPlainText } from "@/lib/plain-text"
 import { useState } from "react"
+import Link from "next/link"
 import { Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "./modal"
 import { DeleteModuleButton, useIsSuperuser } from "./delete-module-button"
 
+interface CourseLink {
+  id: string
+  title: string
+}
+
 interface EditModuleButtonProps {
-  module: { id: string; title: string; description: string | null }
-  onSaved: (updated: { title: string; description: string | null }) => void
+  module: { id: string; title: string; description: string | null; courses?: CourseLink[] }
+  onSaved: (updated: { title: string; description: string | null; courses: CourseLink[] }) => void
   /** For the delete warning (superusers can delete from this window) */
   chapterCount?: number
   topicCount?: number
@@ -25,16 +31,28 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
   const [error, setError] = useState("")
   const [deleteOpen, setDeleteOpen] = useState(false)
   const superuser = useIsSuperuser()
+  // Every course (loaded when the window opens) and the ones this module is in
+  const [allCourses, setAllCourses] = useState<CourseLink[] | null>(null)
+  const startCourseIds = (module.courses ?? []).map(c => c.id)
+  const [courseIds, setCourseIds] = useState<string[]>(startCourseIds)
 
   function openEditor() {
     // Start from the current values each time
     setTitle(module.title)
     setDescription(toPlainText(module.description))
+    setCourseIds(startCourseIds)
     setError("")
     setOpen(true)
+    fetch("/api/courses")
+      .then(r => (r.ok ? r.json() : []))
+      .then((list: CourseLink[]) => setAllCourses(list.map(({ id, title }) => ({ id, title }))))
+      .catch(() => setAllCourses([]))
   }
 
-  const unchanged = title.trim() === module.title && description.trim() === toPlainText(module.description)
+  const coursesChanged =
+    courseIds.length !== startCourseIds.length || courseIds.some(id => !startCourseIds.includes(id))
+  const unchanged =
+    title.trim() === module.title && description.trim() === toPlainText(module.description) && !coursesChanged
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
@@ -48,11 +66,18 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
       const res = await fetch(`/api/modules/${module.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.trim(), description: description.trim() }),
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          ...(coursesChanged && { courseIds }),
+        }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? "Couldn't save the module")
-      onSaved({ title: data.title, description: data.description })
+      const courses = coursesChanged
+        ? (allCourses ?? []).filter(c => courseIds.includes(c.id))
+        : module.courses ?? []
+      onSaved({ title: data.title, description: data.description, courses })
       setOpen(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save the module")
@@ -102,6 +127,45 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
                 className="neo-inset w-full resize-y rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/50"
               />
             </div>
+            <fieldset>
+              <legend className="mb-1.5 text-sm font-medium">
+                Courses <span className="font-normal text-muted-foreground">(a module can be in several)</span>
+              </legend>
+              {allCourses === null ? (
+                <p className="text-sm text-muted-foreground">Loading courses…</p>
+              ) : allCourses.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No courses yet.{" "}
+                  <Link href="/admin/courses" className="font-medium text-primary hover:underline">
+                    Create one
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {allCourses.map(c => {
+                    const on = courseIds.includes(c.id)
+                    return (
+                      <label
+                        key={c.id}
+                        className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${on ? "border-foreground bg-foreground text-background" : "border-border bg-white"}`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="sr-only"
+                          checked={on}
+                          disabled={saving}
+                          onChange={() =>
+                            setCourseIds(prev => (on ? prev.filter(id => id !== c.id) : [...prev, c.id]))
+                          }
+                        />
+                        {c.title}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+            </fieldset>
             {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
           </ModalBody>
           <ModalFooter align="between">

@@ -1,5 +1,6 @@
 "use client"
 import { Breadcrumbs } from '@/components/layout/breadcrumbs'
+import { useCourseCrumb } from '@/components/modules/use-course-crumb'
 import { Card, CardContent } from '@/components/ui/card'
 import { ChevronRight, Lock, PlayCircle } from 'lucide-react'
 import NextLink from 'next/link'
@@ -18,6 +19,7 @@ const ChapterPage = () => {
     const params = useParams()
     const router = useRouter()
     const id = params.chapterId
+    const courseCrumb = useCourseCrumb(params.id as string)
     const load = useCallback(async () => {
         setLoading(true)
         const res = await fetch(`/api/chapters/${id}`)
@@ -35,6 +37,7 @@ const ChapterPage = () => {
             {chapter && (
                 <Breadcrumbs
                     items={[
+                        ...courseCrumb,
                         { label: chapter.module.title, href: `/modules/${chapter.module.id}` },
                         { label: chapter.title },
                     ]}

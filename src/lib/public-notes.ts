@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { listCourses } from "@/lib/courses"
 import { toPlainText } from "@/lib/plain-text"
 
 /**
@@ -71,6 +72,12 @@ export async function listPublicModules(): Promise<PublicModule[]> {
     mod.topicCount++
   }
   return [...modules.values()]
+}
+
+/** Courses that hold this module (for breadcrumbs and "Part of" lines) */
+export async function coursesForModule(moduleId: string): Promise<{ id: string; title: string }[]> {
+  const courses = await listCourses()
+  return courses.filter(c => c.moduleIds.includes(moduleId)).map(({ id, title }) => ({ id, title }))
 }
 
 export interface PublicTopic extends PublicTopicRow {

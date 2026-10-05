@@ -2,17 +2,18 @@ import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { BookOpen, ChevronRight, FileText, Layers, ListTree, Users } from "lucide-react"
+import { BookOpen, ChevronRight, FileText, GraduationCap, Layers, ListTree, Users } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 
 export default async function AdminPage() {
-  const [moduleCount, chapterCount, topicCount, questionCount, userCount] =
+  const [moduleCount, chapterCount, topicCount, questionCount, userCount, [{ n: courseCount }]] =
     await Promise.all([
       prisma.module.count(),
       prisma.chapter.count(),
       prisma.topic.count(),
       prisma.question.count(),
       prisma.user.count(),
+      prisma.$queryRaw<{ n: number }[]>`SELECT COUNT(*)::int AS "n" FROM "courses"`,
     ])
 
   const links = [
@@ -24,6 +25,13 @@ export default async function AdminPage() {
       count: userCount,
     },
     {
+      href: "/admin/courses",
+      label: "Courses",
+      description: "Group modules into courses, e.g. BSc Computing",
+      icon: GraduationCap,
+      count: courseCount,
+    },
+    {
       href: "/admin/modules",
       label: "Modules",
       description: "Create and manage course modules",
@@ -33,7 +41,7 @@ export default async function AdminPage() {
     {
       href: "/admin/modules",
       label: "Content hierarchy",
-      description: "Module → Chapter → Topic workflow",
+      description: "Course → Module → Chapter → Topic",
       icon: ListTree,
       count: chapterCount,
     },
@@ -69,6 +77,12 @@ export default async function AdminPage() {
           </Link>
         </Button>
         <Button asChild>
+          <Link href="/admin/courses">
+            <GraduationCap className="h-4 w-4" />
+            Manage courses
+          </Link>
+        </Button>
+        <Button asChild>
           <Link href="/admin/modules">
             <BookOpen className="h-4 w-4" />
             Manage modules
@@ -76,7 +90,7 @@ export default async function AdminPage() {
         </Button>
       </div>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {links.map((item) => {
           const Icon = item.icon
           return (
@@ -105,7 +119,8 @@ export default async function AdminPage() {
       <Card>
         <CardContent className="py-6">
           <p className="mb-4 text-sm text-muted-foreground">
-            Workflow: create a <strong>Module</strong> → add{" "}
+            Workflow: create a <strong>Course</strong> → add its{" "}
+            <strong>Modules</strong> → add{" "}
             <strong>Chapters</strong> → add <strong>Topics</strong> with content
             → upload a <strong>PDF</strong> to extract questions with AI.
           </p>

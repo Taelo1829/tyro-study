@@ -5,6 +5,7 @@ import { getAuthUserId } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
 import { SUPERUSER_ONLY, isSuperuser } from "@/lib/superuser"
 import { toPlainText } from "@/lib/plain-text"
+import { setModuleCourses } from "@/lib/courses"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -56,8 +57,13 @@ export async function GET(_request: Request, { params }: Params) {
   `
   const emptyByChapter = new Map(emptyRows.map(r => [r.chapterId, r.n]))
 
+  const courseRows = await prisma.$queryRaw<{ id: string; title: string }[]>`
+    SELECT c."id", c."title" FROM "course_modules" cm JOIN "courses" c ON c."id" = cm."courseId"
+    WHERE cm."moduleId" = ${id} ORDER BY lower(c."title")`
+
   return NextResponse.json({
     ...rest,
+    courses: courseRows,
     chapters: rest.chapters.map(ch => ({ ...ch, topicsWithoutContent: emptyByChapter.get(ch.id) ?? 0 })),
     isEnrolled: Boolean(enrollment),
     enrolledAt: enrollment?.enrolledAt ?? null,
@@ -70,9 +76,11 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const { id } = await params
   const body = await request.json()
-  const { title, description } = body as {
+  const { title, description, courseIds } = body as {
     title?: string
     description?: string
+    /** When given, the module is put in exactly these courses */
+    courseIds?: unknown
   }
 
   if (title !== undefined && !title.trim()) {
@@ -88,6 +96,10 @@ export async function PATCH(request: Request, { params }: Params) {
       }),
     },
   })
+
+  if (Array.isArray(courseIds)) {
+    await setModuleCourses(id, courseIds.filter((c): c is string => typeof c === "string"))
+  }
 
   return NextResponse.json(updated)
 }

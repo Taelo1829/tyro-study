@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react"
 import { PublicShell } from "@/components/public/public-shell"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { TopicContentView } from "@/components/topic/topic-content-view"
-import { getPublicTopic } from "@/lib/public-notes"
+import { coursesForModule, getPublicTopic } from "@/lib/public-notes"
 import { lessonSummary, renderTopicContentServer } from "@/lib/topic-content-server"
 import { readingMinutes } from "@/lib/topic-content"
 import { SITE_NAME } from "@/lib/site"
@@ -29,6 +29,7 @@ export default async function PublicLessonPage({ params }: Props) {
   if (!topic) notFound()
 
   const html = renderTopicContentServer(topic.content)
+  const courses = await coursesForModule(topic.moduleId)
 
   return (
     <PublicShell ads>
@@ -37,6 +38,7 @@ export default async function PublicLessonPage({ params }: Props) {
           className="px-0"
           items={[
             { label: "Study notes", href: "/notes" },
+            ...(courses.length === 1 ? [{ label: courses[0].title, href: `/notes#course-${courses[0].id}` }] : []),
             { label: topic.moduleTitle, href: `/notes/m/${topic.moduleId}` },
             { label: topic.chapterTitle },
           ]}

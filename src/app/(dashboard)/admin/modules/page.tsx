@@ -14,35 +14,46 @@ interface ModuleRow {
   title: string
   description: string | null
   _count: { chapters: number }
+  courseIds?: string[]
 }
 
 export default function AdminModulesPage() {
   const [modules, setModules] = useState<ModuleRow[]>([])
+  const [courseTitles, setCourseTitles] = useState<Map<string, string>>(new Map())
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/modules")
+    const [res, courses] = await Promise.all([fetch("/api/modules"), fetch("/api/courses")])
     const data = await res.json()
     setModules(data)
+    if (courses.ok) {
+      const list = (await courses.json()) as { id: string; title: string }[]
+      setCourseTitles(new Map(list.map(c => [c.id, c.title])))
+    }
     setLoading(false)
   }, [])
 
   useEffect(() => {
-    load()
+    queueMicrotask(load)
   }, [load])
 
   return (
     <>
       <Header
         title="Modules"
-        subtitle="Top level of your content hierarchy"
+        subtitle="Modules belong to courses and hold chapters"
       />
 
       <div className="mb-4 flex items-center justify-between">
-        <Link href="/admin" className="text-sm text-muted-foreground hover:text-primary">
-          ← Admin
-        </Link>
+        <div className="flex items-center gap-4 text-sm">
+          <Link href="/admin" className="text-muted-foreground hover:text-primary">
+            ← Admin
+          </Link>
+          <Link href="/admin/courses" className="font-medium text-primary hover:underline">
+            Courses
+          </Link>
+        </div>
         <Button size="sm" onClick={() => setShowForm(!showForm)}>
           <Plus className="h-4 w-4" />
           New module
@@ -116,6 +127,10 @@ export default function AdminModulesPage() {
                       )}
                       <p className="mt-1 text-xs text-muted-foreground">
                         {m._count.chapters} chapter{m._count.chapters !== 1 ? "s" : ""}
+                        {" · "}
+                        {m.courseIds?.length
+                          ? m.courseIds.map(id => courseTitles.get(id)).filter(Boolean).join(", ")
+                          : "No course"}
                       </p>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground" />

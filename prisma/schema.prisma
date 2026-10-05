@@ -164,8 +164,36 @@ model Module {
   enrollments  ModuleEnrollment[]
   quizAttempts QuizAttempt[]
   calendarEvents CalendarEvent[]
+  courses      CourseModule[]
 
   @@map("modules")
+}
+
+/// Top of the hierarchy: Course > Module > Chapter > Topic.
+/// Read and written with SQL (src/lib/courses.ts) so it works before the client is regenerated.
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+
+  modules CourseModule[]
+
+  @@map("courses")
+}
+
+/// A module can be part of several courses, or none
+model CourseModule {
+  courseId String
+  moduleId String
+  position Int    @default(0)
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, moduleId])
+  @@index([moduleId])
+  @@map("course_modules")
 }
 
 model ModuleEnrollment {

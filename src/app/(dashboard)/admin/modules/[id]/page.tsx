@@ -26,6 +26,7 @@ interface ModuleDetail {
   id: string
   title: string
   description: string | null
+  courses?: { id: string; title: string }[]
   chapters: ChapterRow[]
 }
 
@@ -41,7 +42,7 @@ export default function AdminModuleDetailPage() {
   }, [id])
 
   useEffect(() => {
-    load()
+    queueMicrotask(load)
   }, [load])
 
   if (!mod) {
@@ -51,6 +52,22 @@ export default function AdminModuleDetailPage() {
   return (
     <>
       <Header title={mod.title} subtitle={toPlainText(mod.description) || "Chapters in this module"} />
+
+      <p className="-mt-2 mb-4 text-sm text-muted-foreground">
+        {mod.courses?.length ? (
+          <>
+            In{" "}
+            {mod.courses.map((c, i) => (
+              <span key={c.id}>
+                {i > 0 && ", "}
+                <Link href="/admin/courses" className="font-medium text-foreground hover:underline">{c.title}</Link>
+              </span>
+            ))}
+          </>
+        ) : (
+          <>Not in a course yet. Add it with Edit module.</>
+        )}
+      </p>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Link

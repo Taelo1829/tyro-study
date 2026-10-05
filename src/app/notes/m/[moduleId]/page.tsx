@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 import { ChevronRight } from "lucide-react"
 import { PublicShell } from "@/components/public/public-shell"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
-import { getPublicModule } from "@/lib/public-notes"
+import { coursesForModule, getPublicModule } from "@/lib/public-notes"
 import { SITE_NAME } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
@@ -25,13 +25,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PublicModulePage({ params }: Props) {
   const mod = await getPublicModule((await params).moduleId)
   if (!mod) notFound()
+  const courses = await coursesForModule(mod.id)
+  // One course: show it in the trail. Several: list them under the title instead.
+  const courseCrumb = courses.length === 1 ? [{ label: courses[0].title, href: `/notes#course-${courses[0].id}` }] : []
 
   return (
     <PublicShell ads>
       <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-        <Breadcrumbs className="px-0" items={[{ label: "Study notes", href: "/notes" }, { label: mod.title }]} />
+        <Breadcrumbs className="px-0" items={[{ label: "Study notes", href: "/notes" }, ...courseCrumb, { label: mod.title }]} />
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{mod.title}</h1>
         {toPlainText(mod.description) && <p className="mt-3 text-muted-foreground">{toPlainText(mod.description)}</p>}
+        {courses.length > 1 && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Part of{" "}
+            {courses.map((c, i) => (
+              <span key={c.id}>
+                {i > 0 && (i === courses.length - 1 ? " and " : ", ")}
+                <Link href={`/notes#course-${c.id}`} className="font-medium text-foreground hover:underline">
+                  {c.title}
+                </Link>
+              </span>
+            ))}
+          </p>
+        )}
 
         <div className="mt-10 space-y-8">
           {mod.chapters.map((chapter, ci) => (

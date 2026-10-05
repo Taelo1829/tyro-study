@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin"
 import { getAuthUserId } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
 import { toPlainText } from "@/lib/plain-text"
+import { courseIdsByModule, setModuleCourses } from "@/lib/courses"
 
 export async function GET() {
   const userId = await getAuthUserId()
@@ -21,6 +22,8 @@ export async function GET() {
     },
   })
 
+  const coursesOf = await courseIdsByModule()
+
   const result = modules.map((m) => {
     const enrollment = "enrollments" in m ? m.enrollments[0] : undefined
     const { enrollments: _, ...mod } = m as typeof m & {
@@ -30,6 +33,7 @@ export async function GET() {
       ...mod,
       isEnrolled: Boolean(enrollment),
       enrolledAt: enrollment?.enrolledAt ?? null,
+      courseIds: coursesOf.get(m.id) ?? [],
     }
   })
 
@@ -41,9 +45,10 @@ export async function POST(request: Request) {
   if (error) return error
 
   const body = await request.json()
-  const { title, description } = body as {
+  const { title, description, courseIds } = body as {
     title?: string
     description?: string
+    courseIds?: unknown
   }
 
   if (!title?.trim()) {
@@ -56,6 +61,10 @@ export async function POST(request: Request) {
       description: toPlainText(description) || null,
     },
   })
+
+  if (Array.isArray(courseIds) && courseIds.length) {
+    await setModuleCourses(created.id, courseIds.filter((c): c is string => typeof c === "string"))
+  }
 
   return NextResponse.json(created, { status: 201 })
 }

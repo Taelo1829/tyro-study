@@ -4,7 +4,8 @@ import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { PublicShell } from "@/components/public/public-shell"
 import { NotesSearch } from "@/components/public/notes-search"
-import { listPublicModules, searchPublicTopics } from "@/lib/public-notes"
+import { listPublicModules, searchPublicTopics, type PublicModule } from "@/lib/public-notes"
+import { listCourses } from "@/lib/courses"
 import { SITE_NAME } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
@@ -21,7 +22,22 @@ type Props = { searchParams: Promise<{ q?: string | string[] }> }
 export default async function NotesIndexPage({ searchParams }: Props) {
   const raw = (await searchParams).q
   const q = (Array.isArray(raw) ? raw[0] : raw ?? "").trim()
-  const [modules, results] = await Promise.all([listPublicModules(), q ? searchPublicTopics(q) : Promise.resolve(null)])
+  const [modules, results, courses] = await Promise.all([
+    listPublicModules(),
+    q ? searchPublicTopics(q) : Promise.resolve(null),
+    listCourses(),
+  ])
+
+  // Course > Module: a module shared by two courses is listed under both
+  const byId = new Map(modules.map(m => [m.id, m]))
+  const groups = courses
+    .map(course => ({
+      course,
+      modules: course.moduleIds.map(id => byId.get(id)).filter((m): m is PublicModule => !!m),
+    }))
+    .filter(g => g.modules.length > 0)
+  const inCourse = new Set(groups.flatMap(g => g.modules.map(m => m.id)))
+  const loose = modules.filter(m => !inCourse.has(m.id))
 
   return (
     <PublicShell ads={modules.length > 0}>
@@ -63,31 +79,55 @@ export default async function NotesIndexPage({ searchParams }: Props) {
                   </ul>
                 )}
               </section>
-            ) : (
-              <section aria-labelledby="modules" className="mt-8">
-                <h2 id="modules" className="sr-only">Modules</h2>
-                <ul className="divide-y divide-border border-y border-border">
-                  {modules.map(mod => (
-                    <li key={mod.id}>
-                      <Link href={`/notes/m/${mod.id}`} className="group flex items-center justify-between gap-4 py-5">
-                        <div className="min-w-0">
-                          <p className="text-lg font-semibold tracking-tight group-hover:text-primary">{mod.title}</p>
-                          {toPlainText(mod.description) && <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(mod.description)}</p>}
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {mod.topicCount} topic{mod.topicCount !== 1 ? "s" : ""} · {mod.chapters.length} chapter
-                            {mod.chapters.length !== 1 ? "s" : ""}
-                          </p>
-                        </div>
-                        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-                      </Link>
-                    </li>
+            ) : groups.length === 0 ? (
+                <section aria-labelledby="modules" className="mt-8">
+                  <h2 id="modules" className="sr-only">Modules</h2>
+                  <ModuleList modules={modules} />
+                </section>
+              ) : (
+                <div className="mt-8 space-y-10">
+                  {groups.map(({ course, modules: list }) => (
+                    <section key={course.id} id={`course-${course.id}`} aria-labelledby={`h-${course.id}`} className="scroll-mt-24">
+                      <h2 id={`h-${course.id}`} className="text-xl font-semibold tracking-tight">{course.title}</h2>
+                      {toPlainText(course.description) && (
+                        <p className="mt-1 text-sm text-muted-foreground">{toPlainText(course.description)}</p>
+                      )}
+                      <ModuleList modules={list} className="mt-3" />
+                    </section>
                   ))}
-                </ul>
-              </section>
-            )}
+                  {loose.length > 0 && (
+                    <section id="course-other" aria-labelledby="h-other" className="scroll-mt-24">
+                      <h2 id="h-other" className="text-xl font-semibold tracking-tight">Other modules</h2>
+                      <ModuleList modules={loose} className="mt-3" />
+                    </section>
+                  )}
+                </div>
+              )}
           </>
         )}
       </div>
     </PublicShell>
+  )
+}
+
+function ModuleList({ modules, className = "" }: { modules: PublicModule[]; className?: string }) {
+  return (
+    <ul className={`divide-y divide-border border-y border-border ${className}`}>
+      {modules.map(mod => (
+        <li key={mod.id}>
+          <Link href={`/notes/m/${mod.id}`} className="group flex items-center justify-between gap-4 py-5">
+            <div className="min-w-0">
+              <p className="text-lg font-semibold tracking-tight group-hover:text-primary">{mod.title}</p>
+              {toPlainText(mod.description) && <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(mod.description)}</p>}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {mod.topicCount} topic{mod.topicCount !== 1 ? "s" : ""} · {mod.chapters.length} chapter
+                {mod.chapters.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+          </Link>
+        </li>
+      ))}
+    </ul>
   )
 }
