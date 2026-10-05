@@ -11,12 +11,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toPlainText } from "@/lib/plain-text"
+import { ModuleBuilder } from "@/components/admin/module-builder"
+import { LevelPicker } from "@/components/auth/level-picker"
+import { gradeOfTitle, type StudyLevel } from "@/lib/levels"
 
 interface Course {
   id: string
   title: string
   description: string | null
   moduleIds: string[]
+  /** highschool: a grade (Grade 11, Grade 12) holding subjects */
+  level?: StudyLevel
 }
 
 interface ModuleLite {
@@ -32,6 +37,7 @@ export default function AdminCoursesPage() {
   const [editing, setEditing] = useState<Course | null>(null)
   const [picking, setPicking] = useState<Course | null>(null)
   const [building, setBuilding] = useState<Course | null>(null)
+  const [newLevel, setNewLevel] = useState<StudyLevel>("tertiary")
 
   const load = useCallback(async () => {
     const [c, m] = await Promise.all([fetch("/api/courses"), fetch("/api/modules")])
@@ -60,7 +66,7 @@ export default function AdminCoursesPage() {
 
   return (
     <>
-      <Header title="Courses" subtitle="Top of the hierarchy: Course → Module → Chapter → Topic" />
+      <Header title="Courses and grades" subtitle="Top of the hierarchy: Course → Module → Chapter → Topic (high school: Grade → Subject → Chapter → Topic)" />
 
       <div className="mb-4 flex items-center justify-between gap-3">
         <Link href="/admin" className="text-sm text-muted-foreground hover:text-primary">
@@ -75,9 +81,12 @@ export default function AdminCoursesPage() {
       {showForm && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Create course</CardTitle>
+            <CardTitle>Create {newLevel === "highschool" ? "a grade" : "a course"}</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="mb-4">
+              <LevelPicker value={newLevel} onChange={setNewLevel} name="course-level" />
+            </div>
             <EntityForm
               fields={[
                 { name: "title", label: "Name", required: true, placeholder: "e.g. BSc Computing" },
@@ -89,14 +98,15 @@ export default function AdminCoursesPage() {
                 const res = await fetch("/api/courses", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(values),
+                  body: JSON.stringify({ ...values, level: newLevel }),
                 })
                 const data = await res.json().catch(() => ({}))
                 if (!res.ok) throw new Error(data.error ?? "Failed to create the course")
                 setCourses(prev => [...prev, data as Course].sort((a, b) => a.title.localeCompare(b.title)))
                 setShowForm(false)
-                // Straight on to filling it: with AI, or by choosing modules
-                setBuilding(data as Course)
+                // Straight on to filling it: with AI (university courses), or by choosing modules
+                if (newLevel === "highschool") setPicking(data as Course)
+                else setBuilding(data as Course)
               }}
             />
           </CardContent>
@@ -124,16 +134,23 @@ export default function AdminCoursesPage() {
                     <p className="flex items-center gap-2 font-semibold">
                       <GraduationCap className="h-4 w-4 shrink-0 text-primary" />
                       {course.title}
+                      {course.level === "highschool" && (
+                        <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-800">High school</span>
+                      )}
                     </p>
                     {toPlainText(course.description) && (
                       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{toPlainText(course.description)}</p>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="primary" onClick={() => setBuilding(course)}>
-                      <Sparkles className="h-4 w-4" />
-                      Build with AI
-                    </Button>
+                    {course.level === "highschool" ? (
+                      <ModuleBuilder onAdded={() => void load()} defaultGrade={gradeOfTitle(course.title) ?? 12} />
+                    ) : (
+                      <Button size="sm" variant="primary" onClick={() => setBuilding(course)}>
+                        <Sparkles className="h-4 w-4" />
+                        Build with AI
+                      </Button>
+                    )}
                     <Button size="sm" onClick={() => setPicking(course)}>
                       <ListChecks className="h-4 w-4" />
                       Modules
@@ -149,7 +166,7 @@ export default function AdminCoursesPage() {
                 </div>
 
                 <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {course.moduleIds.length} module{course.moduleIds.length !== 1 ? "s" : ""}
+                  {course.moduleIds.length} {course.level === "highschool" ? "subject" : "module"}{course.moduleIds.length !== 1 ? "s" : ""}
                 </p>
                 {course.moduleIds.length > 0 ? (
                   <ul className="mt-2 flex flex-wrap gap-2">

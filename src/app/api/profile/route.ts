@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { EMAIL_PATTERN, NAME_MAX, loadProfile, profileResponse, requireUserId } from "@/lib/profile"
 import { OtpError, deleteOtp, issueOtp, otpErrorBody } from "@/lib/email-otp"
+import { isStudyLevel } from "@/lib/levels"
+import { setUserLevel } from "@/lib/levels-server"
 
 /** The signed-in user's profile */
 export async function GET() {
@@ -14,7 +16,7 @@ export async function GET() {
 }
 
 /**
- * Update name and/or email. A new email (the sign-in name) needs the current
+ * Update name, study level ("highschool" | "tertiary") and/or email. A new email (the sign-in name) needs the current
  * password and must not belong to another account; it only takes effect once
  * the 6-digit code emailed to it is confirmed (POST /api/profile/email).
  */
@@ -22,7 +24,7 @@ export async function PATCH(request: Request) {
   const { userId, error } = await requireUserId()
   if (error) return error
 
-  const body = (await request.json().catch(() => ({}))) as { name?: unknown; email?: unknown; currentPassword?: unknown }
+  const body = (await request.json().catch(() => ({}))) as { name?: unknown; email?: unknown; currentPassword?: unknown; level?: unknown }
   const user = await loadProfile(userId)
   if (!user) return NextResponse.json({ error: "Account not found" }, { status: 404 })
 
@@ -34,6 +36,15 @@ export async function PATCH(request: Request) {
     if (name.length < 2) return NextResponse.json({ error: "Your name needs at least 2 characters" }, { status: 400 })
     if (name.length > NAME_MAX) return NextResponse.json({ error: `Keep your name under ${NAME_MAX} characters` }, { status: 400 })
     data.name = name
+  }
+
+  if (body.level !== undefined) {
+    if (!isStudyLevel(body.level)) return NextResponse.json({ error: "Choose high school or university" }, { status: 400 })
+    try {
+      await setUserLevel(userId, body.level)
+    } catch {
+      return NextResponse.json({ error: "Study levels need the latest database update: run `npx prisma migrate deploy`." }, { status: 503 })
+    }
   }
 
   if (body.email !== undefined) {

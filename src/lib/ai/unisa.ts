@@ -1,4 +1,5 @@
 import { extractTextFromPdf } from "./pdf-parser"
+import { gradeOfTitle } from "@/lib/levels"
 
 /**
  * Shared context for AI features. Every module in Tyro Study is a UNISA
@@ -39,8 +40,31 @@ export function notationFor(title: string): string {
   return hit ? hit[1].replace("this subject", code.slice(0, 3)) : `Notation (where maths appears): ${MATHS}`
 }
 
+/** How to write a high school subject's notation, from its name */
+function highSchoolNotation(title: string): string {
+  if (/information technology|\bIT\b/i.test(title)) {
+    return "Notation: code stays exactly as written (x1, my_var and a[i] are names, not maths). Put code as plain text with line breaks. CAPS Information Technology uses Delphi (Object Pascal) unless the school uses Java."
+  }
+  if (/math|physical science|physics|chemistry|accounting|technical|life science|geography|economics/i.test(title)) return `Notation: ${MATHS}`
+  return `Notation (where maths appears): ${MATHS}`
+}
+
+/**
+ * High school subjects carry their grade in the name ("Physical Sciences -
+ * Grade 12"). For them the prompt says plainly to set the UNISA context aside.
+ */
+export function highSchoolLines(title: string, grade = gradeOfTitle(title) ?? 12) {
+  return [
+    `High school subject: ${title}`,
+    `IMPORTANT: This is NOT a UNISA university module. It is a South African high school subject for Grade ${grade} learners (about ${grade + 5} years old), following the CAPS curriculum${grade === 12 ? " and preparing for the NSC (matric) final exams" : " and its end-of-year exams"}. Set aside the UNISA/university context above (keep its rules on plain English, South African spelling and examples, and no em dashes): cover what the CAPS document and Annual Teaching Plan for Grade ${grade} prescribe, in that order and depth, use CAPS terminology, explain things the way a good teacher would to a Grade ${grade} class, and write questions in the style of the Department of Basic Education's exam papers and memos.`,
+  ]
+}
+
 /** Lines describing the module for a prompt */
 export function moduleLines(mod: { title: string; description: string | null }) {
+  if (gradeOfTitle(mod.title) !== null) {
+    return [...highSchoolLines(mod.title), mod.description ? `Subject description: ${mod.description}` : "", highSchoolNotation(mod.title)].filter(Boolean)
+  }
   const code = moduleCode(mod.title)
   return [
     `UNISA module: ${mod.title}`,

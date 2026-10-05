@@ -30,6 +30,7 @@ import { useCourseCrumb } from "@/components/modules/use-course-crumb"
 import FlashcardDeck from "@/components/modules/flash-card-decks"
 import { TopicProjects, type TopicProjectSummary } from "@/components/projects/topic-projects"
 import { TryItYourself } from "@/components/exercises/try-it-yourself"
+import { useTerms } from "@/hooks/use-level"
 import { TopicPdfReader } from "@/components/modules/topic-pdf-reader"
 import { Modal } from "@/components/admin/modal"
 import { Input } from "@/components/ui/input"
@@ -95,6 +96,7 @@ interface AssignmentResult {
 export default function TopicPage() {
     const params = useParams()
     const courseCrumb = useCourseCrumb(params.id as string)
+    const terms = useTerms()
     const router = useRouter()
     const { data: session } = useSession()
     const [topic, setTopic] = useState<Topic | null>(null)
@@ -197,7 +199,7 @@ export default function TopicPage() {
                         </Link>
                     </Button>
                     <Button asChild variant="default">
-                        <Link href={`/modules/${moduleId}`}>Back to module</Link>
+                        <Link href={`/modules/${moduleId}`}>Back to {terms.module}</Link>
                     </Button>
                 </div>
             </div>
@@ -217,7 +219,7 @@ export default function TopicPage() {
                     <Link href="/modules">
                         <Button variant="default">
                             <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Modules
+                            Back to {terms.Modules}
                         </Button>
                     </Link>
                 </div>

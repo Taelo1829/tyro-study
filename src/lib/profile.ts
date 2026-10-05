@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { pendingEmailChange } from "@/lib/email-otp"
 import { isSuperuser } from "@/lib/superuser"
+import { getUserLevel } from "@/lib/levels-server"
 
 /** What the profile page shows about the signed-in user */
 export const PROFILE_SELECT = {
@@ -30,8 +31,8 @@ export function publicProfile(user: NonNullable<ProfileRow>) {
 
 /** The profile plus any email change waiting for its code, and whether they're a superuser */
 export async function profileResponse(user: NonNullable<ProfileRow>) {
-  const [pendingEmail, superuser] = await Promise.all([pendingEmailChange(user.id), isSuperuser(user.id)])
-  return { ...publicProfile(user), pendingEmail, isSuperuser: superuser }
+  const [pendingEmail, superuser, level] = await Promise.all([pendingEmailChange(user.id), isSuperuser(user.id), getUserLevel(user.id)])
+  return { ...publicProfile(user), pendingEmail, isSuperuser: superuser, level }
 }
 
 /** The signed-in user's id, or a 401 response */

@@ -7,7 +7,8 @@ import { signOut, useSession } from "next-auth/react"
 import { Bell, BellRing, Brain, ChevronDown, LogOut, Shield, UserRound } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { UserAvatar } from "@/components/ui/user-avatar"
-import { MAIN_NAV } from "@/lib/navigation"
+import { MAIN_NAV, navLabel } from "@/lib/navigation"
+import { useTerms } from "@/hooks/use-level"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
 import { usePushNotifications } from "@/hooks/use-push-notifications"
 
@@ -27,6 +28,7 @@ export function TopNav({ isAdmin = false }: TopNavProps) {
 
   const name = session?.user?.name ?? "Student"
   const email = session?.user?.email ?? ""
+  const terms = useTerms()
   const links = MAIN_NAV.filter(item => BAR_HREFS.includes(item.href))
 
   const [menuOpen, setMenuOpen] = useState(false)
@@ -83,7 +85,7 @@ export function TopNav({ isAdmin = false }: TopNavProps) {
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  {item.label}
+                  {navLabel(item, terms)}
                   {item.badge && unreadChats > 0 && (
                     <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-orange px-1.5 text-[10px] font-bold leading-none text-white">
                       {unreadChats > 99 ? "99+" : unreadChats}

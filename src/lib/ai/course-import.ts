@@ -215,3 +215,44 @@ export async function outlineModule(input: {
   const description = typeof parsed.description === "string" ? parsed.description.replace(/—/g, ", ").trim().slice(0, 1000) : ""
   return { description, chapters }
 }
+
+// ---------------------------------------------------------------- outlining a high school subject
+
+const SUBJECT_PROMPT = `You are an experienced South African high school teacher and subject advisor planning a subject's study material for learners, following the CAPS curriculum (Curriculum and Assessment Policy Statement) of the Department of Basic Education.
+
+Plan:
+- First work out which CAPS subject the admin means (e.g. "maths" is Mathematics, "phys sci" or "physics" is Physical Sciences, "maths lit" is Mathematical Literacy, "IT" is Information Technology, "EGD" is Engineering Graphics and Design). subject: its official CAPS name.
+- Follow the CAPS document and the Annual Teaching Plan for this grade: the content areas (chapters) in the order they're taught through the year, and the topics within each. Use CAPS terminology for the titles.
+- Cover the whole year's CAPS content for this grade (and, for Grade 12, everything the NSC exam papers examine). Leave out content from other grades except where CAPS revisits it.
+- 4 to 12 chapters, each with 2 to 7 topics. Chapter titles name the content area (no "Term 1:" or "Chapter 1:" prefix). Topic titles are specific (e.g. "Newton's second law", not "Introduction"). No "Revision", "Summary" or "Exam preparation" topics.
+- For languages, cover the CAPS skills (e.g. comprehension, summary writing, language structures, literature genres, essay and transactional writing), not specific set works you can't be sure of.
+- theory: true when the topic is mostly definitions, concepts, facts or rules to remember (good for flashcards); false when it is mostly calculation, problem solving, practical or programming work.
+- description: one or two plain sentences on what the subject covers in this grade, for learners deciding whether to join.
+- If the name isn't a CAPS subject, plan the closest match and say so in description.
+
+Respond with JSON only: { "subject": "…", "description": "…", "chapters": [ { "title": "…", "topics": [ { "title": "…", "theory": true } ] } ] }`
+
+export async function outlineSubject(input: { name: string; grade: number; notes?: string }): Promise<ModuleOutline & { subject: string }> {
+  const user = [
+    `Subject: ${input.name}`,
+    `Grade: ${input.grade}${input.grade === 12 ? " (matric, NSC final exams)" : ""}`,
+    input.notes ? `Notes from the admin: ${input.notes}` : "",
+  ].filter(Boolean).join("\n")
+
+  const parsed = await chatJson<{ subject?: unknown; description?: unknown; chapters?: unknown }>({ system: SUBJECT_PROMPT, user, temperature: 0.3, maxTokens: 5000 })
+  const clean = (v: unknown) => String(v ?? "").replace(/—/g, ", ").replace(/\s+/g, " ").trim().slice(0, 150)
+  const chapters = (Array.isArray(parsed.chapters) ? parsed.chapters : [])
+    .map((c: Record<string, unknown>) => ({
+      title: clean(c?.title).replace(/^(chapter|term)\s*\d+\s*[:.\-]\s*/i, ""),
+      topics: (Array.isArray(c?.topics) ? c.topics : [])
+        .map((t: Record<string, unknown>) => ({ title: clean(t?.title), theory: t?.theory === true }))
+        .filter(t => t.title)
+        .slice(0, MAX_TOPICS_PER_CHAPTER),
+    }))
+    .filter(c => c.title && c.topics.length > 0)
+    .slice(0, MAX_CHAPTERS)
+  if (chapters.length === 0) throw new Error(`The AI couldn't plan ${input.name}. Try again.`)
+  const subject = clean(parsed.subject).replace(/\s*[-–]?\s*Grade\s*\d+\s*$/i, "") || clean(input.name)
+  const description = typeof parsed.description === "string" ? parsed.description.replace(/—/g, ", ").trim().slice(0, 1000) : ""
+  return { subject, description, chapters }
+}

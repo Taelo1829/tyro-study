@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserAvatar } from "@/components/ui/user-avatar"
 import { CodeEntry } from "@/components/auth/code-entry"
+import { LevelPicker } from "@/components/auth/level-picker"
+import { termsFor, type StudyLevel } from "@/lib/levels"
 import { cn } from "@/lib/utils"
 
 interface Profile {
@@ -21,6 +23,8 @@ interface Profile {
   hasPassword: boolean
   /** New email waiting for its 6-digit code */
   pendingEmail: string | null
+  /** High school (subjects) or tertiary (modules) */
+  level?: StudyLevel
 }
 
 type Status = { type: "success" | "error"; text: string } | null
@@ -105,6 +109,7 @@ export function ProfileSettings() {
         <TabsContent value="profile" className="space-y-10 px-1">
           <PhotoSection profile={profile} onSaved={saved} />
           <DetailsSection profile={profile} onSaved={saved} />
+          <LevelSection profile={profile} onSaved={saved} />
         </TabsContent>
 
         <TabsContent value="password" className="px-1">
@@ -227,6 +232,44 @@ function PhotoSection({ profile, onSaved }: { profile: Profile; onSaved: (p: Pro
         />
       </div>
       <div className="mt-3">
+        <StatusLine status={status} />
+      </div>
+    </section>
+  )
+}
+
+/** High school or university: decides whether they see subjects or modules */
+function LevelSection({ profile, onSaved }: { profile: Profile; onSaved: (p: Profile) => Promise<void> }) {
+  const [saving, setSaving] = useState(false)
+  const [status, setStatus] = useState<Status>(null)
+  const level = profile.level ?? "tertiary"
+
+  const choose = async (next: StudyLevel) => {
+    if (next === level || saving) return
+    setSaving(true)
+    setStatus(null)
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ level: next }),
+      })
+      if (!res.ok) throw new Error(await readError(res, "Couldn't change your level"))
+      await onSaved((await res.json()) as Profile)
+      const t = termsFor(next)
+      setStatus({ type: "success", text: `Saved. You'll now see ${t.modules}. ${t.Modules} you joined before are kept for if you switch back.` })
+    } catch (err) {
+      setStatus({ type: "error", text: err instanceof Error ? err.message : "Couldn't change your level" })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section>
+      <SectionTitle title="Study level" description="High school students see Grade 11 and 12 subjects; university students see modules." />
+      <LevelPicker value={level} onChange={choose} disabled={saving} name="profile-level" />
+      <div className="mt-2">
         <StatusLine status={status} />
       </div>
     </section>

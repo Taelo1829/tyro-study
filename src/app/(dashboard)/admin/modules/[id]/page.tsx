@@ -31,6 +31,7 @@ interface ModuleDetail {
   description: string | null
   courses?: { id: string; title: string }[]
   coding?: { language: string | null; auto: boolean } | null
+  level?: "tertiary" | "highschool"
   chapters: ChapterRow[]
 }
 
@@ -71,6 +72,7 @@ export default function AdminModuleDetailPage() {
         ) : (
           <>Not in a course yet. Add it with Edit module.</>
         )}
+        {mod.level === "highschool" && <span className="ml-1">· High school subject</span>}
         {mod.coding?.language && (
           <span className="ml-1">
             · Coding module ({CODING_LANGUAGES[mod.coding.language as keyof typeof CODING_LANGUAGES]?.label ?? mod.coding.language}): topics get coding projects and &ldquo;Try it yourself&rdquo; exercises

@@ -5,12 +5,15 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { AUTH_SECRET, SESSION_COOKIE_NAME, USE_SECURE_COOKIES } from "@/lib/auth-cookies"
+import { getUserLevel } from "@/lib/levels-server"
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: DefaultSession["user"] & {
       id: string
       role?: string
+      /** "tertiary" or "highschool" (decides modules vs subjects) */
+      level?: string
     }
   }
 }
@@ -19,6 +22,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string
     role?: string
+    level?: string
   }
 }
 
@@ -83,6 +87,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.role = (user as { role?: string }).role
+        token.level = await getUserLevel(user.id)
       }
       // The profile page calls useSession().update() after a change: reload
       // name, email and picture from the database (never from the client)
@@ -96,6 +101,7 @@ export const authOptions: NextAuthOptions = {
           token.email = fresh.email
           token.picture = fresh.image
           token.role = fresh.role
+          token.level = await getUserLevel(token.id)
         }
       }
       return token
@@ -104,6 +110,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string | undefined
+        session.user.level = token.level ?? "tertiary"
       }
       return session
     },

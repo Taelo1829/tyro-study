@@ -10,6 +10,7 @@ import {
   MessageCircle,
   LogOut,
 } from "lucide-react"
+import type { LevelTerms } from "@/lib/levels"
 
 export interface NavItem {
   label: string
@@ -32,3 +33,8 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Profile", href: "/profile", icon: UserRound },
   { label: "Admin", href: "/admin", icon: Shield, adminOnly: true },
 ]
+
+/** The item's label in the student's words ("Subjects" for high school) */
+export function navLabel(item: NavItem, terms: LevelTerms): string {
+  return item.href === "/modules" ? terms.Modules : item.label
+}

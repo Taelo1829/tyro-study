@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTerms } from "@/hooks/use-level"
 import { useParams } from "next/navigation"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { Header } from "@/components/layout/header"
@@ -11,6 +12,7 @@ import { ProgressReport, type ModuleProgressData } from "@/components/progress/p
 export default function ModuleProgressPage() {
   const { id } = useParams<{ id: string }>()
   const courseCrumb = useCourseCrumb(id)
+  const t = useTerms()
   const [data, setData] = useState<ModuleProgressData | null>(null)
   const [error, setError] = useState("")
 
@@ -27,7 +29,7 @@ export default function ModuleProgressPage() {
 
   return (
     <>
-      <Breadcrumbs items={[{ label: "My modules", href: "/modules" }, ...courseCrumb, { label: data?.title ?? "Module", href: `/modules/${id}` }, { label: "Progress" }]} />
+      <Breadcrumbs items={[{ label: `My ${t.modules}`, href: "/modules" }, ...courseCrumb, { label: data?.title ?? t.Module, href: `/modules/${id}` }, { label: "Progress" }]} />
       <Header title="Your progress" subtitle={data?.title ?? "Quizzes passed, failed and how long they take"} />
       {error && <p className="text-sm text-red-600">{error}</p>}
       {!data && !error && <p className="text-sm text-muted-foreground">Loading…</p>}

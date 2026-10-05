@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { BookOpen, Search } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ModuleCatalog } from "./module-catalog"
+import { useTerms } from "@/hooks/use-level"
 
 type Tab = "mine" | "browse"
 
@@ -15,6 +16,7 @@ type Tab = "mine" | "browse"
  * on Browse.
  */
 export function ModulesTabs() {
+  const t = useTerms()
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -49,20 +51,20 @@ export function ModulesTabs() {
     <Tabs value={tab} onValueChange={v => choose(v as Tab)} className="space-y-5">
       <TabsList className="grid w-full grid-cols-2 border border-foreground shadow-none sm:w-auto sm:min-w-[22rem]">
         <TabsTrigger value="mine" className="gap-2">
-          <BookOpen className="h-4 w-4" /> My modules
+          <BookOpen className="h-4 w-4" /> My {t.modules}
         </TabsTrigger>
         <TabsTrigger value="browse" className="gap-2">
-          <Search className="h-4 w-4" /> Browse modules
+          <Search className="h-4 w-4" /> Browse {t.modules}
         </TabsTrigger>
       </TabsList>
 
       <TabsContent value="mine">
-        <p className="mb-4 text-sm text-muted-foreground">Modules you have joined. Open one to start studying.</p>
+        <p className="mb-4 text-sm text-muted-foreground">{t.Modules} you have joined. Open one to start studying.</p>
         <ModuleCatalog showEnrolledOnly onBrowse={() => choose("browse")} onCount={onMyCount} />
       </TabsContent>
 
       <TabsContent value="browse">
-        <p className="mb-4 text-sm text-muted-foreground">Choose a course, then join modules with one click.</p>
+        <p className="mb-4 text-sm text-muted-foreground">Choose a {t.course}, then join {t.modules} with one click.</p>
         <ModuleCatalog showAvailableOnly searchable />
       </TabsContent>
     </Tabs>

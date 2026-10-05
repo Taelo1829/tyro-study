@@ -91,6 +91,8 @@ model User {
   role          Role      @default(STUDENT)
   /// Superusers manage admins: change roles, grant superuser, delete admins
   isSuperuser   Boolean   @default(false)
+  /// "tertiary" (university modules) or "highschool" (Grade 11 and 12 subjects)
+  level         String    @default("tertiary")
   streakDays    Int       @default(0)
   lastVisitDate DateTime?
   createdAt     DateTime  @default(now())
@@ -170,6 +172,8 @@ model Module {
   courses      CourseModule[]
   /// NULL = from the module code (COS/INF/ICT → C++), "none" = not a coding module, else the language
   codingLanguage String?
+  /// "tertiary" (a university module) or "highschool" (a Grade 11 or 12 subject)
+  level          String   @default("tertiary")
 
   @@map("modules")
 }
@@ -180,6 +184,8 @@ model Course {
   id          String   @id @default(cuid())
   title       String
   description String?
+  /// "tertiary" (a qualification) or "highschool" (a grade: Grade 11, Grade 12)
+  level       String   @default("tertiary")
   createdAt   DateTime @default(now())
 
   modules CourseModule[]

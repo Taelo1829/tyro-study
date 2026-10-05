@@ -6,6 +6,8 @@ import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CodeEntry } from "@/components/auth/code-entry"
+import { LevelPicker } from "@/components/auth/level-picker"
+import type { StudyLevel } from "@/lib/levels"
 
 async function readJson(res: Response) {
   return (await res.json().catch(() => ({}))) as { error?: string; resendIn?: number; email?: string }
@@ -15,6 +17,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [level, setLevel] = useState<StudyLevel | null>(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   // Set once the code has been emailed: step 2 (enter the code)
@@ -23,12 +26,16 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
+    if (!level) {
+      setError("Choose high school or university")
+      return
+    }
     setLoading(true)
 
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, level }),
     })
     const data = await readJson(res)
     setLoading(false)
@@ -96,6 +103,11 @@ export default function RegisterPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <fieldset>
+          <legend className="mb-1.5 block text-sm font-medium">I&apos;m studying at</legend>
+          <LevelPicker value={level} onChange={setLevel} />
+          <p className="mt-1 text-xs text-muted-foreground">You can change this later on your profile.</p>
+        </fieldset>
         <div>
           <label htmlFor="name" className="mb-1.5 block text-sm font-medium">
             Name

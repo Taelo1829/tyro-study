@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useModuleStore } from "@/app/(dashboard)/modules/store"
 import { BROWSE_COURSE_KEY } from "./use-course-crumb"
 import { StepsBar } from "@/components/progress/progress-report"
+import { useTerms } from "@/hooks/use-level"
 
 export interface ModuleItem {
   id: string
@@ -50,6 +51,8 @@ export function ModuleCatalog({
   onBrowse,
   onCount,
 }: ModuleCatalogProps) {
+  // "module"/"course" for university students, "subject"/"grade" for high school
+  const t = useTerms()
   const [query, setQuery] = useState("")
   const [modules, setModules] = useState<ModuleItem[]>([])
   const [courses, setCourses] = useState<CourseItem[]>([])
@@ -60,7 +63,7 @@ export function ModuleCatalog({
   const [actionId, setActionId] = useState<string | null>(null)
   const { reload, toggleReload } = useModuleStore()
   const load = useCallback(async () => {
-    const [res, courseRes] = await Promise.all([fetch("/api/modules"), fetch("/api/courses")])
+    const [res, courseRes] = await Promise.all([fetch("/api/modules?scope=mine"), fetch("/api/courses?scope=mine")])
     if (res.ok) {
       const mods: ModuleItem[] = await res.json()
       setModules(mods)
@@ -129,7 +132,7 @@ export function ModuleCatalog({
   }
 
   async function unenroll(moduleId: string) {
-    if (!confirm("Leave this module? Your progress is kept, but it will be hidden from your list.")) {
+    if (!confirm(`Leave this ${t.module}? Your progress is kept, but it will be hidden from your list.`)) {
       return
     }
     setActionId(moduleId)
@@ -139,11 +142,11 @@ export function ModuleCatalog({
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error ?? "Failed to leave module")
+        throw new Error(data.error ?? `Failed to leave ${t.module}`)
       }
       toggleReload()
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to leave module")
+      alert(err instanceof Error ? err.message : `Failed to leave ${t.module}`)
     } finally {
       setActionId(null)
     }
@@ -182,7 +185,7 @@ export function ModuleCatalog({
     : inCourse
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading modules…</p>
+    return <p className="text-sm text-muted-foreground">Loading {t.modules}…</p>
   }
 
   const chip = (active: boolean) =>
@@ -190,9 +193,9 @@ export function ModuleCatalog({
 
   const coursePicker = showChips && (
     <div className="mb-3">
-      <div role="tablist" aria-label="Course" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+      <div role="tablist" aria-label={t.Course} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
         <button type="button" role="tab" aria-selected={choice === "all"} className={chip(choice === "all")} onClick={() => setCourse("all")}>
-          All courses
+          All {t.courses}
         </button>
         {courseChips.map(c => (
           <button key={c.id} type="button" role="tab" aria-selected={choice === c.id} className={chip(choice === c.id)} onClick={() => setCourse(c.id)}>
@@ -201,7 +204,7 @@ export function ModuleCatalog({
         ))}
         {hasLoose && (
           <button type="button" role="tab" aria-selected={choice === "other"} className={chip(choice === "other")} onClick={() => setCourse("other")}>
-            Other modules
+            Other {t.modules}
           </button>
         )}
       </div>
@@ -221,8 +224,8 @@ export function ModuleCatalog({
         type="search"
         value={query}
         onChange={e => setQuery(e.target.value)}
-        placeholder="Search modules, e.g. MAT1503"
-        aria-label="Search modules"
+        placeholder={t.module === "subject" ? "Search subjects, e.g. Mathematics" : "Search modules, e.g. MAT1503"}
+        aria-label={`Search ${t.modules}`}
         className="h-12 w-full rounded-full border border-foreground bg-white pl-11 pr-11 text-base outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/40 [&::-webkit-search-cancel-button]:hidden"
       />
       {query && (
@@ -244,21 +247,21 @@ export function ModuleCatalog({
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
           {showEnrolledOnly ? (
             <>
-              <p>You haven&apos;t joined any modules yet.</p>
+              <p>You haven&apos;t joined any {t.modules} yet.</p>
               {onBrowse && (
                 <button
                   type="button"
                   onClick={onBrowse}
                   className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background"
                 >
-                  Browse modules
+                  Browse {t.modules}
                   <ChevronRight className="h-4 w-4" />
                 </button>
               )}
             </>
           ) : showAvailableOnly
-              ? "You're enrolled in all available modules."
-              : "No modules available yet."}
+              ? `You're enrolled in all available ${t.modules}.`
+              : `No ${t.modules} available yet.`}
         </CardContent>
       </Card>
     )
@@ -275,10 +278,10 @@ export function ModuleCatalog({
         {searchBox}
         <p className="py-6 text-center text-sm text-muted-foreground">
           {words.length
-            ? <>No modules match &ldquo;{query.trim()}&rdquo;{choice !== "all" && " in this course"}.</>
+            ? <>No {t.modules} match &ldquo;{query.trim()}&rdquo;{choice !== "all" && ` in this ${t.course}`}.</>
             : choice === "other"
-              ? "You've joined all the other modules."
-              : `You've joined every module in ${activeCourse?.title ?? "this course"}.`}
+              ? `You've joined all the other ${t.modules}.`
+              : `You've joined every ${t.module} in ${activeCourse?.title ?? `this ${t.course}`}.`}
         </p>
       </>
     )
@@ -341,7 +344,7 @@ export function ModuleCatalog({
               ) : (
                 <button type="button" className={bar} disabled={busy} onClick={() => enroll(m.id)}>
                   <UserPlus className="h-4 w-4" />
-                  {busy ? "Joining…" : "Join module"}
+                  {busy ? "Joining…" : `Join ${t.module}`}
                 </button>
               )}
             </div>

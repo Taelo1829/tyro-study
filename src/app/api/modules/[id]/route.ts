@@ -7,6 +7,8 @@ import { SUPERUSER_ONLY, isSuperuser } from "@/lib/superuser"
 import { toPlainText } from "@/lib/plain-text"
 import { setModuleCourses } from "@/lib/courses"
 import { getModuleCoding, setModuleCoding } from "@/lib/coding"
+import { getModuleLevel, setModuleLevel } from "@/lib/levels-server"
+import { isStudyLevel } from "@/lib/levels"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -62,12 +64,13 @@ export async function GET(_request: Request, { params }: Params) {
     SELECT c."id", c."title" FROM "course_modules" cm JOIN "courses" c ON c."id" = cm."courseId"
     WHERE cm."moduleId" = ${id} ORDER BY lower(c."title")`
 
-  const coding = await getModuleCoding(id)
+  const [coding, level] = await Promise.all([getModuleCoding(id), getModuleLevel(id)])
 
   return NextResponse.json({
     ...rest,
     courses: courseRows,
     coding,
+    level,
     chapters: rest.chapters.map(ch => ({ ...ch, topicsWithoutContent: emptyByChapter.get(ch.id) ?? 0 })),
     isEnrolled: Boolean(enrollment),
     enrolledAt: enrollment?.enrolledAt ?? null,
@@ -106,6 +109,13 @@ export async function PATCH(request: Request, { params }: Params) {
   if (Array.isArray(courseIds)) {
     await setModuleCourses(id, courseIds.filter((c): c is string => typeof c === "string"))
   }
+  if (isStudyLevel(body.level)) {
+    try {
+      await setModuleLevel(id, body.level)
+    } catch {
+      return NextResponse.json({ error: "High school subjects need the latest database update: run `npx prisma migrate deploy`." }, { status: 503 })
+    }
+  }
   if (typeof body.coding === "string") {
     try {
       await setModuleCoding(id, body.coding)
@@ -114,7 +124,7 @@ export async function PATCH(request: Request, { params }: Params) {
     }
   }
 
-  return NextResponse.json({ ...updated, coding: await getModuleCoding(id) })
+  return NextResponse.json({ ...updated, coding: await getModuleCoding(id), level: await getModuleLevel(id) })
 }
 
 // DELETE /api/modules/:id - superusers only. Deletes the module with its chapters,

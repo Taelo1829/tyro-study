@@ -4,7 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Brain } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { MAIN_NAV } from "@/lib/navigation"
+import { MAIN_NAV, navLabel } from "@/lib/navigation"
+import { useTerms } from "@/hooks/use-level"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
 import { signOut } from "next-auth/react"
 interface SidebarProps {
@@ -14,6 +15,7 @@ interface SidebarProps {
 export function Sidebar({ isAdmin = false }: SidebarProps) {
   const pathname = usePathname()
   const unreadChats = useChatUnreadCount()
+  const terms = useTerms()
   const items = MAIN_NAV.filter((item) => !item.adminOnly || isAdmin)
 
   return (
@@ -47,7 +49,7 @@ export function Sidebar({ isAdmin = false }: SidebarProps) {
                 </span>
               )}
             </span>
-            <span className="flex-1">{item.label}</span>
+            <span className="flex-1">{navLabel(item, terms)}</span>
           </span>
           return (
             <Link
@@ -68,7 +70,7 @@ export function Sidebar({ isAdmin = false }: SidebarProps) {
                   </span>
                 )}
               </span>
-              <span className="flex-1">{item.label}</span>
+              <span className="flex-1">{navLabel(item, terms)}</span>
             </Link>
           )
         })}

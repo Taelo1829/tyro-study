@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { MAIN_NAV } from "@/lib/navigation"
+import { MAIN_NAV, navLabel } from "@/lib/navigation"
+import { useTerms } from "@/hooks/use-level"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
 import { signOut } from "next-auth/react"
 
@@ -14,6 +15,7 @@ interface MobileNavProps {
 export function MobileNav({ isAdmin = false }: MobileNavProps) {
   const pathname = usePathname()
   const unreadChats = useChatUnreadCount()
+  const terms = useTerms()
   const items = MAIN_NAV.filter((item) => !item.adminOnly || isAdmin).slice(
     0,
     5
@@ -35,7 +37,7 @@ export function MobileNav({ isAdmin = false }: MobileNavProps) {
                   className="flex flex-col items-center gap-0.5 rounded-full px-3 py-1.5 text-[10px] font-medium text-muted-foreground transition-colors"
                 >
                   <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <span>{navLabel(item, terms)}</span>
                 </button>
               </li>
             )
@@ -57,7 +59,7 @@ export function MobileNav({ isAdmin = false }: MobileNavProps) {
                     </span>
                   )}
                 </span>
-                <span>{item.label}</span>
+                <span>{navLabel(item, terms)}</span>
               </Link>
             </li>
           )

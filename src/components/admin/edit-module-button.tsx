@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "./modal"
 import { DeleteModuleButton, useIsSuperuser } from "./delete-module-button"
+import { LevelPicker } from "@/components/auth/level-picker"
+import { asLevel, type StudyLevel } from "@/lib/levels"
 
 interface CourseLink {
   id: string
@@ -31,8 +33,10 @@ interface EditModuleButtonProps {
     courses?: CourseLink[]
     /** Whether it's a coding module (language null = not), and whether that's automatic */
     coding?: ModuleCoding | null
+    /** University module or high school subject */
+    level?: StudyLevel
   }
-  onSaved: (updated: { title: string; description: string | null; courses: CourseLink[]; coding?: ModuleCoding | null }) => void
+  onSaved: (updated: { title: string; description: string | null; courses: CourseLink[]; coding?: ModuleCoding | null; level?: StudyLevel }) => void
   /** For the delete warning (superusers can delete from this window) */
   chapterCount?: number
   topicCount?: number
@@ -52,6 +56,8 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
   const startCourseIds = (module.courses ?? []).map(c => c.id)
   const [coding, setCoding] = useState(codingChoice(module.coding))
   const [courseIds, setCourseIds] = useState<string[]>(startCourseIds)
+  const startLevel = asLevel(module.level)
+  const [level, setLevel] = useState<StudyLevel>(startLevel)
 
   function openEditor() {
     // Start from the current values each time
@@ -59,6 +65,7 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
     setDescription(toPlainText(module.description))
     setCourseIds(startCourseIds)
     setCoding(codingChoice(module.coding))
+    setLevel(startLevel)
     setError("")
     setOpen(true)
     fetch("/api/courses")
@@ -70,7 +77,8 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
   const coursesChanged =
     courseIds.length !== startCourseIds.length || courseIds.some(id => !startCourseIds.includes(id))
   const codingChanged = coding !== codingChoice(module.coding)
-  const unchanged = !codingChanged &&
+  const levelChanged = level !== startLevel
+  const unchanged = !codingChanged && !levelChanged &&
     title.trim() === module.title && description.trim() === toPlainText(module.description) && !coursesChanged
 
   async function save(e: React.FormEvent) {
@@ -90,6 +98,7 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
           description: description.trim(),
           ...(coursesChanged && { courseIds }),
           ...(codingChanged && { coding }),
+          ...(levelChanged && { level }),
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -97,7 +106,7 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
       const courses = coursesChanged
         ? (allCourses ?? []).filter(c => courseIds.includes(c.id))
         : module.courses ?? []
-      onSaved({ title: data.title, description: data.description, courses, coding: data.coding ?? module.coding })
+      onSaved({ title: data.title, description: data.description, courses, coding: data.coding ?? module.coding, level: data.level ?? level })
       setOpen(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save the module")
@@ -132,6 +141,15 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
                 Keep the UNISA module code at the start (e.g. COS1511). The AI uses it to pitch lessons and questions at the right year level.
               </p>
             </div>
+            <fieldset>
+              <legend className="mb-1.5 text-sm font-medium">Who it&apos;s for</legend>
+              <LevelPicker value={level} onChange={setLevel} disabled={saving} name="edit-level" />
+              {level === "highschool" && (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  High school students see it as a subject. End the name with the grade (e.g. &ldquo;Mathematics - Grade 12&rdquo;) and put it in the Grade 11 or 12 course below.
+                </p>
+              )}
+            </fieldset>
             <div>
               <label htmlFor="module-description" className="mb-1.5 block text-sm font-medium">
                 Description <span className="font-normal text-muted-foreground">(optional)</span>

@@ -11,6 +11,8 @@ import { moduleSteps } from "@/lib/progress-steps"
 import { recordDailyVisit } from "@/lib/streak"
 import { listCalendarEvents, type CalendarEventRow } from "@/lib/calendar"
 import Link from "next/link"
+import { getUserLevel, moduleLevels } from "@/lib/levels-server"
+import { termsFor, type StudyLevel } from "@/lib/levels"
 
 const TOPIC_COMPLETION_THRESHOLD = 0.7
 
@@ -28,11 +30,11 @@ interface TopicUpNext {
  * Overall progress across the student's modules, counted the same way as the
  * module progress bars: topic quizzes, chapter quizzes and mock exams passed.
  */
-async function getStudyProgressPercent(userId: string) {
-  const enrollments = await prisma.moduleEnrollment.findMany({
+async function getStudyProgressPercent(userId: string, ofLevel: (moduleId: string) => boolean) {
+  const enrollments = (await prisma.moduleEnrollment.findMany({
     where: { userId },
     select: { moduleId: true },
-  })
+  })).filter(e => ofLevel(e.moduleId))
   if (enrollments.length === 0) return 0
 
   const steps = await Promise.all(
@@ -51,8 +53,8 @@ async function getCurrentStreakDays(userId: string) {
   return user?.streakDays ?? 0
 }
 
-async function getTopicUpNext(userId: string): Promise<TopicUpNext | null> {
-  const candidates = await prisma.$queryRaw<TopicUpNext[]>`
+async function getTopicUpNext(userId: string, ofLevel: (moduleId: string) => boolean): Promise<TopicUpNext | null> {
+  const all = await prisma.$queryRaw<TopicUpNext[]>`
     SELECT
       t."id",
       t."title",
@@ -71,6 +73,7 @@ async function getTopicUpNext(userId: string): Promise<TopicUpNext | null> {
     GROUP BY me."enrolledAt", m."id", m."title", c."id", c."title", c."order", t."id", t."title", t."order"
     ORDER BY me."enrolledAt" ASC, c."order" ASC, t."order" ASC
   `
+  const candidates = all.filter(t => ofLevel(t.moduleId))
 
   return (
     candidates.find((topic) => {
@@ -129,10 +132,15 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
+  // Only the modules (or subjects) of the student's level: high school or university
+  const [level, levels] = await Promise.all([getUserLevel(userId), moduleLevels()])
+  const ofLevel = (moduleId: string) => (levels.get(moduleId) ?? "tertiary") === level
+  const t = termsFor(level as StudyLevel)
+
   const [studyProgressPercent, currentStreakDays, topicUpNext, timetable] = await Promise.all([
-    getStudyProgressPercent(userId),
+    getStudyProgressPercent(userId, ofLevel),
     getCurrentStreakDays(userId),
-    getTopicUpNext(userId),
+    getTopicUpNext(userId, ofLevel),
     getTimetableSummary(userId),
   ])
 
@@ -147,7 +155,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <DashboardWidget
           title="Study Progress"
-          description="Quizzes passed across your modules"
+          description={`Quizzes passed across your ${t.modules}`}
           delay={0}
           tone="blue"
         >
@@ -201,7 +209,7 @@ export default async function DashboardPage() {
             <div className="flex items-start gap-3">
               <BookOpen className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <p className="text-sm text-muted-foreground">
-                No topics scheduled yet. Enroll in a module to get started.
+                No topics scheduled yet. Join a {t.module} to get started.
               </p>
             </div>
           )}

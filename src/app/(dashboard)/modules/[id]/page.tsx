@@ -1,6 +1,7 @@
 "use client"
 
 import { toPlainText } from "@/lib/plain-text"
+import { useTerms } from "@/hooks/use-level"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -30,6 +31,7 @@ export default function StudentModulePage() {
   const params = useParams()
   const id = params.id as string
   const courseCrumb = useCourseCrumb(id)
+  const t = useTerms()
   const [mod, setMod] = useState<ModuleDetail | null>(null)
   const [joining, setJoining] = useState(false)
   const [progress, setProgress] = useState<ModuleProgressData | null>(null)
@@ -72,7 +74,7 @@ export default function StudentModulePage() {
   if (!mod.isEnrolled) {
     return (
       <>
-        <Breadcrumbs items={[{ label: "Modules", href: "/modules?tab=browse" }, ...courseCrumb, { label: mod.title }]} />
+        <Breadcrumbs items={[{ label: t.Modules, href: "/modules?tab=browse" }, ...courseCrumb, { label: mod.title }]} />
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
             {toPlainText(mod.description) && (
@@ -95,7 +97,7 @@ export default function StudentModulePage() {
 
   return (
     <>
-      <Breadcrumbs items={[{ label: "My modules", href: "/modules" }, ...courseCrumb, { label: mod.title }]} />
+      <Breadcrumbs items={[{ label: `My ${t.modules}`, href: "/modules" }, ...courseCrumb, { label: mod.title }]} />
 
       {progress && progress.summary.topicsWithQuiz > 0 && (
         <div className="mb-6 space-y-4">
