@@ -249,6 +249,9 @@ model Question {
   question   String   @db.Text
   difficulty String   @default("medium")
   createdAt  DateTime @default(now())
+  /// AI study note, written once when a student first gets this question wrong
+  studyNote          String?   @db.Text
+  studyNoteClaimedAt DateTime?
 
   topic            Topic?            @relation(fields: [topicId], references: [id], onDelete: Cascade)
   chapter          Chapter?          @relation(fields: [chapterId], references: [id], onDelete: Cascade)

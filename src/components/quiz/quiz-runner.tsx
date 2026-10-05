@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { ScratchPad } from "./scratch-pad"
 import { MathText } from "@/components/ui/math-text"
+import { TopicContentView } from "@/components/topic/topic-content-view"
 
 /**
  * Shared quiz screen for topic and chapter quizzes.
@@ -40,6 +41,12 @@ interface FinalResult {
     passed: boolean
     passingScore: number
     durationSeconds: number | null
+}
+
+interface MissedNote {
+    questionId: string
+    question: string
+    html: string
 }
 
 interface NextStep {
@@ -88,6 +95,8 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     const [final, setFinal] = useState<FinalResult | null>(null)
     // After a pass: the topic to study next (topic and chapter quizzes)
     const [nextStep, setNextStep] = useState<NextStep | null>(null)
+    // Study notes for the questions this student got wrong
+    const [notes, setNotes] = useState<{ status: "idle" | "loading" | "done" | "error"; items: MissedNote[] }>({ status: "idle", items: [] })
     // Stopwatch: counts up from when the quiz loaded on this device
     const [startedAt, setStartedAt] = useState<number | null>(null)
     const [now, setNow] = useState(() => Date.now())
@@ -103,6 +112,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         setResults({})
         setFinal(null)
         setNextStep(null)
+        setNotes({ status: "idle", items: [] })
         setIndex(0)
         setChecking(false)
         setStartedAt(null)
@@ -159,6 +169,26 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
             live = false
         }
     }, [final?.passed, nextQuery])
+
+    // Finished with mistakes: fetch (or have the AI write, once ever per question) notes on them
+    const missedCount = final ? final.totalQuestions - final.correctCount : 0
+    useEffect(() => {
+        if (!final || missedCount <= 0 || !attemptId) return
+        let live = true
+        // The first student to miss a question waits while its note is written
+        queueMicrotask(() => live && setNotes({ status: "loading", items: [] }))
+        fetch("/api/quiz/notes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ attemptId }),
+        })
+            .then(res => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+            .then((data: { notes?: MissedNote[] }) => live && setNotes({ status: "done", items: data.notes ?? [] }))
+            .catch(() => live && setNotes({ status: "error", items: [] }))
+        return () => {
+            live = false
+        }
+    }, [final, missedCount, attemptId])
 
     const elapsedMs = startedAt ? Math.max(0, now - startedAt) : null
 
@@ -235,13 +265,16 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
 
     const title = titleProp ?? questions[0]?.topic?.title ?? "Quiz"
 
+    // Stays pinned just under the fixed top bar while scrolling through the quiz
     const backLink = (
-        <Link
-            href={backHref}
-            className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
-        >
-            ← {backLabel}
-        </Link>
+        <div className="sticky top-[4.5rem] z-40 -mx-4 mb-3 bg-background/95 px-4 py-2 backdrop-blur sm:top-[5.25rem] sm:mx-0 sm:px-0">
+            <Link
+                href={backHref}
+                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+            >
+                ← {backLabel}
+            </Link>
+        </div>
     )
 
     const primaryButton =
@@ -435,6 +468,40 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             </div>
                         )}
 
+                        {notes.status !== "idle" && (
+                            <section className="mt-12 border-t border-border pt-8" aria-labelledby="missed-notes">
+                                <h2 id="missed-notes" className="mb-1 text-xl font-bold text-foreground">
+                                    Notes on what you missed
+                                </h2>
+                                <p className="mb-5 text-sm text-muted-foreground">
+                                    Short explanations of the ideas behind the questions you got wrong. They&apos;re also in this
+                                    topic&apos;s lesson, under &ldquo;Common mistakes explained&rdquo;.
+                                </p>
+                                {notes.status === "loading" && (
+                                    <p className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
+                                        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+                                        Getting notes for the questions you missed…
+                                    </p>
+                                )}
+                                {notes.status === "error" && (
+                                    <p className="text-sm text-muted-foreground">Notes aren&apos;t available right now. Try the quiz again later.</p>
+                                )}
+                                {notes.status === "done" && notes.items.length === 0 && (
+                                    <p className="text-sm text-muted-foreground">Notes for these questions are still being written. Check the lesson soon.</p>
+                                )}
+                                <div className="space-y-6">
+                                    {notes.items.map(note => (
+                                        <article key={note.questionId} className="rounded-2xl border border-border p-4 sm:p-5">
+                                            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                                You missed: <span className="normal-case tracking-normal"><MathText text={note.question} /></span>
+                                            </p>
+                                            <TopicContentView content={note.html} />
+                                        </article>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
                         <div className="mt-12 border-t border-border pt-8">
                             <h2 className="mb-4 text-xl font-bold text-foreground">Detailed Review</h2>
                             <div className="space-y-4">
@@ -486,12 +553,12 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     const answeredCount = Object.keys(results).length
 
     return (
-        <div className="px-4 pb-28 pt-12">
+        <div className="-mt-5 pb-28 sm:mt-0 sm:px-4 sm:pt-4">
             <div className="mx-auto max-w-4xl">
-                <div className="mb-8">
-                    {backLink}
-                    <div className="neo-flat p-6">
-                        <div className="mb-4 flex items-center justify-between gap-4">
+                {backLink}
+                <div className="mb-2 sm:mb-8">
+                    <div className="neo-flat px-0 pb-4 pt-1 sm:p-6">
+                        <div className="mb-3 flex items-center justify-between gap-4 sm:mb-4">
                             <h1 className="text-2xl font-bold text-foreground">{title}</h1>
                             <div className="flex shrink-0 items-center gap-3">
                                 <span className="text-sm text-muted-foreground">
@@ -517,9 +584,9 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                     </div>
                 </div>
 
-                <div className="neo-flat mb-6 p-8">
-                    <div className="mb-6">
-                        <div className="mb-4 flex flex-wrap gap-2">
+                <div className="neo-flat mb-6 px-0 py-3 sm:p-8">
+                    <div className="mb-5 sm:mb-6">
+                        <div className="mb-3 flex flex-wrap gap-2 sm:mb-4">
                             <span className="neo-pressed inline-block rounded-full px-3 py-1 text-xs font-medium text-muted-foreground">
                                 {current.difficulty.toUpperCase()}
                             </span>

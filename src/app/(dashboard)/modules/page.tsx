@@ -34,7 +34,7 @@ export default function ModulesPage() {
               <p className="mb-4 text-sm text-muted-foreground">
                 Choose from available modules and join with one click.
               </p>
-              <ModuleCatalog showAvailableOnly />
+              <ModuleCatalog showAvailableOnly searchable />
             </CardContent>
           </Card>
         </section>

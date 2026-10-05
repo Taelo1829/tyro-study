@@ -22,20 +22,40 @@ ${UNISA_CONTEXT}
 - Define every technical term the first time it appears.
 
 What to write: the lesson for ONE topic, written for the student ("you").
+Spend the words on teaching. Start straight away with the first concept (one or two sentences of context at most):
+- NO introduction or overview ("In this topic you will learn…", "This lesson covers…", "By the end of this topic…", "Welcome to…").
+- NO learning outcomes or objectives, and NO "Key idea" or summary-of-what's-coming box at the start.
 Structure:
-1. A short opening paragraph: what this topic is and why it matters.
-2. A "Key idea" box with the outcomes: what the student should be able to do after this topic.
-3. The main teaching, split under clear headings (<h2>) and subheadings (<h3>), from basics to harder ideas, each with at least one worked example.
-4. "Watch out" boxes for common mistakes students make in exams and assignments.
-5. A short summary list at the end, then 2–4 self-check questions (questions only, no answers) under a heading "Check your understanding".
+1. The main teaching, split under clear headings (<h2>) and subheadings (<h3>), from basics to harder ideas, each with at least one fully worked example (show every step).
+2. "Watch out" boxes for common mistakes students make in exams and assignments, placed where the mistake happens.
+3. A short summary list at the end, then 2–4 self-check questions (questions only, no answers) under a heading "Check your understanding".
 
 Formatting: return HTML using ONLY these tags: <h2> <h3> <p> <strong> <em> <ul> <ol> <li> <blockquote> <pre> <code> <table> <thead> <tbody> <tr> <th> <td> <hr> <div class="callout">, <div class="callout callout-tip">, <div class="callout callout-warning">.
-- Callout boxes: <div class="callout"><p><strong>Key idea:</strong> …</p></div>, <div class="callout callout-tip"><p><strong>Tip:</strong> …</p></div>, <div class="callout callout-warning"><p><strong>Watch out:</strong> …</p></div>
+- Callout boxes (use sparingly, inside the teaching, never as an opener): <div class="callout"><p><strong>Remember:</strong> …</p></div> for a rule or formula worth memorising, <div class="callout callout-tip"><p><strong>Tip:</strong> …</p></div>, <div class="callout callout-warning"><p><strong>Watch out:</strong> …</p></div>
 - Code goes in <pre><code>…</code></pre> with < and > escaped as &lt; &gt;.
 - Matrices: write them inline as [[1, 2], [3, 4]] (rows in brackets); the app draws them as matrices. Other maths: plain text such as x^2, √x, ≤, × (the app shows x^2 as a superscript). Equations go in <p>, never in <pre> or <code> - those are only for program code.
 - No <h1> (the topic title is already shown), no inline styles, no images, no links, no markdown.
 
 Respond with JSON only: { "html": "<the lesson HTML>" }`
+
+const INTRO_PHRASES =
+  /^(?:\s|<[^>]+>)*(?:in this (?:topic|lesson|section|unit|chapter)|this (?:topic|lesson|section|unit) (?:covers|introduces|explains|will|looks)|by the end of this|after (?:this|completing this) (?:topic|lesson)|welcome to|you will learn|we will (?:learn|look at|explore))/i
+const OUTCOME_BOX = /^(?:\s|<[^>]+>)*(?:key ideas?|learning outcomes?|outcomes|objectives|what you(?:'|’)ll learn|in this topic)\s*:?/i
+
+/**
+ * Safety net for the "no intro, no outcomes box" rule: drop an opening
+ * paragraph like "In this topic you will learn…" and any Key idea / outcomes
+ * box that comes before the first heading. Teaching content is left alone.
+ */
+export function trimLessonPreamble(html: string): string {
+  const firstHeading = html.search(/<h[23][\s>]/i)
+  if (firstHeading <= 0) return html
+  let head = html.slice(0, firstHeading)
+  const rest = html.slice(firstHeading)
+  head = head.replace(/<div class="callout[^"]*">[\s\S]*?<\/div>/gi, box => (OUTCOME_BOX.test(box.replace(/^<div[^>]*>/i, "")) ? "" : box))
+  head = head.replace(/<p>[\s\S]*?<\/p>/gi, para => (INTRO_PHRASES.test(para) ? "" : para))
+  return (head.trim() ? head.trim() + "\n" : "") + rest
+}
 
 /** Write a lesson from a prompt describing the topic; returns the lesson HTML */
 export async function writeLessonHtml(userPrompt: string): Promise<string> {
@@ -46,7 +66,7 @@ export async function writeLessonHtml(userPrompt: string): Promise<string> {
     : ""
   if (!html) throw new Error("The AI didn't return any lesson content")
 
-  return html
+  return trimLessonPreamble(html) || html
 }
 
 // ---------------------------------------------------------------- questions

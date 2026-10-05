@@ -84,7 +84,7 @@ function Choice<T extends string | number>({
 
 export function AiQuestionGenerator({ topicId, chapterId, onSaved }: Props) {
   const [open, setOpen] = useState(false)
-  const [count, setCount] = useState(10)
+  const [count, setCount] = useState(20)
   const [difficulty, setDifficulty] = useState<DifficultyChoice>("mixed")
   const [notes, setNotes] = useState("")
   const [drafts, setDrafts] = useState<DraftQuestion[]>([])

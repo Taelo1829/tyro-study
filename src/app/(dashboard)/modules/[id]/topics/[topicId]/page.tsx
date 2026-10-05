@@ -407,8 +407,8 @@ export default function TopicPage() {
                             <SheetHeading
                                 title="Ready to test your knowledge?"
                                 description={hasQuestions
-                                        ? topic.questions.length > 10
-                                            ? `Each quiz picks 10 of this topic's ${topic.questions.length} questions, starting with ones you haven't done yet.`
+                                        ? topic.questions.length > 20
+                                            ? `Each quiz picks 20 of this topic's ${topic.questions.length} questions, starting with ones you haven't done yet.`
                                             : `This quiz contains ${topic.questions.length} questions covering all the key concepts.`
                                         : "No questions available for this topic yet."}
                             />
@@ -420,7 +420,7 @@ export default function TopicPage() {
                                             <ul className="space-y-2 text-sm">
                                                 <li className="flex items-center gap-2">
                                                     <FileQuestion className="h-4 w-4 text-primary" />
-                                                    <span>{Math.min(topic.questions.length, 10)} multiple-choice questions per quiz</span>
+                                                    <span>{Math.min(topic.questions.length, 20)} multiple-choice questions per quiz</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <Clock className="h-4 w-4 text-primary" />

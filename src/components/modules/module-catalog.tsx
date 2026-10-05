@@ -3,7 +3,7 @@
 import { toPlainText } from "@/lib/plain-text"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
-import { BookOpen, ChevronRight, UserMinus, UserPlus } from "lucide-react"
+import { BookOpen, ChevronRight, Search, UserMinus, UserPlus, X } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { useModuleStore } from "@/app/(dashboard)/modules/store"
 
@@ -19,12 +19,16 @@ export interface ModuleItem {
 interface ModuleCatalogProps {
   showEnrolledOnly?: boolean
   showAvailableOnly?: boolean
+  /** Show a search box above the list (filters by name and description) */
+  searchable?: boolean
 }
 
 export function ModuleCatalog({
   showEnrolledOnly = false,
   showAvailableOnly = false,
+  searchable = false,
 }: ModuleCatalogProps) {
+  const [query, setQuery] = useState("")
   const [modules, setModules] = useState<ModuleItem[]>([])
   const [loading, setLoading] = useState(true)
   const [actionId, setActionId] = useState<string | null>(null)
@@ -39,7 +43,7 @@ export function ModuleCatalog({
   }, [])
 
   useEffect(() => {
-    load()
+    queueMicrotask(load)
   }, [load, reload])
 
 
@@ -92,9 +96,42 @@ export function ModuleCatalog({
     return true
   })
 
+  // Every word typed must appear in the module's name or description, in any order
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean)
+  const matches = words.length
+    ? filtered.filter(m => {
+        const text = `${m.title} ${toPlainText(m.description)}`.toLowerCase()
+        return words.every(w => text.includes(w))
+      })
+    : filtered
+
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading modules…</p>
   }
+
+  const searchBox = searchable && filtered.length > 0 && (
+    <form role="search" onSubmit={e => e.preventDefault()} className="relative mb-4">
+      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+      <input
+        type="search"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder="Search modules by name or code, e.g. MAT1503"
+        aria-label="Search modules"
+        className="h-12 w-full rounded-full border border-foreground bg-white pl-11 pr-11 text-base outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/40 [&::-webkit-search-cancel-button]:hidden"
+      />
+      {query && (
+        <button
+          type="button"
+          onClick={() => setQuery("")}
+          aria-label="Clear search"
+          className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </form>
+  )
 
   if (filtered.length === 0) {
     return (
@@ -114,9 +151,22 @@ export function ModuleCatalog({
   const bar =
     "flex min-h-12 flex-1 items-center justify-center gap-2 px-4 text-sm font-semibold text-background transition-colors hover:bg-white/10 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70"
 
+  if (matches.length === 0) {
+    return (
+      <>
+        {searchBox}
+        <p className="py-6 text-center text-sm text-muted-foreground">
+          No modules match &ldquo;{query.trim()}&rdquo;.
+        </p>
+      </>
+    )
+  }
+
   return (
+    <>
+    {searchBox}
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {filtered.map((m) => {
+      {matches.map((m) => {
         const busy = actionId === m.id
         const description = toPlainText(m.description)
         return (
@@ -160,5 +210,6 @@ export function ModuleCatalog({
         )
       })}
     </ul>
+    </>
   )
 }

@@ -57,7 +57,7 @@ export default function LoginPage() {
       if (!session?.user) {
         setError(
           "You were signed in, but your browser didn't keep the login cookie. " +
-          "Make sure you open the app on the same address as NEXTAUTH_URL (e.g. http://localhost:3000), then try again."
+          "Make sure you open the app on the same address as NEXTAUTH_URL (e.g. http://localhost:4000), then try again."
         )
         setLoading(false)
         return

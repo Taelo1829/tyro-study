@@ -78,7 +78,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
   const [pageCount, setPageCount] = useState(0)
   const [chapters, setChapters] = useState<ReviewChapter[]>([])
   const [length, setLength] = useState<Length>("standard")
-  const [questionCount, setQuestionCount] = useState(10)
+  const [questionCount, setQuestionCount] = useState(20)
   const [withVideos, setWithVideos] = useState(true)
   const [tasks, setTasks] = useState<Task[]>([])
   const stopRef = useRef(false)
@@ -456,7 +456,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
                     onChange={e => setQuestionCount(Number(e.target.value))}
                     className="rounded-full border border-border bg-white px-3 py-1.5"
                   >
-                    {[0, 5, 10, 15].map(n => (
+                    {[0, 5, 10, 15, 20].map(n => (
                       <option key={n} value={n}>
                         {n === 0 ? "None" : n}
                       </option>

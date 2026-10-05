@@ -22,7 +22,7 @@ export const runtime = "nodejs"
 export const maxDuration = 300
 
 const SOURCE_LIMIT = 40_000
-const QUESTION_COUNTS = [0, 5, 10, 15] as const
+const QUESTION_COUNTS = [0, 5, 10, 15, 20] as const
 
 export async function POST(request: Request) {
   try {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const length: Length = typeof body.length === "string" && body.length in LENGTH_GUIDE ? (body.length as Length) : "standard"
     const questionCount = QUESTION_COUNTS.includes(Number(body.questionCount) as (typeof QUESTION_COUNTS)[number])
       ? Number(body.questionCount)
-      : 10
+      : 20
 
     const topic = await prisma.topic.findUnique({
       where: { id: body.topicId },

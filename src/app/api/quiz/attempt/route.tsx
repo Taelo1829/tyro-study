@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
         // capped by how many questions exist. Callers may pass a number.
         const defaultQuizSize = questionIds?.length
             ? questions.length
-            : topicId ? 10 : chapterId ? 20 : 25
+            : topicId || chapterId ? 20 : 25
         const requestedSize = Number(settings?.questionsPerQuiz)
         const questionsPerQuiz = Math.min(
             questions.length,
