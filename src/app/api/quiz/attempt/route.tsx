@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { orFallback } from "@/lib/db-safe"
 import { getTopicLock, lockedResponseBody } from "@/lib/topic-locks"
 import { MOCK_EXAM_PASS_MARK, moduleProgress } from "@/lib/quiz-stats"
 import type { Prisma } from "@/prisma/client"
@@ -19,8 +20,12 @@ type PoolQuestion = Prisma.QuestionGetPayload<{ include: typeof questionInclude 
 /** Which questions came from a past paper (question id → paper name) */
 async function paperNames(ids: string[]): Promise<Map<string, string>> {
     if (ids.length === 0) return new Map()
-    const rows = await prisma.$queryRaw<{ id: string; paper: string }[]>`
-        SELECT "id", "paper" FROM "questions" WHERE "paper" IS NOT NULL AND "id" = ANY(${ids}::text[])`
+    // (no labels, rather than no quiz, if the question-papers migration hasn't run yet)
+    const rows = await orFallback(
+        () => prisma.$queryRaw<{ id: string; paper: string }[]>`
+            SELECT "id", "paper" FROM "questions" WHERE "paper" IS NOT NULL AND "id" = ANY(${ids}::text[])`,
+        []
+    )
     return new Map(rows.map(r => [r.id, r.paper]))
 }
 
@@ -244,8 +249,11 @@ export async function POST(req: NextRequest) {
         if (mockPlan) {
             // Past-paper questions this student hasn't answered in a mock exam yet come first
             const poolIds = questions.map(q => q.id)
-            const paperRows = await prisma.$queryRaw<{ id: string }[]>`
-                SELECT "id" FROM "questions" WHERE "paper" IS NOT NULL AND "id" = ANY(${poolIds}::text[])`
+            const paperRows = await orFallback(
+                () => prisma.$queryRaw<{ id: string }[]>`
+                    SELECT "id" FROM "questions" WHERE "paper" IS NOT NULL AND "id" = ANY(${poolIds}::text[])`,
+                []
+            )
             const seenRows = paperRows.length
                 ? await prisma.$queryRaw<{ questionId: string }[]>`
                     SELECT DISTINCT qa."questionId" FROM "question_attempts" qa

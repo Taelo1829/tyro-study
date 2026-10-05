@@ -117,6 +117,8 @@ export function findFractions(text: string): FractionToken[] {
 
 /** x_1, x_{12}, a_{ij}: an underscore after a single letter (not snake_case words) */
 const SUBSCRIPT = /(?<=(?:^|[^\p{L}_])\p{L})_(?:\{([^{}\n\u0001]+)\}|(\p{N}{1,3}(?![\p{L}\p{N}])|\p{L}{1,2}(?![\p{L}\p{N}])))/gu
+/** (AB)_{ij}, [A]_{ij}, ∫_{0}^{1}: a braced subscript after a bracket or an integral sign */
+const BRACKET_SUBSCRIPT = /(?<=[)\]∫∮])_(?:\{([^{}\n\u0001]+)\}|(\p{N}{1,3}(?![\p{L}\p{N}])|\p{L}(?![\p{L}\p{N}])))/gu
 /** x1, a12 typed without the underscore: a lone lowercase letter followed by 1–2 digits */
 const PLAIN_SUBSCRIPT = /(?<=(?:^|[^\p{L}_.])[a-z])(\d{1,2})(?![\p{L}\p{N}_])/gu
 /** The text reads as maths (an equation or expression), so x1 means x₁ */
@@ -141,7 +143,7 @@ export interface SubscriptToken { start: number; end: number; value: string }
 export function findSubscripts(text: string): SubscriptToken[] {
   // (the braces in a_{ij} and x^{n+1} aren't code)
   if (looksLikeCode(text.replace(/[_^]\{[^{}]*\}/g, ""))) return []
-  const out: SubscriptToken[] = [...text.matchAll(SUBSCRIPT)].map(m => ({
+  const out: SubscriptToken[] = [...text.matchAll(SUBSCRIPT), ...text.matchAll(BRACKET_SUBSCRIPT)].map(m => ({
     start: m.index ?? 0,
     end: (m.index ?? 0) + m[0].length,
     value: (m[1] ?? m[2] ?? "").trim(),
@@ -153,11 +155,35 @@ export function findSubscripts(text: string): SubscriptToken[] {
   return out.sort((a, b) => a.start - b.start)
 }
 
-export interface ScriptToken { start: number; end: number; kind: "sup" | "sub"; value: string }
+export type ScriptToken =
+  | { start: number; end: number; kind: "sup" | "sub"; value: string }
+  | { start: number; end: number; kind: "op"; symbol: string; lower: string; upper: string }
 
-/** Powers and subscripts together, in order, without overlaps */
+/**
+ * A sum or product with its limits: ∑_{k=1}^{n}, ∏_{i=1}^{m}, \sum_{k=1}^n, and
+ * Σ_{k=1}^{n} (a capital sigma only with both limits, since Σ_1 can be a name).
+ */
+const BIG_OPERATOR =
+  /(∑|∏|\\sum(?![a-zA-Z])|\\prod(?![a-zA-Z])|Σ(?=_[^\n]*?\^)|Π(?=_[^\n]*?\^))\s?(?:_(?:\{([^{}\n\u0001]+)\}|([\p{L}\p{N}]+(?:=[\p{L}\p{N}]+)?)))?(?:\^(?:\{([^{}\n\u0001]+)\}|([\p{L}\p{N}]+|∞)))?/gu
+const OPERATOR_SYMBOL: Record<string, string> = { "\\sum": "∑", "\\prod": "∏", Σ: "∑", Π: "∏" }
+
+export function findBigOperators(text: string): ScriptToken[] {
+  if (!/[∑∏ΣΠ]|\\sum|\\prod/.test(text)) return []
+  const out: ScriptToken[] = []
+  for (const m of text.matchAll(BIG_OPERATOR)) {
+    const lower = (m[2] ?? m[3] ?? "").trim()
+    const upper = (m[4] ?? m[5] ?? "").trim()
+    if (!lower && !upper && !m[1].startsWith("\\")) continue // a plain ∑ needs nothing
+    if ((m[1] === "Σ" || m[1] === "Π") && !(lower && upper)) continue
+    out.push({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length, kind: "op", symbol: OPERATOR_SYMBOL[m[1]] ?? m[1], lower, upper })
+  }
+  return out
+}
+
+/** Sums with limits, powers and subscripts together, in order, without overlaps */
 export function findScripts(text: string): ScriptToken[] {
   const all: ScriptToken[] = [
+    ...findBigOperators(text),
     ...findPowers(text).map(p => ({ start: p.start, end: p.end, kind: "sup" as const, value: p.exponent })),
     ...findSubscripts(text).map(s => ({ ...s, kind: "sub" as const })),
   ].sort((a, b) => a.start - b.start)
@@ -168,7 +194,7 @@ export function findScripts(text: string): ScriptToken[] {
 
 /** Could this text hold a power or subscript? (cheap pre-check) */
 export function mayHaveScripts(text: string) {
-  return text.includes("^") || text.includes("_") || /[a-z]\d/.test(text)
+  return text.includes("^") || text.includes("_") || /[a-z]\d|[∑∏]|\\sum|\\prod/.test(text)
 }
 
 const SUBSCRIPT_CHARS: Record<string, string> = {
@@ -341,11 +367,25 @@ function WithPowers({ text }: { text: string }) {
   let last = 0
   scripts.forEach((p, i) => {
     if (p.start > last) out.push(text.slice(last, p.start))
-    out.push(p.kind === "sup" ? <sup key={i}>{p.value}</sup> : <sub key={i}>{p.value}</sub>)
+    out.push(
+      p.kind === "op" ? <BigOperator key={i} {...p} /> : p.kind === "sup" ? <sup key={i}>{p.value}</sup> : <sub key={i}>{p.value}</sub>
+    )
     last = p.end
   })
   if (last < text.length) out.push(text.slice(last))
   return <>{out}</>
+}
+
+/** ∑ with its limits above and below, as in print */
+function BigOperator({ symbol, lower, upper }: { symbol: string; lower: string; upper: string }) {
+  const label = `${symbol === "∏" ? "product" : "sum"}${lower ? ` from ${lower}` : ""}${upper ? ` to ${upper}` : ""}`
+  return (
+    <span className="tc-op" role="math" aria-label={label}>
+      <span className="tc-op-upper" aria-hidden="true">{upper || "\u00a0"}</span>
+      <span className="tc-op-symbol" aria-hidden="true">{symbol}</span>
+      <span className="tc-op-lower" aria-hidden="true">{lower || "\u00a0"}</span>
+    </span>
+  )
 }
 
 export function MathText({ text, className }: { text: string | null | undefined; className?: string }) {

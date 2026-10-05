@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto"
 import { prisma } from "@/lib/prisma"
+import { orFallback } from "@/lib/db-safe"
 import { moduleCode } from "@/lib/ai/unisa"
 import { CODING_LANGUAGES, type CodingLanguage, type ProjectFeedback, type RubricItem } from "@/lib/coding-shared"
 
@@ -31,16 +32,28 @@ export function resolveCoding(title: string, stored: string | null): ModuleCodin
 }
 
 export async function getModuleCoding(moduleId: string): Promise<ModuleCoding | null> {
-  const [row] = await prisma.$queryRaw<{ title: string; codingLanguage: string | null }[]>`
-    SELECT "title", "codingLanguage" FROM "modules" WHERE "id" = ${moduleId}`
+  const [row] = await orFallback(
+    () => prisma.$queryRaw<{ title: string; codingLanguage: string | null }[]>`
+      SELECT "title", "codingLanguage" FROM "modules" WHERE "id" = ${moduleId}`,
+    // Before the coding-projects migration: decide from the module code
+    async () =>
+      (await prisma.$queryRaw<{ title: string }[]>`SELECT "title" FROM "modules" WHERE "id" = ${moduleId}`).map(r => ({ ...r, codingLanguage: null }))
+  )
   return row ? resolveCoding(row.title, row.codingLanguage) : null
 }
 
 export async function getTopicCoding(topicId: string): Promise<(ModuleCoding & { moduleId: string }) | null> {
-  const [row] = await prisma.$queryRaw<{ id: string; title: string; codingLanguage: string | null }[]>`
-    SELECT m."id", m."title", m."codingLanguage" FROM "topics" t
-    JOIN "chapters" c ON c."id" = t."chapterId" JOIN "modules" m ON m."id" = c."moduleId"
-    WHERE t."id" = ${topicId}`
+  const [row] = await orFallback(
+    () => prisma.$queryRaw<{ id: string; title: string; codingLanguage: string | null }[]>`
+      SELECT m."id", m."title", m."codingLanguage" FROM "topics" t
+      JOIN "chapters" c ON c."id" = t."chapterId" JOIN "modules" m ON m."id" = c."moduleId"
+      WHERE t."id" = ${topicId}`,
+    async () =>
+      (await prisma.$queryRaw<{ id: string; title: string }[]>`
+        SELECT m."id", m."title" FROM "topics" t
+        JOIN "chapters" c ON c."id" = t."chapterId" JOIN "modules" m ON m."id" = c."moduleId"
+        WHERE t."id" = ${topicId}`).map(r => ({ ...r, codingLanguage: null }))
+  )
   return row ? { ...resolveCoding(row.title, row.codingLanguage), moduleId: row.id } : null
 }
 
@@ -80,9 +93,12 @@ function safeJson<T>(text: string, fallback: T): T {
 }
 
 export async function listProjects(topicId: string): Promise<ProjectRow[]> {
-  const rows = await prisma.$queryRaw<RawProject[]>`
-    SELECT "id", "topicId", "title", "brief", "language", "starterCode", "rubric", "difficulty", "order"
-    FROM "coding_projects" WHERE "topicId" = ${topicId} ORDER BY "order", "createdAt"`
+  const rows = await orFallback(
+    () => prisma.$queryRaw<RawProject[]>`
+      SELECT "id", "topicId", "title", "brief", "language", "starterCode", "rubric", "difficulty", "order"
+      FROM "coding_projects" WHERE "topicId" = ${topicId} ORDER BY "order", "createdAt"`,
+    [] as RawProject[] // (before the migration: none)
+  )
   return rows.map(parseProject)
 }
 
@@ -140,9 +156,12 @@ export async function listSubmissions(projectId: string, userId: string): Promis
 /** Best score per project for a student (for the topic's project list) */
 export async function bestScores(projectIds: string[], userId: string): Promise<Map<string, { best: number; tries: number }>> {
   if (projectIds.length === 0) return new Map()
-  const rows = await prisma.$queryRaw<{ projectId: string; best: number; tries: number }[]>`
-    SELECT "projectId", MAX("score")::int AS "best", COUNT(*)::int AS "tries" FROM "project_submissions"
-    WHERE "userId" = ${userId} AND "projectId" = ANY(${projectIds}::text[]) GROUP BY "projectId"`
+  const rows = await orFallback(
+    () => prisma.$queryRaw<{ projectId: string; best: number; tries: number }[]>`
+      SELECT "projectId", MAX("score")::int AS "best", COUNT(*)::int AS "tries" FROM "project_submissions"
+      WHERE "userId" = ${userId} AND "projectId" = ANY(${projectIds}::text[]) GROUP BY "projectId"`,
+    []
+  )
   return new Map(rows.map(r => [r.projectId, { best: r.best, tries: r.tries }]))
 }
 

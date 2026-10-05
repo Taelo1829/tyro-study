@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { orFallback } from "@/lib/db-safe"
 import { requireAdmin } from "@/lib/admin"
 import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
@@ -59,9 +60,13 @@ export async function GET(_request: Request, { params }: Params) {
   const nextTopic = topic.chapter.topics[currentIndex + 1]
 
   // Which questions came from a past paper
+  // (no labels, rather than no topic, if the question-papers migration hasn't run yet)
   const paperRows = topic.questions.length
-    ? await prisma.$queryRaw<{ id: string; paper: string }[]>`
-        SELECT "id", "paper" FROM "questions" WHERE "topicId" = ${topic.id} AND "paper" IS NOT NULL`
+    ? await orFallback(
+        () => prisma.$queryRaw<{ id: string; paper: string }[]>`
+          SELECT "id", "paper" FROM "questions" WHERE "topicId" = ${topic.id} AND "paper" IS NOT NULL`,
+        []
+      )
     : []
   const papers = new Map(paperRows.map(r => [r.id, r.paper]))
 

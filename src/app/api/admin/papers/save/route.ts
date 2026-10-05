@@ -52,7 +52,16 @@ export async function POST(request: Request) {
       },
       select: { id: true },
     })
-    await prisma.$executeRaw`UPDATE "questions" SET "paper" = ${paper} WHERE "id" = ${created.id}`
+    try {
+      await prisma.$executeRaw`UPDATE "questions" SET "paper" = ${paper} WHERE "id" = ${created.id}`
+    } catch {
+      // The question is saved; it just can't be marked as a past-paper question yet
+      await prisma.question.delete({ where: { id: created.id } }).catch(() => {})
+      return NextResponse.json(
+        { error: "The database needs updating first: run `npx prisma migrate deploy`, then add the paper again.", added },
+        { status: 503 }
+      )
+    }
     existing.get(topicId)!.add(norm(question))
     added++
   }

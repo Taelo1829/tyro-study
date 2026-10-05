@@ -446,7 +446,7 @@ function renderPowers(root: Element, doc: Document) {
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT)
   const textNodes: Text[] = []
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-    if (mayHaveScripts(n.textContent ?? "") && !n.parentElement?.closest(".tc-matrix, sup, sub, a")) textNodes.push(n as Text)
+    if (mayHaveScripts(n.textContent ?? "") && !n.parentElement?.closest(".tc-matrix, .tc-op, sup, sub, a")) textNodes.push(n as Text)
   }
   for (const node of textNodes) {
     const text = node.textContent ?? ""
@@ -458,9 +458,25 @@ function renderPowers(root: Element, doc: Document) {
     let last = 0
     for (const p of scripts) {
       if (p.start > last) frag.appendChild(doc.createTextNode(text.slice(last, p.start)))
-      const el = doc.createElement(p.kind)
-      el.textContent = p.value
-      frag.appendChild(el)
+      if (p.kind === "op") {
+        // ∑ with its limits above and below
+        const op = doc.createElement("span")
+        op.className = "tc-op"
+        op.setAttribute("role", "math")
+        op.setAttribute("aria-label", `${p.symbol === "∏" ? "product" : "sum"}${p.lower ? ` from ${p.lower}` : ""}${p.upper ? ` to ${p.upper}` : ""}`)
+        for (const [cls, value] of [["tc-op-upper", p.upper || "\u00a0"], ["tc-op-symbol", p.symbol], ["tc-op-lower", p.lower || "\u00a0"]]) {
+          const part = doc.createElement("span")
+          part.className = cls
+          part.setAttribute("aria-hidden", "true")
+          part.textContent = value
+          op.appendChild(part)
+        }
+        frag.appendChild(op)
+      } else {
+        const el = doc.createElement(p.kind)
+        el.textContent = p.value
+        frag.appendChild(el)
+      }
       last = p.end
     }
     if (last < text.length) frag.appendChild(doc.createTextNode(text.slice(last)))

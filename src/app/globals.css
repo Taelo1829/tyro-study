@@ -389,6 +389,18 @@ body {
 }
 .tc-frac-den { padding: 0.1em 0.2em 0; }
 .tc-frac sup { font-size: 0.7em; }
+/* ∑ with its limits stacked above and below */
+.tc-op {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 0.15em;
+  line-height: 1;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.tc-op-upper, .tc-op-lower { font-size: 0.65em; line-height: 1.1; }
+.tc-op-symbol { font-size: 1.45em; line-height: 1; }
 /* [[1,2],[3,4]] matrices inside lessons */
 .tc-matrix {
   position: relative;
