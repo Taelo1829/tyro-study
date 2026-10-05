@@ -63,6 +63,8 @@ model QuestionAttempt {
   isCorrect        Boolean?     @default(false)
   order            Int
   status           AnswerStatus @default(PENDING)
+  /// What the student typed (blank questions)
+  typedAnswer      String?
   answeredAt       DateTime?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
@@ -247,6 +249,7 @@ model Topic {
   pdfs         TopicPdf[]
 
   codingProjects CodingProject[]
+  exercises      TopicExercise[]
 
   @@index([chapterId])
   @@map("topics")
@@ -287,6 +290,8 @@ model Question {
   studyNoteClaimedAt DateTime?
   /// The past exam/assignment paper it came from (mock exams ask these first)
   paper              String?
+  /// "mcq" (pick an option) or "blank" (type the answer; every answer row is an accepted answer)
+  kind               String    @default("mcq")
 
   topic            Topic?            @relation(fields: [topicId], references: [id], onDelete: Cascade)
   chapter          Chapter?          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -319,6 +324,8 @@ model UserAnswer {
   questionId       String
   selectedAnswerId String?
   isCorrect        Boolean
+  /// What the student typed (blank questions)
+  typedAnswer      String?
   answeredAt       DateTime @default(now())
 
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -536,4 +543,27 @@ model ProjectSubmission {
 
   @@index([projectId, userId])
   @@map("project_submissions")
+}
+
+/// A "Try it yourself" exercise in a coding lesson: code with ____ blanks to fill in.
+/// Read and written with SQL (src/lib/exercises.ts).
+model TopicExercise {
+  id           String   @id @default(cuid())
+  topicId      String
+  title        String
+  /// What to do (plain text)
+  instructions String   @db.Text
+  /// The code, with a ____ where each blank goes
+  code         String   @db.Text
+  /// JSON: [{ answers: ["x > 5", "5 < x"] }], one per blank, in order
+  blanks       String   @db.Text
+  explanation  String?  @db.Text
+  language     String
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId])
+  @@map("topic_exercises")
 }

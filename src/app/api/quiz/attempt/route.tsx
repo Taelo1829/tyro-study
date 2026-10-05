@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { orFallback } from "@/lib/db-safe"
+import { blankQuestionIds, saveTypedAnswer, saveUserTypedAnswer, typedAnswers } from "@/lib/question-kinds"
+import { matchingAnswer } from "@/lib/code-blanks"
 import { getTopicLock, lockedResponseBody } from "@/lib/topic-locks"
 import { MOCK_EXAM_PASS_MARK, moduleProgress } from "@/lib/quiz-stats"
 import type { Prisma } from "@/prisma/client"
@@ -72,7 +74,7 @@ async function resumeAttempt(userId: string, source: string) {
     }
     if (!fresh) return null
 
-    const saved = JSON.parse(fresh.questionsData) as { id: string; question: string; difficulty: string; answers: { id: string; answer: string }[] }[]
+    const saved = JSON.parse(fresh.questionsData) as { id: string; question: string; difficulty: string; kind?: string; answers: { id: string; answer: string }[] }[]
     const pool = await prisma.question.findMany({ where: { id: { in: saved.map(q => q.id) } }, include: questionInclude })
     const byId = new Map(pool.map(q => [q.id, q]))
     // A question deleted since the quiz started can't be shown again: start over instead
@@ -81,14 +83,21 @@ async function resumeAttempt(userId: string, source: string) {
         return null
     }
 
+    const blanks = await blankQuestionIds(saved.map(q => q.id))
+    const typed = await typedAnswers(fresh.id)
     const answered = fresh.questionAttempts
-        .filter(qa => qa.status === "ANSWERED" && qa.selectedAnswerId)
-        .map(qa => ({
-            questionId: qa.questionId,
-            selectedAnswerId: qa.selectedAnswerId!,
-            isCorrect: !!qa.isCorrect,
-            correctAnswerId: byId.get(qa.questionId)!.answers.find(a => a.isCorrect)?.id ?? null,
-        }))
+        .filter(qa => qa.status === "ANSWERED" && (qa.selectedAnswerId || typed.has(qa.questionId)))
+        .map(qa => {
+            const correct = byId.get(qa.questionId)!.answers.find(a => a.isCorrect)
+            return {
+                questionId: qa.questionId,
+                selectedAnswerId: qa.selectedAnswerId,
+                typedAnswer: typed.get(qa.questionId) ?? null,
+                isCorrect: !!qa.isCorrect,
+                correctAnswerId: correct?.id ?? null,
+                correctAnswerText: blanks.has(qa.questionId) ? correct?.answer ?? null : null,
+            }
+        })
     const settings = JSON.parse(fresh.settings)
     const papers = await paperNames(saved.map(q => q.id))
 
@@ -99,7 +108,9 @@ async function resumeAttempt(userId: string, source: string) {
             id: q.id,
             text: q.question,
             difficulty: q.difficulty,
-            options: q.answers.map(a => ({ id: a.id, text: a.answer })),
+            kind: blanks.has(q.id) ? "blank" : "mcq",
+            // A type-the-answer question's answers are the right ones: never sent before it's answered
+            options: blanks.has(q.id) ? [] : q.answers.map(a => ({ id: a.id, text: a.answer })),
             topic: questionTopic(byId.get(q.id)!),
             paper: papers.get(q.id) ?? null,
         })),
@@ -274,6 +285,7 @@ export async function POST(req: NextRequest) {
             )
         }
         quizSettings.questionsPerQuiz = finalQuestions.length
+        const blanks = await blankQuestionIds(finalQuestions.map(q => q.id))
 
         // Randomize options for each question if enabled
         if (quizSettings.randomizeOptions) {
@@ -294,6 +306,7 @@ export async function POST(req: NextRequest) {
                     id: q.id,
                     question: q.question,
                     difficulty: q.difficulty,
+                    kind: blanks.has(q.id) ? "blank" : "mcq",
                     answers: q.answers.map(a => ({
                         id: a.id,
                         answer: a.answer,
@@ -325,7 +338,9 @@ export async function POST(req: NextRequest) {
                     id: q.id,
                     text: q.question,
                     difficulty: q.difficulty,
-                    options: q.answers.map(a => ({
+                    kind: blanks.has(q.id) ? "blank" : "mcq",
+                    // A type-the-answer question's answers are the right ones: never sent to the browser
+                    options: blanks.has(q.id) ? [] : q.answers.map(a => ({
                         id: a.id,
                         text: a.answer,
                     })),
@@ -414,6 +429,9 @@ export async function GET(req: NextRequest) {
 
         // Check if quiz has expired
         const settings = JSON.parse(quizAttempt.settings)
+        const blanks = await blankQuestionIds(quizAttempt.questionAttempts.map(qa => qa.questionId))
+        const typed = blanks.size ? await typedAnswers(quizAttempt.id) : new Map<string, string>()
+        const finished = quizAttempt.status === "COMPLETED"
         const isExpired = settings.timeLimit &&
             quizAttempt.startedAt &&
             Date.now() > new Date(quizAttempt.startedAt).getTime() + (settings.timeLimit * 60000)
@@ -433,11 +451,14 @@ export async function GET(req: NextRequest) {
                     id: qa.question.id,
                     text: qa.question.question,
                     difficulty: qa.question.difficulty,
-                    options: qa.question.answers.map(a => ({
+                    kind: blanks.has(qa.questionId) ? "blank" : "mcq",
+                    // (type-the-answer questions: the accepted answers, once the quiz is over)
+                    options: blanks.has(qa.questionId) && !finished ? [] : qa.question.answers.map(a => ({
                         id: a.id,
                         text: a.answer,
                     })),
                     userAnswer: qa.selectedAnswerId,
+                    typedAnswer: typed.get(qa.questionId) ?? null,
                     isCorrect: qa.isCorrect,
                     status: qa.status,
                     order: qa.order,
@@ -479,7 +500,8 @@ export async function PUT(req: NextRequest) {
         const body = await req.json()
         // Note: any `isCorrect` sent by the client is ignored - correctness is
         // decided on the server so scores can't be faked from the browser.
-        // Send { attemptId, questionId, selectedAnswerId } to answer a question,
+        // Send { attemptId, questionId, selectedAnswerId } to answer a question
+        // ({ attemptId, questionId, typedAnswer } for a type-the-answer question),
         // and/or { attemptId, finish: true } to end the quiz now (e.g. the timer
         // ran out) - unanswered questions then count as wrong.
         const { attemptId, questionId, selectedAnswerId, finish } = body as {
@@ -488,8 +510,9 @@ export async function PUT(req: NextRequest) {
             selectedAnswerId?: string
             finish?: boolean
         }
+        const typedAnswer = typeof body.typedAnswer === "string" ? body.typedAnswer.slice(0, 500) : undefined
 
-        if (!attemptId || (!finish && (!questionId || !selectedAnswerId))) {
+        if (!attemptId || (!finish && (!questionId || (!selectedAnswerId && typedAnswer === undefined)))) {
             return NextResponse.json(
                 { error: "Missing required fields" },
                 { status: 400 }
@@ -524,8 +547,45 @@ export async function PUT(req: NextRequest) {
 
         let isCorrect: boolean | null = null
         let correctAnswerId: string | null = null
+        let correctAnswerText: string | null = null
+        const isBlank = !!questionId && (await blankQuestionIds([questionId])).has(questionId)
 
-        if (questionId && selectedAnswerId && !timeIsUp) {
+        if (questionId && !timeIsUp && (isBlank ? typedAnswer === undefined : !selectedAnswerId)) {
+            return NextResponse.json(
+                { error: isBlank ? "Type your answer" : "Pick an answer" },
+                { status: 400 }
+            )
+        }
+
+        if (questionId && isBlank && typedAnswer !== undefined && !timeIsUp) {
+            // Type-the-answer: right when it matches any accepted answer (spacing aside)
+            const inQuiz = await prisma.questionAttempt.findUnique({
+                where: { quizAttemptId_questionId: { quizAttemptId: attemptId, questionId } },
+                select: { id: true },
+            })
+            if (!inQuiz) {
+                return NextResponse.json({ error: "That question isn't in this quiz" }, { status: 400 })
+            }
+            const accepted = await prisma.answer.findMany({
+                where: { questionId, isCorrect: true },
+                select: { id: true, answer: true },
+                orderBy: { id: "asc" },
+            })
+            const hit = matchingAnswer(typedAnswer, accepted.map(a => a.answer))
+            isCorrect = hit !== -1
+            correctAnswerId = accepted[0]?.id ?? null
+            correctAnswerText = accepted[0]?.answer ?? null
+            await prisma.questionAttempt.update({
+                where: { quizAttemptId_questionId: { quizAttemptId: attemptId, questionId } },
+                data: {
+                    selectedAnswerId: isCorrect ? accepted[hit].id : null,
+                    isCorrect,
+                    status: "ANSWERED",
+                    answeredAt: new Date(),
+                },
+            })
+            await saveTypedAnswer(attemptId, questionId, typedAnswer)
+        } else if (questionId && selectedAnswerId && !timeIsUp) {
             // The selected answer must belong to this question
             const selectedAnswer = await prisma.answer.findFirst({
                 where: { id: selectedAnswerId, questionId },
@@ -598,8 +658,10 @@ export async function PUT(req: NextRequest) {
             )
 
             // Save user answers to permanent storage
+            const typed = await typedAnswers(attemptId)
             for (const qa of answered) {
-                if (!qa.selectedAnswerId) continue
+                const typedText = typed.get(qa.questionId)
+                if (!qa.selectedAnswerId && typedText === undefined) continue
                 const existingUserAnswer = await prisma.userAnswer.findFirst({
                     where: {
                         userId: user.id,
@@ -607,7 +669,9 @@ export async function PUT(req: NextRequest) {
                     },
                 })
 
+                let userAnswerId: string
                 if (existingUserAnswer) {
+                    userAnswerId = existingUserAnswer.id
                     await prisma.userAnswer.update({
                         where: { id: existingUserAnswer.id },
                         data: {
@@ -617,15 +681,17 @@ export async function PUT(req: NextRequest) {
                         },
                     })
                 } else {
-                    await prisma.userAnswer.create({
+                    userAnswerId = (await prisma.userAnswer.create({
                         data: {
                             userId: user.id,
                             questionId: qa.questionId,
                             selectedAnswerId: qa.selectedAnswerId,
                             isCorrect: qa.isCorrect || false,
                         },
-                    })
+                        select: { id: true },
+                    })).id
                 }
+                if (typedText !== undefined) await saveUserTypedAnswer(userAnswerId, typedText)
             }
 
             // Correct answer for every question, for the results review
@@ -634,8 +700,10 @@ export async function PUT(req: NextRequest) {
                     questionId: { in: allQuestionAttempts.map(qa => qa.questionId) },
                     isCorrect: true,
                 },
-                select: { id: true, questionId: true },
+                select: { id: true, questionId: true, answer: true },
+                orderBy: { id: "asc" },
             })
+            const blankIds = await blankQuestionIds(allQuestionAttempts.map(qa => qa.questionId))
 
             return NextResponse.json({
                 success: true,
@@ -644,18 +712,24 @@ export async function PUT(req: NextRequest) {
                 durationSeconds,
                 isCorrect,
                 correctAnswerId,
+                correctAnswerText,
                 score,
                 totalQuestions: quizAttempt.totalQuestions,
                 correctCount,
                 answeredCount: answered.length,
                 passingScore: settings.passingScore,
                 passed: score >= settings.passingScore,
-                review: allQuestionAttempts.map(qa => ({
-                    questionId: qa.questionId,
-                    isCorrect: qa.status === "ANSWERED" && !!qa.isCorrect,
-                    selectedAnswerId: qa.status === "ANSWERED" ? qa.selectedAnswerId : null,
-                    correctAnswerId: correctAnswers.find(a => a.questionId === qa.questionId)?.id ?? null,
-                })),
+                review: allQuestionAttempts.map(qa => {
+                    const correct = correctAnswers.find(a => a.questionId === qa.questionId)
+                    return {
+                        questionId: qa.questionId,
+                        isCorrect: qa.status === "ANSWERED" && !!qa.isCorrect,
+                        selectedAnswerId: qa.status === "ANSWERED" ? qa.selectedAnswerId : null,
+                        typedAnswer: typed.get(qa.questionId) ?? null,
+                        correctAnswerId: correct?.id ?? null,
+                        correctAnswerText: blankIds.has(qa.questionId) ? correct?.answer ?? null : null,
+                    }
+                }),
                 message: `Quiz completed! You scored ${score}%`,
             })
         }
@@ -665,6 +739,7 @@ export async function PUT(req: NextRequest) {
             completed: false,
             isCorrect,
             correctAnswerId,
+            correctAnswerText,
             message: "Answer saved successfully",
             progress: {
                 answered: allQuestionAttempts.filter(qa => qa.status === "ANSWERED").length,

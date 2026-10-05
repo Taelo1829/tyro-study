@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin"
 import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
 import { hasWrittenContent } from "@/lib/topic-content"
+import { blankQuestionIds } from "@/lib/question-kinds"
 import { getLockedFlags, getTopicLock, lockedResponseBody, setTopicLocked } from "@/lib/topic-locks"
 
 type Params = { params: Promise<{ id: string }> }
@@ -69,10 +70,15 @@ export async function GET(_request: Request, { params }: Params) {
       )
     : []
   const papers = new Map(paperRows.map(r => [r.id, r.paper]))
+  // Type-the-answer questions: their answers are the accepted answers, so only admins see them
+  const blanks = await blankQuestionIds(topic.questions.map(q => q.id))
 
   return NextResponse.json({
     ...topic,
-    questions: topic.questions.map(q => ({ ...q, paper: papers.get(q.id) ?? null })),
+    questions: topic.questions.map(q => {
+      const kind = blanks.has(q.id) ? "blank" : "mcq"
+      return { ...q, kind, answers: kind === "blank" && !isAdmin ? [] : q.answers, paper: papers.get(q.id) ?? null }
+    }),
     locked: (await getLockedFlags([topic.id])).has(topic.id),
     nextTopic: nextTopic?.id ?? null,
   })

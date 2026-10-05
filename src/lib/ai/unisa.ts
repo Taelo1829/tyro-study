@@ -22,7 +22,7 @@ export function moduleCode(title: string) {
   return { code: `${match[1]}${match[2]}`, year: Number(match[2][0]) }
 }
 
-const MATHS = "Subscripts: write x_1, x_2, a_{ij}, v_{n+1} (the app shows them as subscripts), never x1 for x with subscript 1. Powers: x^2, e^{-x}. Fractions: 3/4, x/y or (a+b)/(c-d). Matrices: [[1, 2], [3, 4]]. Vectors: (1, 2, 3) or [[1], [2], [3]] for a column. Sums and products with limits: ∑_{k=1}^{n} a_{ik}b_{kj}, ∏_{i=1}^{n} (the app puts the limits above and below). Use ≤ ≥ ≠ × · √ ∑ ∫ λ θ directly."
+const MATHS = "Subscripts: write x_1, x_2, a_{ij}, v_{n+1} (the app shows them as subscripts), never x1 for x with subscript 1. Powers: x^2, e^{-x}. Fractions: 3/4, x/y or (a+b)/(c-d). Matrices: [[1, 2], [3, 4]] (never <matrix> tags). Vectors: (1, 2, 3) or [[1], [2], [3]] for a column. Sums and products with limits: ∑_{k=1}^{n} a_{ik}b_{kj}, ∏_{i=1}^{n} (the app puts the limits above and below). Use ≤ ≥ ≠ × · √ ∑ ∫ λ θ directly."
 
 /** How to write this subject's notation so the app displays it properly */
 const NOTATION: [RegExp, string][] = [

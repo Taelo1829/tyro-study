@@ -28,7 +28,10 @@ type Part = { type: "text"; value: string } | { type: "matrix"; rows: string[][]
 const BRACKET_MATRIX = String.raw`\[\s*\[[^[\]\u0001]*\](?:\s*,?\s*\[[^[\]\u0001]*\])*\s*\]`
 // \begin{bmatrix} a & b \\ c & d \end{bmatrix} (also pmatrix, vmatrix, Vmatrix, Bmatrix, matrix, array)
 const LATEX_MATRIX = String.raw`\\begin\{([pbBvV]?matrix|array)\}(?:\{[^}\u0001]*\})?([^\u0001]*?)\\end\{\1\}`
-const MATRIX_PATTERN = new RegExp(`${BRACKET_MATRIX}|${LATEX_MATRIX}`, "g")
+// <matrix> a b </matrix> c d </matrix>: pseudo-tags (one closing tag per row), also
+// <matrix> a b \\ c d </matrix> or <matrix><row>a b</row><row>c d</row></matrix>
+const TAG_MATRIX = String.raw`<matrix\s*>(?:(?!<\/?matrix\s*>)[^\u0001])*?<\/matrix\s*>(?:(?:(?!<\/?matrix\s*>)[^\u0001])*?<\/matrix\s*>)*`
+const MATRIX_PATTERN = new RegExp(`${BRACKET_MATRIX}|${LATEX_MATRIX}|${TAG_MATRIX}`, "gi")
 // \( … \), \[ … \], $$ … $$, and $ … $ only when it holds a LaTeX matrix
 const DELIMITED = /\\\(([^\u0001]*?)\\\)|\\\[([^\u0001]*?)\\\]|\$\$([^\u0001]*?)\$\$|\$([^$\u0001]*?\\begin\{[^$\u0001]*?)\$/g
 
@@ -247,6 +250,24 @@ function parseLatexMatrix(body: string): string[][] | null {
   return rows.map(r => [...r, ...Array<string>(width - r.length).fill("")])
 }
 
+/** The rows of a <matrix> … </matrix> literal; cells split on & or commas, else spaces */
+function parseTagMatrix(literal: string): string[][] | null {
+  let rows = literal
+    .replace(/^<matrix\s*>/i, "")
+    .split(/<\/matrix\s*>/i)
+    .map(r => r.trim())
+    .filter(Boolean)
+  // One block: rows split by \\, ;, new lines or <row> tags
+  if (rows.length === 1) rows = rows[0].split(/\\\\|;|\n|<\/?row\s*>/i).map(r => r.trim()).filter(Boolean)
+  const cells = rows.map(r => {
+    const row = r.replace(/<\/?(?:row|cell|td|tr)\s*>/gi, " ").trim()
+    return (/[&,]/.test(row) ? row.split(/\s*[&,]\s*/) : row.split(/\s+/)).map(c => latexToText(c).trim()).filter(Boolean)
+  }).filter(r => r.length > 0)
+  if (cells.length === 0) return null
+  const width = Math.max(...cells.map(r => r.length))
+  return cells.map(r => [...r, ...Array<string>(width - r.length).fill("")])
+}
+
 const LATEX_BRACKETS: Record<string, MatrixBracket> = {
   bmatrix: "b", pmatrix: "p", vmatrix: "v", Vmatrix: "V", Bmatrix: "B", matrix: "none", array: "none",
 }
@@ -261,6 +282,9 @@ function matrixTokens(text: string, from = 0, to = text.length): MathToken[] {
     if (match[1]) {
       const rows = parseLatexMatrix(match[2] ?? "")
       if (rows) tokens.push({ type: "matrix", start, end, rows, bracket: LATEX_BRACKETS[match[1]] ?? "b" })
+    } else if (/^<matrix/i.test(match[0])) {
+      const rows = parseTagMatrix(match[0])
+      if (rows) tokens.push({ type: "matrix", start, end, rows, bracket: "b" })
     } else {
       const rows = parseBracketMatrix(match[0])
       if (rows) tokens.push({ type: "matrix", start, end, rows, bracket: "b" })
@@ -276,7 +300,7 @@ function matrixTokens(text: string, from = 0, to = text.length): MathToken[] {
  * Tokens are in order and never overlap.
  */
 export function findMath(text: string): MathToken[] {
-  if (!text.includes("[") && !text.includes("\\begin")) return []
+  if (!text.includes("[") && !text.includes("\\begin") && !/<matrix/i.test(text)) return []
   const tokens: MathToken[] = []
   let last = 0
   for (const match of text.matchAll(DELIMITED)) {

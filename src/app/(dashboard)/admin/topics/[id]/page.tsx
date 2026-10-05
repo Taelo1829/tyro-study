@@ -16,6 +16,7 @@ import { MoveQuestionButton } from "@/components/admin/move-question-button"
 import { Button } from "@/components/ui/button"
 import { MathText } from "@/components/ui/math-text"
 import { ProjectManager } from "@/components/admin/project-manager"
+import { ExerciseManager } from "@/components/admin/exercise-manager"
 
 interface TopicDetail {
   id: string
@@ -32,6 +33,8 @@ interface TopicDetail {
     id: string
     question: string
     paper?: string | null
+    /** "blank": students type the answer; every answer is an accepted one */
+    kind?: string
     answers: { answer: string; isCorrect: boolean }[]
   }[]
   flashcards: { id: string; front: string; back: string }[]
@@ -45,6 +48,7 @@ export default function AdminTopicDetailPage() {
   const [topic, setTopic] = useState<TopicDetail | null>(null)
   const [tab, setTab] = useState("lesson")
   const [projectCount, setProjectCount] = useState(0)
+  const [exerciseCount, setExerciseCount] = useState(0)
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/topics/${id}`)
@@ -124,8 +128,8 @@ export default function AdminTopicDetailPage() {
           </TabsTrigger>
           <TabsTrigger value="projects" className="gap-2 px-2">
             <Code2 className="hidden h-4 w-4 sm:block" />
-            <span className="truncate">Projects</span>
-            <CountBadge n={projectCount} />
+            <span className="truncate">Coding</span>
+            <CountBadge n={projectCount + exerciseCount} />
           </TabsTrigger>
         </TabsList>
 
@@ -167,8 +171,13 @@ export default function AdminTopicDetailPage() {
                     <div className="mb-2 flex items-start justify-between gap-3">
                       <div>
                         {q.paper && (
-                          <span className="mb-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                          <span className="mb-1 mr-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
                             Past paper · {q.paper}
+                          </span>
+                        )}
+                        {q.kind === "blank" && (
+                          <span className="mb-1 inline-block rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-800">
+                            Type the answer
                           </span>
                         )}
                         <p className="whitespace-pre-wrap font-medium">
@@ -180,6 +189,7 @@ export default function AdminTopicDetailPage() {
                         <DeleteQuestionButton questionId={q.id} onDeleted={load} />
                       </div>
                     </div>
+                    {q.kind === "blank" && <p className="text-xs text-muted-foreground">Accepted answers (spacing doesn&apos;t matter):</p>}
                     <ul className="space-y-1">
                       {q.answers.map((a) => (
                         <li
@@ -212,6 +222,11 @@ export default function AdminTopicDetailPage() {
           <Panel title="Coding projects" description="Hands-on programming tasks for coding modules. Students upload their code and the AI marks it against each project's rubric.">
             <ProjectManager topicId={id} moduleId={topic.chapter.module.id} onCount={setProjectCount} />
           </Panel>
+          <div className="mt-10 border-t-2 border-foreground pt-8">
+            <Panel title="Try it yourself" description="Fill-in-the-blank code exercises shown after the lesson, checked instantly, plus type-the-answer quiz questions.">
+              <ExerciseManager topicId={id} onCount={setExerciseCount} onQuestionsAdded={load} />
+            </Panel>
+          </div>
         </TabsContent>
       </Tabs>
 

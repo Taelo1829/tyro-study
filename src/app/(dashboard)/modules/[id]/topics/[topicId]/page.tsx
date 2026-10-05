@@ -29,6 +29,7 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { useCourseCrumb } from "@/components/modules/use-course-crumb"
 import FlashcardDeck from "@/components/modules/flash-card-decks"
 import { TopicProjects, type TopicProjectSummary } from "@/components/projects/topic-projects"
+import { TryItYourself } from "@/components/exercises/try-it-yourself"
 import { TopicPdfReader } from "@/components/modules/topic-pdf-reader"
 import { Modal } from "@/components/admin/modal"
 import { Input } from "@/components/ui/input"
@@ -55,6 +56,8 @@ interface Topic {
         id: string
         question: string
         difficulty: string
+        /** "blank": typed into a blank in the code instead of picking an option */
+        kind?: string
         answers: Array<{
             id: string
             answer: string
@@ -370,10 +373,13 @@ export default function TopicPage() {
                                 }
                             />
 
-                            {hasQuestions && (
+                            {/* Coding modules: fill-in-the-blanks practice right after the lesson */}
+                            <TryItYourself topicId={topic.id} />
+
+                            {topic.questions.some(q => q.kind !== "blank") && (
                                 <Section title="Key takeaways" description="What you should know before taking the quiz.">
                                     <ul className="space-y-2">
-                                        {topic.questions.slice(0, 5).map((question) => (
+                                        {topic.questions.filter(q => q.kind !== "blank").slice(0, 5).map((question) => (
                                             <li key={question.id} className="flex items-start gap-2">
                                                 <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                                                 <span className="text-sm"><MathText text={extractKeyPoint(question.question)} /></span>
@@ -502,7 +508,10 @@ export default function TopicPage() {
                                             <ul className="space-y-2 text-sm">
                                                 <li className="flex items-center gap-2">
                                                     <FileQuestion className="h-4 w-4 text-primary" />
-                                                    <span>{Math.min(topic.questions.length, 20)} multiple-choice questions per quiz</span>
+                                                    <span>
+                                                        {Math.min(topic.questions.length, 20)}{" "}
+                                                        {topic.questions.some(q => q.kind === "blank") ? "questions per quiz: pick the answer or type it into the code" : "multiple-choice questions per quiz"}
+                                                    </span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <Clock className="h-4 w-4 text-primary" />

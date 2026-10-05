@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin"
 import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
 import { getLockedFlags, getModuleLocks } from "@/lib/topic-locks"
+import { blankQuestionIds } from "@/lib/question-kinds"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -40,12 +41,18 @@ export async function GET(_request: Request, { params }: Params) {
     ? await getModuleLocks(session.user.id, chapter.module.id)
     : new Map()
 
+  // Type-the-answer questions: their answers are the accepted answers, so only admins see them
+  const blanks = isAdmin ? new Set<string>() : await blankQuestionIds([...chapter.questions, ...chapter.topics.flatMap(t => t.questions)].map(q => q.id))
+  const hideBlankAnswers = <Q extends { id: string; answers: unknown[] }>(list: Q[]) => list.map(q => (blanks.has(q.id) ? { ...q, answers: [] } : q))
+
   return NextResponse.json({
     ...chapter,
+    questions: hideBlankAnswers(chapter.questions),
     topics: chapter.topics.map(t => {
       const lockedBy = studentLocks.get(t.id)?.previousTopic ?? null
       return {
         ...t,
+        questions: hideBlankAnswers(t.questions),
         // Don't hand out a still-locked topic's lesson or questions
         ...(lockedBy && { content: null, assignment: null, questions: [] }),
         locked: lockedFlags.has(t.id),

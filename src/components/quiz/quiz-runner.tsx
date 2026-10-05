@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react"
 import { ScratchPad } from "./scratch-pad"
 import { MathText } from "@/components/ui/math-text"
 import { TopicContentView } from "@/components/topic/topic-content-view"
+import { CodeWithBlanks } from "@/components/exercises/code-with-blanks"
+import { BLANK } from "@/lib/code-blanks"
 
 /**
  * Shared quiz screen for topic and chapter quizzes.
@@ -25,6 +27,8 @@ interface QuizQuestion {
     id: string
     text: string
     difficulty: string
+    /** "blank": type the answer into the blank (____) instead of picking an option */
+    kind?: "mcq" | "blank"
     options: QuizOption[]
     topic: { id: string; title: string; moduleId?: string } | null
     /** The past exam/assignment paper it comes from */
@@ -34,6 +38,19 @@ interface QuizQuestion {
 interface AnswerResult {
     isCorrect: boolean
     correctAnswerId: string | null
+    /** Type-the-answer questions: the expected answer */
+    correctAnswerText?: string | null
+}
+
+/**
+ * A type-the-answer question split into what's asked (the paragraphs before
+ * the one with the blank) and the code with the blank.
+ */
+function splitBlankQuestion(text: string): { prompt: string; code: string } {
+    const paragraphs = text.split(/\n\s*\n/)
+    const at = paragraphs.findIndex(p => new RegExp(BLANK.source).test(p))
+    if (at <= 0) return { prompt: "", code: text }
+    return { prompt: paragraphs.slice(0, at).join("\n\n"), code: paragraphs.slice(at).join("\n\n") }
 }
 
 interface FinalResult {
@@ -146,7 +163,14 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
             const attempt = data.data as {
                 attemptId: string
                 questions: QuizQuestion[]
-                answered?: { questionId: string; selectedAnswerId: string; isCorrect: boolean; correctAnswerId: string | null }[]
+                answered?: {
+                    questionId: string
+                    selectedAnswerId: string | null
+                    typedAnswer?: string | null
+                    isCorrect: boolean
+                    correctAnswerId: string | null
+                    correctAnswerText?: string | null
+                }[]
                 startedAt: string
                 serverNow?: string
                 settings?: { timeLimit?: number | null; estimatedSeconds?: number | null }
@@ -156,8 +180,12 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
 
             // Answers already given (a resumed attempt): show them as answered
             const answered = attempt.answered ?? []
-            setSelected(Object.fromEntries(answered.map(a => [a.questionId, a.selectedAnswerId])))
-            setResults(Object.fromEntries(answered.map(a => [a.questionId, { isCorrect: a.isCorrect, correctAnswerId: a.correctAnswerId }])))
+            // (for a type-the-answer question, `selected` holds what was typed)
+            setSelected(Object.fromEntries(answered.map(a => [a.questionId, a.typedAnswer ?? a.selectedAnswerId ?? ""])))
+            setResults(Object.fromEntries(answered.map(a => [
+                a.questionId,
+                { isCorrect: a.isCorrect, correctAnswerId: a.correctAnswerId, correctAnswerText: a.correctAnswerText ?? null },
+            ])))
             const done = new Set(answered.map(a => a.questionId))
             const firstOpen = attempt.questions.findIndex(q => !done.has(q.id))
             setIndex(firstOpen === -1 ? Math.max(0, attempt.questions.length - 1) : firstOpen)
@@ -281,18 +309,20 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     /** Grade the current question on the server and show right/wrong */
     async function submitAnswer() {
         const question = questions[index]
-        const selectedAnswerId = selected[question.id]
-        if (!attemptId || !selectedAnswerId || results[question.id] || checking) return
+        const choice = selected[question.id]
+        const typed = question.kind === "blank"
+        if (!attemptId || !choice?.trim() || results[question.id] || checking) return
 
         setChecking(true)
         setError("")
         try {
-            const data = await put({ questionId: question.id, selectedAnswerId })
+            const data = await put(typed ? { questionId: question.id, typedAnswer: choice } : { questionId: question.id, selectedAnswerId: choice })
             setResults(prev => ({
                 ...prev,
                 [question.id]: {
                     isCorrect: !!data.isCorrect,
                     correctAnswerId: (data.correctAnswerId as string | null) ?? null,
+                    correctAnswerText: (data.correctAnswerText as string | null) ?? null,
                 },
             }))
             // Answering the last question completes the attempt on the server
@@ -575,8 +605,13 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             <div className="space-y-4">
                                 {questions.map((question, idx) => {
                                     const result = results[question.id]
-                                    const yourAnswer = question.options.find(o => o.id === selected[question.id])
-                                    const correctAnswer = question.options.find(o => o.id === result?.correctAnswerId)
+                                    const typed = question.kind === "blank"
+                                    const yourAnswer = typed
+                                        ? selected[question.id] ? { text: selected[question.id] } : undefined
+                                        : question.options.find(o => o.id === selected[question.id])
+                                    const correctAnswer = typed
+                                        ? result?.correctAnswerText ? { text: result.correctAnswerText } : undefined
+                                        : question.options.find(o => o.id === result?.correctAnswerId)
                                     const isCorrect = !!result?.isCorrect
 
                                     return (
@@ -592,10 +627,10 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                                         {idx + 1}. <MathText text={question.text} />
                                                     </p>
                                                     <div className="text-sm text-muted-foreground">
-                                                        <p>Your answer: {result && yourAnswer ? <MathText text={yourAnswer.text} /> : "Not answered"}</p>
+                                                        <p>Your answer: {result && yourAnswer ? typed ? <code className="font-mono text-foreground">{yourAnswer.text}</code> : <MathText text={yourAnswer.text} /> : "Not answered"}</p>
                                                         {!isCorrect && correctAnswer && (
                                                             <p className="mt-1 font-medium text-green-700">
-                                                                Correct answer: <MathText text={correctAnswer.text} />
+                                                                Correct answer: {typed ? <code className="font-mono">{correctAnswer.text}</code> : <MathText text={correctAnswer.text} />}
                                                             </p>
                                                         )}
                                                     </div>
@@ -616,7 +651,9 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     const current = questions[index]
     const result = results[current.id]
     const answered = !!result
-    const hasSelected = !!selected[current.id]
+    const isTyped = current.kind === "blank"
+    const hasSelected = !!selected[current.id]?.trim()
+    const blankParts = isTyped ? splitBlankQuestion(current.text) : null
     const isLast = index === questions.length - 1
     const answeredCount = Object.keys(results).length
 
@@ -679,8 +716,30 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                         {current.paper && (
                             <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Past paper · {current.paper}</p>
                         )}
-                        <h2 className="whitespace-pre-wrap text-xl font-semibold text-foreground"><MathText text={current.text} /></h2>
+                        {blankParts ? (
+                            <>
+                                {blankParts.prompt && (
+                                    <h2 className="whitespace-pre-wrap text-xl font-semibold text-foreground"><MathText text={blankParts.prompt} /></h2>
+                                )}
+                                <p className="mt-1 text-sm text-muted-foreground">Type your answer in the blank{answered ? "" : ", then press Submit"}.</p>
+                            </>
+                        ) : (
+                            <h2 className="whitespace-pre-wrap text-xl font-semibold text-foreground"><MathText text={current.text} /></h2>
+                        )}
                     </div>
+
+                    {blankParts && (
+                        <CodeWithBlanks
+                            key={current.id}
+                            code={blankParts.code}
+                            values={[selected[current.id] ?? ""]}
+                            onChange={(_, value) => setSelected(prev => ({ ...prev, [current.id]: value }))}
+                            states={[answered ? (result.isCorrect ? "right" : "wrong") : "idle"]}
+                            disabled={answered || checking}
+                            onEnter={() => void submitAnswer()}
+                            label="Your answer"
+                        />
+                    )}
 
                     <div className="space-y-3">
                         {current.options.map(option => {
@@ -721,7 +780,16 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             role="status"
                             className={`mt-6 rounded-2xl border p-4 font-semibold ${result.isCorrect ? "border-green-200 bg-tint-mint text-green-800" : "border-red-200 bg-red-50 text-red-700"}`}
                         >
-                            {result.isCorrect ? "✓ Correct! Well done." : "✗ Not quite. The correct answer is highlighted in green."}
+                            {result.isCorrect ? (
+                                "✓ Correct! Well done."
+                            ) : isTyped ? (
+                                <>
+                                    ✗ Not quite. The answer is{" "}
+                                    <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[0.95em] text-foreground">{result.correctAnswerText ?? "-"}</code>
+                                </>
+                            ) : (
+                                "✗ Not quite. The correct answer is highlighted in green."
+                            )}
                         </div>
                     )}
                 </div>

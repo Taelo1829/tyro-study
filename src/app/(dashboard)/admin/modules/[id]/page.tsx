@@ -10,6 +10,7 @@ import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { TextbookUploader } from "@/components/admin/textbook-uploader"
 import { PaperUploader } from "@/components/admin/paper-uploader"
+import { ModuleExerciseBuilder } from "@/components/admin/module-exercise-builder"
 import { EditModuleButton } from "@/components/admin/edit-module-button"
 import { DeleteModuleButton } from "@/components/admin/delete-module-button"
 import { Button } from "@/components/ui/button"
@@ -72,7 +73,7 @@ export default function AdminModuleDetailPage() {
         )}
         {mod.coding?.language && (
           <span className="ml-1">
-            · Coding module ({CODING_LANGUAGES[mod.coding.language as keyof typeof CODING_LANGUAGES]?.label ?? mod.coding.language}): topics get coding projects
+            · Coding module ({CODING_LANGUAGES[mod.coding.language as keyof typeof CODING_LANGUAGES]?.label ?? mod.coding.language}): topics get coding projects and &ldquo;Try it yourself&rdquo; exercises
           </span>
         )}
       </p>
@@ -93,6 +94,7 @@ export default function AdminModuleDetailPage() {
           />
           <TextbookUploader moduleId={id} onUploaded={load} />
           <PaperUploader moduleId={id} onAdded={load} />
+          {mod.coding?.language && <ModuleExerciseBuilder moduleId={id} />}
           <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}>
             <Plus className="h-4 w-4" />
             New chapter

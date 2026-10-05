@@ -8,6 +8,8 @@ import { lessonVideoIds, suggestTopicVideo } from "@/lib/ai/videos"
 import { getVideoEmbedHtml } from "@/lib/topic-content"
 import { getTopicCoding, countProjects } from "@/lib/coding"
 import { generateTopicProjects } from "@/lib/ai/projects"
+import { generateTopicPractice } from "@/lib/ai/exercises"
+import { countExercises } from "@/lib/exercises"
 import { DIFFICULTY_GUIDE, LENGTH_GUIDE, type Length, writeFlashcards, writeLessonHtml, writeQuestions } from "@/lib/ai/writers"
 
 /**
@@ -16,7 +18,8 @@ import { DIFFICULTY_GUIDE, LENGTH_GUIDE, type Length, writeFlashcards, writeLess
  * Writes one topic's lesson and quiz and saves them: from its textbook pages
  * (textbook import), or without pagesUrl from what the UNISA module normally
  * covers (course import). In a coding module it also writes `projects`
- * coding projects (default 2) unless the topic has some already. With video: true it also finds a YouTube video for
+ * coding projects (default 2) unless the topic has some already, and (unless it has
+ * some already) "Try it yourself" exercises plus type-the-answer quiz questions. With video: true it also finds a YouTube video for
  * the topic and adds it to the lesson; with flashcards: n it writes n revision
  * flashcards. Safe to retry: a topic that already has a lesson keeps it,
  * questions are only added up to questionCount, a lesson that already has a
@@ -170,6 +173,23 @@ export async function POST(request: Request) {
       }
     }
 
+    // ---- "Try it yourself" exercises and type-the-answer questions (coding modules only)
+    let exercisesAdded = 0
+    let typedQuestionsAdded = 0
+    let exerciseNote: string | null = null
+    if (body.exercises !== false && htmlToText(lesson)) {
+      try {
+        const coding = await getTopicCoding(topic.id)
+        if (coding?.language && (await countExercises(topic.id)) === 0) {
+          const practice = await generateTopicPractice(topic.id, { exercises: 2, questions: 5 })
+          exercisesAdded = practice.exercises
+          typedQuestionsAdded = practice.questions
+        }
+      } catch (err) {
+        exerciseNote = err instanceof Error ? err.message : "exercises failed"
+      }
+    }
+
     // ---- video (optional). A problem here doesn't fail the topic: the lesson and quiz are saved.
     let videoTitle: string | null = null
     let videoNote: string | null = null
@@ -189,7 +209,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ wroteLesson, questionsAdded: added, hadSource: !!source, videoTitle, videoNote, flashcardsAdded, flashcardNote, projectsAdded, projectNote })
+    return NextResponse.json({ wroteLesson, questionsAdded: added, hadSource: !!source, videoTitle, videoNote, flashcardsAdded, flashcardNote, projectsAdded, projectNote, exercisesAdded, typedQuestionsAdded, exerciseNote })
   } catch (err) {
     console.error("Textbook topic error:", err)
     const message = err instanceof Error ? err.message : "Couldn't write this topic"

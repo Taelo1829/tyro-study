@@ -490,7 +490,9 @@ function renderPowers(root: Element, doc: Document) {
  */
 export function sanitizeTopicHtml(html: string, { matrices = false } = {}): string {
   if (typeof window === "undefined" || typeof DOMParser === "undefined") return ""
-  const parsed = new DOMParser().parseFromString(`<body>${html}</body>`, "text/html")
+  // <matrix> pseudo-tags stay as text so renderMatrices can read their rows
+  const escaped = html.replace(/<(\/?)matrix\s*>/gi, "&lt;$1matrix&gt;")
+  const parsed = new DOMParser().parseFromString(`<body>${escaped}</body>`, "text/html")
   const doc = document.implementation.createHTMLDocument("")
   const root = doc.createElement("div")
   for (const child of [...parsed.body.childNodes]) {
