@@ -1,6 +1,7 @@
 "use client"
 
 import { toPlainText } from "@/lib/plain-text"
+import { CODING_LANGUAGES } from "@/lib/coding-shared"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -8,6 +9,7 @@ import { ChevronRight, Plus } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { TextbookUploader } from "@/components/admin/textbook-uploader"
+import { PaperUploader } from "@/components/admin/paper-uploader"
 import { EditModuleButton } from "@/components/admin/edit-module-button"
 import { DeleteModuleButton } from "@/components/admin/delete-module-button"
 import { Button } from "@/components/ui/button"
@@ -27,6 +29,7 @@ interface ModuleDetail {
   title: string
   description: string | null
   courses?: { id: string; title: string }[]
+  coding?: { language: string | null; auto: boolean } | null
   chapters: ChapterRow[]
 }
 
@@ -67,6 +70,11 @@ export default function AdminModuleDetailPage() {
         ) : (
           <>Not in a course yet. Add it with Edit module.</>
         )}
+        {mod.coding?.language && (
+          <span className="ml-1">
+            · Coding module ({CODING_LANGUAGES[mod.coding.language as keyof typeof CODING_LANGUAGES]?.label ?? mod.coding.language}): topics get coding projects
+          </span>
+        )}
       </p>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -84,6 +92,7 @@ export default function AdminModuleDetailPage() {
             topicCount={mod.chapters.reduce((n, c) => n + c._count.topics, 0)}
           />
           <TextbookUploader moduleId={id} onUploaded={load} />
+          <PaperUploader moduleId={id} onAdded={load} />
           <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}>
             <Plus className="h-4 w-4" />
             New chapter

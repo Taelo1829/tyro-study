@@ -22,6 +22,23 @@ export function moduleCode(title: string) {
   return { code: `${match[1]}${match[2]}`, year: Number(match[2][0]) }
 }
 
+const MATHS = "Subscripts: write x_1, x_2, a_{ij}, v_{n+1} (the app shows them as subscripts), never x1 for x with subscript 1. Powers: x^2, e^{-x}. Fractions: 3/4, x/y or (a+b)/(c-d). Matrices: [[1, 2], [3, 4]]. Vectors: (1, 2, 3) or [[1], [2], [3]] for a column. Use ≤ ≥ ≠ × · √ ∑ ∫ λ θ directly."
+
+/** How to write this subject's notation so the app displays it properly */
+const NOTATION: [RegExp, string][] = [
+  // Mathematics, applied maths, statistics, physics, chemistry, finance maths
+  [/^(MAT|APM|MAC|STA|DSC|PHY|CHE|FAC|QMI)/, `Notation (${"this subject"}): ${MATHS}`],
+  // Computing: code stays code
+  [/^(COS|INF|ICT|CIS|COM)/, "Notation: code stays exactly as written (x1, my_var and a[i] are names, not maths). Put code as plain text with line breaks, never subscripts or superscripts inside code. For maths outside code (e.g. logic, sets, complexity) use x_1 for subscripts, n^2 for powers, a/b for fractions and ∧ ∨ ¬ → ↔ ∀ ∃ ∈ ∪ ∩ directly."],
+]
+
+/** The notation guide for a module (by its code), or a general one */
+export function notationFor(title: string): string {
+  const code = moduleCode(title)?.code ?? ""
+  const hit = NOTATION.find(([re]) => re.test(code))
+  return hit ? hit[1].replace("this subject", code.slice(0, 3)) : `Notation (where maths appears): ${MATHS}`
+}
+
 /** Lines describing the module for a prompt */
 export function moduleLines(mod: { title: string; description: string | null }) {
   const code = moduleCode(mod.title)
@@ -29,6 +46,7 @@ export function moduleLines(mod: { title: string; description: string | null }) 
     `UNISA module: ${mod.title}`,
     code ? `Module code: ${code.code} (year level ${code.year})` : "Module code: not given. Infer the level from the title.",
     mod.description ? `Module description: ${mod.description}` : "",
+    notationFor(mod.title),
   ].filter(Boolean)
 }
 

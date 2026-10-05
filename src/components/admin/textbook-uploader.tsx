@@ -213,6 +213,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
             questionsAdded: number
             videoTitle?: string | null
             videoNote?: string | null
+            projectsAdded?: number
           }>("/api/admin/textbooks/generate-topic", {
             topicId: id,
             pagesUrl,
@@ -226,6 +227,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
             r.wroteLesson ? "lesson" : "",
             r.questionsAdded ? `${r.questionsAdded} questions` : "",
             r.videoTitle ? "video" : r.videoNote ? `no video (${r.videoNote})` : "",
+            r.projectsAdded ? `${r.projectsAdded} coding projects` : "",
           ]
           setStatus(id, "done", parts.filter(Boolean).join(" · ") || "already done")
         } catch (err) {

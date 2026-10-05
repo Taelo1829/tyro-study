@@ -109,6 +109,7 @@ model User {
   sentMessages           Message[]      @relation("MessageSender")
   calendarEvents         CalendarEvent[]
   emailOtps              EmailOtp[]
+  projectSubmissions     ProjectSubmission[]
   @@map("users")
   
 }
@@ -165,6 +166,8 @@ model Module {
   quizAttempts QuizAttempt[]
   calendarEvents CalendarEvent[]
   courses      CourseModule[]
+  /// NULL = from the module code (COS/INF/ICT → C++), "none" = not a coding module, else the language
+  codingLanguage String?
 
   @@map("modules")
 }
@@ -243,6 +246,8 @@ model Topic {
   quizAttempts QuizAttempt[]
   pdfs         TopicPdf[]
 
+  codingProjects CodingProject[]
+
   @@index([chapterId])
   @@map("topics")
 }
@@ -280,6 +285,8 @@ model Question {
   /// AI study note, written once when a student first gets this question wrong
   studyNote          String?   @db.Text
   studyNoteClaimedAt DateTime?
+  /// The past exam/assignment paper it came from (mock exams ask these first)
+  paper              String?
 
   topic            Topic?            @relation(fields: [topicId], references: [id], onDelete: Cascade)
   chapter          Chapter?          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -487,4 +494,46 @@ model EmailOtp {
 
   @@unique([purpose, key])
   @@map("email_otps")
+}
+
+/// A topic's hands-on programming task (coding modules), marked by AI against its rubric.
+/// Read and written with SQL (src/lib/projects.ts).
+model CodingProject {
+  id          String   @id @default(cuid())
+  topicId     String
+  title       String
+  /// HTML: the task, requirements, example run
+  brief       String   @db.Text
+  language    String
+  starterCode String?  @db.Text
+  /// JSON: [{ criterion, points }], points add up to 100
+  rubric      String   @db.Text
+  difficulty  String   @default("medium")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  topic       Topic               @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  submissions ProjectSubmission[]
+
+  @@index([topicId])
+  @@map("coding_projects")
+}
+
+/// A student's uploaded files for a project, with the AI's marks
+model ProjectSubmission {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  /// JSON: [{ name, content }]
+  files     String   @db.Text
+  score     Int
+  /// JSON: { summary, rubric: [{ criterion, points, max, comment }], strengths, improvements }
+  feedback  String   @db.Text
+  createdAt DateTime @default(now())
+
+  project CodingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, userId])
+  @@map("project_submissions")
 }

@@ -6,16 +6,21 @@ import { htmlToText } from "@/lib/ai/unisa"
 import { isTextbookBlobUrl, loadTextbookPages, pagesText } from "@/lib/ai/textbook"
 import { lessonVideoIds, suggestTopicVideo } from "@/lib/ai/videos"
 import { getVideoEmbedHtml } from "@/lib/topic-content"
-import { DIFFICULTY_GUIDE, LENGTH_GUIDE, type Length, writeLessonHtml, writeQuestions } from "@/lib/ai/writers"
+import { getTopicCoding, countProjects } from "@/lib/coding"
+import { generateTopicProjects } from "@/lib/ai/projects"
+import { DIFFICULTY_GUIDE, LENGTH_GUIDE, type Length, writeFlashcards, writeLessonHtml, writeQuestions } from "@/lib/ai/writers"
 
 /**
- * POST { topicId, pagesUrl, startPage, endPage, length?, questionCount?, video? }
+ * POST { topicId, pagesUrl?, startPage?, endPage?, length?, questionCount?, video?, flashcards? }
  *
- * Writes one imported topic's lesson and quiz from its textbook pages and
- * saves them. With video: true it also finds a YouTube video for the topic
- * and adds it to the lesson. Safe to retry: a topic that already has a lesson
- * keeps it, questions are only added up to questionCount, and a lesson that
- * already has a video doesn't get another.
+ * Writes one topic's lesson and quiz and saves them: from its textbook pages
+ * (textbook import), or without pagesUrl from what the UNISA module normally
+ * covers (course import). In a coding module it also writes `projects`
+ * coding projects (default 2) unless the topic has some already. With video: true it also finds a YouTube video for
+ * the topic and adds it to the lesson; with flashcards: n it writes n revision
+ * flashcards. Safe to retry: a topic that already has a lesson keeps it,
+ * questions are only added up to questionCount, a lesson that already has a
+ * video doesn't get another, and a topic with flashcards doesn't get more.
  */
 
 export const runtime = "nodejs"
@@ -30,9 +35,12 @@ export async function POST(request: Request) {
     if (error) return error
 
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>
-    if (typeof body.topicId !== "string" || !isTextbookBlobUrl(body.pagesUrl)) {
-      return NextResponse.json({ error: "topicId and pagesUrl are required" }, { status: 400 })
+    const fromTextbook = body.pagesUrl !== undefined && body.pagesUrl !== null
+    if (typeof body.topicId !== "string" || (fromTextbook && !isTextbookBlobUrl(body.pagesUrl))) {
+      return NextResponse.json({ error: "topicId is required, and pagesUrl must be an uploaded textbook" }, { status: 400 })
     }
+    const flashcardCount = Math.max(0, Math.min(20, Math.floor(Number(body.flashcards) || 0)))
+    const projectCount = body.projects === undefined ? 2 : Math.max(0, Math.min(5, Math.floor(Number(body.projects) || 0)))
     const length: Length = typeof body.length === "string" && body.length in LENGTH_GUIDE ? (body.length as Length) : "standard"
     const questionCount = QUESTION_COUNTS.includes(Number(body.questionCount) as (typeof QUESTION_COUNTS)[number])
       ? Number(body.questionCount)
@@ -45,6 +53,7 @@ export async function POST(request: Request) {
         title: true,
         content: true,
         questions: { select: { question: true } },
+        _count: { select: { flashcards: true } },
         chapter: {
           select: {
             id: true,
@@ -59,8 +68,9 @@ export async function POST(request: Request) {
     })
     if (!topic) return NextResponse.json({ error: "Topic not found" }, { status: 404 })
 
-    const book = await loadTextbookPages(body.pagesUrl)
-    const source = pagesText(book, Number(body.startPage), Number(body.endPage), SOURCE_LIMIT)
+    const source = fromTextbook
+      ? pagesText(await loadTextbookPages(body.pagesUrl as string), Number(body.startPage), Number(body.endPage), SOURCE_LIMIT)
+      : ""
 
     const mod = topic.chapter.module
     const chapterNo = mod.chapters.findIndex(c => c.id === topic.chapter.id) + 1
@@ -82,7 +92,9 @@ export async function POST(request: Request) {
         topic.chapter.topics.map((t, i) => `${chapterNo}.${i + 1} ${t.title}${t.id === topic.id ? "  ← THIS TOPIC" : ""}`).join("\n"),
         source
           ? `\nThe prescribed textbook's pages for this topic (base the lesson on them; they take priority over general knowledge). Explain in your own words: don't copy long passages, and keep the book's notation and terms:\n${source}`
-          : "\nNo textbook pages were found for this topic. Use standard content for this UNISA module at this level.",
+          : fromTextbook
+            ? "\nNo textbook pages were found for this topic. Use standard content for this UNISA module at this level."
+            : "\nNo textbook is attached. Teach what this UNISA module normally covers for this topic, at this year level, using standard, widely accepted content.",
         "",
         `Length: ${LENGTH_GUIDE[length]}.`,
       ].join("\n")
@@ -127,6 +139,37 @@ export async function POST(request: Request) {
       added = questions.length
     }
 
+    // ---- flashcards (optional, for theory topics). Like the video, a problem here doesn't fail the topic.
+    let flashcardsAdded = 0
+    let flashcardNote: string | null = null
+    if (flashcardCount > 0 && topic._count.flashcards === 0 && htmlToText(lesson)) {
+      try {
+        const cards = await writeFlashcards(
+          [...header, "", `Lesson for this topic:\n${htmlToText(lesson).slice(0, 30_000)}`].join("\n"),
+          flashcardCount
+        )
+        if (cards.length) {
+          flashcardsAdded = (await prisma.flashcard.createMany({ data: cards.map(c => ({ topicId: topic.id, ...c })) })).count
+        }
+      } catch (err) {
+        flashcardNote = err instanceof Error ? err.message : "flashcards failed"
+      }
+    }
+
+    // ---- coding projects (coding modules only). A problem here doesn't fail the topic.
+    let projectsAdded = 0
+    let projectNote: string | null = null
+    if (projectCount > 0 && htmlToText(lesson)) {
+      try {
+        const coding = await getTopicCoding(topic.id)
+        if (coding?.language && (await countProjects(topic.id)) === 0) {
+          projectsAdded = await generateTopicProjects(topic.id, projectCount)
+        }
+      } catch (err) {
+        projectNote = err instanceof Error ? err.message : "projects failed"
+      }
+    }
+
     // ---- video (optional). A problem here doesn't fail the topic: the lesson and quiz are saved.
     let videoTitle: string | null = null
     let videoNote: string | null = null
@@ -146,7 +189,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ wroteLesson, questionsAdded: added, hadSource: !!source, videoTitle, videoNote })
+    return NextResponse.json({ wroteLesson, questionsAdded: added, hadSource: !!source, videoTitle, videoNote, flashcardsAdded, flashcardNote, projectsAdded, projectNote })
   } catch (err) {
     console.error("Textbook topic error:", err)
     const message = err instanceof Error ? err.message : "Couldn't write this topic"

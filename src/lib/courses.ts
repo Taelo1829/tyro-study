@@ -78,38 +78,45 @@ export async function deleteCourse(id: string): Promise<boolean> {
   return n > 0
 }
 
-/** Replaces the course's module list; the order given is the order students see */
+/**
+ * Replaces the course's module list; the order given is the order students see.
+ * One SQL statement (no transaction), so it can't hit Prisma's transaction
+ * time limit on a slow or distant database.
+ */
 export async function setCourseModules(courseId: string, moduleIds: string[]) {
   const ids = [...new Set(moduleIds)]
-  const existing = ids.length
-    ? await prisma.$queryRaw<{ id: string }[]>`SELECT "id" FROM "modules" WHERE "id" = ANY(${ids})`
-    : []
-  const valid = new Set(existing.map(r => r.id))
-  const ordered = ids.filter(id => valid.has(id))
-  await prisma.$transaction([
-    prisma.$executeRaw`DELETE FROM "course_modules" WHERE "courseId" = ${courseId}`,
-    ...ordered.map(
-      (moduleId, position) =>
-        prisma.$executeRaw`INSERT INTO "course_modules" ("courseId", "moduleId", "position") VALUES (${courseId}, ${moduleId}, ${position})`
-    ),
-  ])
+  await prisma.$executeRaw`
+    WITH removed AS (
+      DELETE FROM "course_modules"
+      WHERE "courseId" = ${courseId} AND NOT ("moduleId" = ANY(${ids}::text[]))
+    )
+    INSERT INTO "course_modules" ("courseId", "moduleId", "position")
+    SELECT ${courseId}, m."id", picked.ord - 1
+    FROM unnest(${ids}::text[]) WITH ORDINALITY AS picked(id, ord)
+    JOIN "modules" m ON m."id" = picked.id
+    ON CONFLICT ("courseId", "moduleId") DO UPDATE SET "position" = EXCLUDED."position"`
 }
 
-/** Puts a module into exactly these courses (used from the module's edit window) */
+/** Adds one module to the end of a course (no change if it's already there) */
+export async function addModuleToCourse(courseId: string, moduleId: string) {
+  await prisma.$executeRaw`
+    INSERT INTO "course_modules" ("courseId", "moduleId", "position")
+    SELECT ${courseId}, ${moduleId}, COALESCE(MAX("position") + 1, 0) FROM "course_modules" WHERE "courseId" = ${courseId}
+    ON CONFLICT ("courseId", "moduleId") DO NOTHING`
+}
+
+/** Puts a module into exactly these courses (used from the module's edit window). One statement, like setCourseModules. */
 export async function setModuleCourses(moduleId: string, courseIds: string[]) {
   const ids = [...new Set(courseIds)]
-  const existing = ids.length
-    ? await prisma.$queryRaw<{ id: string }[]>`SELECT "id" FROM "courses" WHERE "id" = ANY(${ids})`
-    : []
-  const valid = existing.map(r => r.id)
-  await prisma.$transaction([
-    prisma.$executeRaw`DELETE FROM "course_modules" WHERE "moduleId" = ${moduleId} AND NOT ("courseId" = ANY(${valid}))`,
-    // New links go to the end of that course's list
-    ...valid.map(
-      courseId => prisma.$executeRaw`
-        INSERT INTO "course_modules" ("courseId", "moduleId", "position")
-        SELECT ${courseId}, ${moduleId}, COALESCE(MAX("position") + 1, 0) FROM "course_modules" WHERE "courseId" = ${courseId}
-        ON CONFLICT ("courseId", "moduleId") DO NOTHING`
-    ),
-  ])
+  await prisma.$executeRaw`
+    WITH removed AS (
+      DELETE FROM "course_modules"
+      WHERE "moduleId" = ${moduleId} AND NOT ("courseId" = ANY(${ids}::text[]))
+    )
+    INSERT INTO "course_modules" ("courseId", "moduleId", "position")
+    SELECT c."id", ${moduleId},
+           COALESCE((SELECT MAX(cm."position") + 1 FROM "course_modules" cm WHERE cm."courseId" = c."id"), 0)
+    FROM "courses" c
+    WHERE c."id" = ANY(${ids}::text[])
+    ON CONFLICT ("courseId", "moduleId") DO NOTHING`
 }

@@ -10,7 +10,7 @@
  * nothing unsafe (scripts, event handlers, odd iframes) can get through.
  */
 
-import { findMath, findPowers, looksLikeProgram } from "@/components/ui/math-text"
+import { findFractions, findMath, findScripts, looksLikeProgram, mayHaveScripts } from "@/components/ui/math-text"
 
 // ── Video embeds ─────────────────────────────────────────────────────────────
 
@@ -398,7 +398,47 @@ function renderMatrices(root: Element, doc: Document) {
 }
 
 /**
- * Show powers as superscripts: λ^2 → λ², x^{n+1}, 2^(k-1), e^-x. Code blocks
+ * Show fractions written with a slash (3/4, x/y, x^2/y, (a+b)/(c-d)) as a
+ * numerator over a denominator. Code (programs and example output), links
+ * and matrices are left alone. Runs before renderPowers, so x^2 in a numerator is raised too.
+ */
+function renderFractions(root: Element, doc: Document) {
+  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  const textNodes: Text[] = []
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    // Code and program output (example runs) stay exactly as typed
+    if (n.textContent?.includes("/") && !n.parentElement?.closest(".tc-matrix, .tc-frac, a, sup, sub, pre, code")) textNodes.push(n as Text)
+  }
+  for (const node of textNodes) {
+    const text = node.textContent ?? ""
+    const fractions = findFractions(text)
+    if (fractions.length === 0) continue
+    const frag = doc.createDocumentFragment()
+    let last = 0
+    for (const f of fractions) {
+      if (f.start > last) frag.appendChild(doc.createTextNode(text.slice(last, f.start)))
+      const frac = doc.createElement("span")
+      frac.className = "tc-frac"
+      frac.setAttribute("role", "math")
+      frac.setAttribute("aria-label", `${f.numerator} over ${f.denominator}`)
+      for (const [cls, value] of [["tc-frac-num", f.numerator], ["tc-frac-den", f.denominator]]) {
+        const part = doc.createElement("span")
+        part.className = cls
+        part.setAttribute("aria-hidden", "true")
+        part.textContent = value
+        frac.appendChild(part)
+      }
+      frag.appendChild(frac)
+      last = f.end
+    }
+    if (last < text.length) frag.appendChild(doc.createTextNode(text.slice(last)))
+    node.replaceWith(frag)
+  }
+}
+
+/**
+ * Show powers as superscripts (λ^2 → λ², x^{n+1}, 2^(k-1), e^-x) and
+ * subscripts as subscripts (x_1, a_{ij}, and x1 + x2 = 0 in an equation). Code blocks
  * that hold a real program are left alone (there `x^2` is XOR); code blocks
  * that are just an equation (λ^2 - 7λ + 10 = 0) convert.
  */
@@ -406,21 +446,21 @@ function renderPowers(root: Element, doc: Document) {
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT)
   const textNodes: Text[] = []
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-    if (n.textContent?.includes("^") && !n.parentElement?.closest(".tc-matrix, sup")) textNodes.push(n as Text)
+    if (mayHaveScripts(n.textContent ?? "") && !n.parentElement?.closest(".tc-matrix, sup, sub, a")) textNodes.push(n as Text)
   }
   for (const node of textNodes) {
     const text = node.textContent ?? ""
     const code = node.parentElement?.closest("pre, code")
     if (code && looksLikeProgram((code.closest("pre") ?? code).textContent ?? "")) continue
-    const powers = findPowers(text)
-    if (powers.length === 0) continue
+    const scripts = findScripts(text)
+    if (scripts.length === 0) continue
     const frag = doc.createDocumentFragment()
     let last = 0
-    for (const p of powers) {
+    for (const p of scripts) {
       if (p.start > last) frag.appendChild(doc.createTextNode(text.slice(last, p.start)))
-      const sup = doc.createElement("sup")
-      sup.textContent = p.exponent
-      frag.appendChild(sup)
+      const el = doc.createElement(p.kind)
+      el.textContent = p.value
+      frag.appendChild(el)
       last = p.end
     }
     if (last < text.length) frag.appendChild(doc.createTextNode(text.slice(last)))
@@ -448,6 +488,7 @@ export function sanitizeTopicHtml(html: string, { matrices = false } = {}): stri
   })
   if (matrices) {
     renderMatrices(root, doc)
+    renderFractions(root, doc)
     renderPowers(root, doc)
   }
   return root.innerHTML
@@ -464,12 +505,6 @@ export function renderTopicContent(content: string | null | undefined): string {
 export function contentForEditor(content: string | null | undefined): string {
   if (!content?.trim()) return ""
   return looksLikeHtml(content) ? content : legacyToHtml(content)
-}
-
-/** Rough reading time in minutes (≈200 words/min), at least 1 */
-export function readingMinutes(html: string): number {
-  const words = html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length
-  return Math.max(1, Math.round(words / 200))
 }
 
 /**

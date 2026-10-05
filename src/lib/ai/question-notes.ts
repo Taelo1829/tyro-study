@@ -38,7 +38,7 @@ Write a note that teaches the idea the question tests, so the student gets it ri
 Keep it to about 120-250 words. Don't mention "the quiz", "you got this wrong" or option letters; it is read as part of the lesson.
 
 Formatting: HTML using only <h3> <p> <strong> <em> <ul> <ol> <li> <pre> <code>.
-- Matrices: [[1, 2], [3, 4]]; powers as x^2. Equations go in <p>; <pre><code> is only for program code (escape < and > as &lt; &gt;).
+- Matrices: [[1, 2], [3, 4]]; powers as x^2; subscripts as x_1 or a_{ij}; fractions as 3/4, x/y or (a+b)/(c-d). Equations go in <p>; <pre><code> is only for program code (escape < and > as &lt; &gt;).
 - No inline styles, links or images.
 
 Respond with JSON only: { "html": "<the note HTML>" }`

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { getOpenAIClient } from "@/lib/ai/openai"
 import { prisma } from "@/lib/prisma"
+import { notationFor } from "@/lib/ai/unisa"
 import { BULK_BATCH_SIZE } from "@/lib/bulk-import"
 
 export const runtime = "nodejs"
@@ -22,7 +23,10 @@ export async function POST(request: Request) {
       )
     }
 
-    const topic = await prisma.topic.findUnique({ where: { id: topicId } })
+    const topic = await prisma.topic.findUnique({
+      where: { id: topicId },
+      include: { chapter: { select: { module: { select: { title: true } } } } },
+    })
     if (!topic) {
       return NextResponse.json({ error: "Topic not found" }, { status: 404 })
     }
@@ -43,7 +47,7 @@ export async function POST(request: Request) {
       messages: [
         {
           role: "system",
-          content: `Generate flashcards as JSON: { "flashcards": [{ "front": "string", "back": "string" }] }. Create ${count} concise cards. Never use the em dash character (—); use a comma, colon or brackets instead.`,
+          content: `Generate flashcards as JSON: { "flashcards": [{ "front": "string", "back": "string" }] }. Create ${count} concise cards. Never use the em dash character (—); use a comma, colon or brackets instead. Plain text only. ${notationFor(topic.chapter.module.title)}`,
         },
         {
           role: "user",

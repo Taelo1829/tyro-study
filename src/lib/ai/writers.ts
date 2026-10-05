@@ -33,7 +33,7 @@ Structure:
 Formatting: return HTML using ONLY these tags: <h2> <h3> <p> <strong> <em> <ul> <ol> <li> <blockquote> <pre> <code> <table> <thead> <tbody> <tr> <th> <td> <hr> <div class="callout">, <div class="callout callout-tip">, <div class="callout callout-warning">.
 - Callout boxes (use sparingly, inside the teaching, never as an opener): <div class="callout"><p><strong>Remember:</strong> …</p></div> for a rule or formula worth memorising, <div class="callout callout-tip"><p><strong>Tip:</strong> …</p></div>, <div class="callout callout-warning"><p><strong>Watch out:</strong> …</p></div>
 - Code goes in <pre><code>…</code></pre> with < and > escaped as &lt; &gt;.
-- Matrices: write them inline as [[1, 2], [3, 4]] (rows in brackets); the app draws them as matrices. Other maths: plain text such as x^2, √x, ≤, × (the app shows x^2 as a superscript). Equations go in <p>, never in <pre> or <code> - those are only for program code.
+- Matrices: write them inline as [[1, 2], [3, 4]] (rows in brackets); the app draws them as matrices. Other maths: plain text such as x^2, x_1, √x, ≤, × (the app shows x^2 as a superscript and x_1 or a_{ij} as subscripts; never write x1 when you mean x with subscript 1). Follow the module's notation line. Fractions: a/b, 3/4, x^2/y or (a+b)/(c-d) with brackets round longer parts (the app draws them as a numerator over a denominator); never \frac or LaTeX. Equations go in <p>, never in <pre> or <code> - those are only for program code.
 - No <h1> (the topic title is already shown), no inline styles, no images, no links, no markdown.
 
 Respond with JSON only: { "html": "<the lesson HTML>" }`
@@ -99,7 +99,7 @@ Write questions like a good UNISA MCQ assignment or exam paper:
 - Do not use "All of the above", "None of the above" or "Both A and B". Avoid negative wording ("Which is NOT…") unless it is essential, and then write NOT in capitals.
 - The question must make sense on its own (the quiz shows questions in random order), so don't refer to "the passage", "the text above" or other questions.
 - Options are shuffled in the quiz, so never refer to option letters or positions.
-- Code: put it in the question as plain text with line breaks (no markdown). Matrices: write them as [[1, 2], [3, 4]]; the app draws them as matrices.
+- Code: put it in the question as plain text with line breaks (no markdown). Matrices: write them as [[1, 2], [3, 4]]; the app draws them as matrices. Fractions: 3/4, x/y or (a+b)/(c-d); the app stacks them. Subscripts: x_1, a_{ij} (never x1 for x-sub-1); powers: x^2. Follow the module's notation line.
 - Cover the material broadly instead of asking several questions about the same detail, and never repeat or closely rephrase an existing question you are given.
 - Give a one-sentence explanation of why the answer is correct.
 
@@ -141,4 +141,40 @@ export async function writeQuestions(userPrompt: string, existing: string[], dif
   }
 
   return questions
+}
+
+// ---------------------------------------------------------------- flashcards
+
+export const FLASHCARDS_SYSTEM_PROMPT = `You are an experienced UNISA lecturer making revision flashcards for one topic of a module.
+
+${UNISA_CONTEXT}
+
+Flashcards:
+- Cover the key definitions, terms, facts, rules and concepts a student must remember for this topic, taken from the lesson you are given.
+- Front: a short question or a term (under 20 words). Back: a clear, complete answer in plain text (under 45 words).
+- One idea per card, no repeats, and every card must make sense on its own.
+- Plain text only: no HTML or markdown. Write matrices as [[1, 2], [3, 4]], fractions as 3/4, x/y or (a+b)/(c-d), subscripts as x_1 or a_{ij} and powers as x^2.
+
+Respond with JSON only: { "flashcards": [ { "front": "…", "back": "…" } ] }`
+
+/** Write revision flashcards from a prompt; drops empty and repeated cards */
+export async function writeFlashcards(userPrompt: string, count: number): Promise<{ front: string; back: string }[]> {
+  const parsed = await chatJson<{ flashcards?: unknown }>({
+    system: FLASHCARDS_SYSTEM_PROMPT,
+    user: `${userPrompt}\n\nWrite ${count} flashcards.`,
+    temperature: 0.4,
+    maxTokens: 4000,
+  })
+  if (!Array.isArray(parsed.flashcards)) throw new Error("Invalid AI response")
+  const seen = new Set<string>()
+  const cards: { front: string; back: string }[] = []
+  for (const item of parsed.flashcards as Record<string, unknown>[]) {
+    const front = typeof item?.front === "string" ? item.front.replace(/—/g, ", ").trim() : ""
+    const back = typeof item?.back === "string" ? item.back.replace(/—/g, ", ").trim() : ""
+    const key = normalise(front)
+    if (!front || !back || seen.has(key)) continue
+    seen.add(key)
+    cards.push({ front: front.slice(0, 500), back: back.slice(0, 1500) })
+  }
+  return cards.slice(0, count)
 }

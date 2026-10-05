@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { SUPERUSER_ONLY, isSuperuser } from "@/lib/superuser"
 import { toPlainText } from "@/lib/plain-text"
 import { setModuleCourses } from "@/lib/courses"
+import { getModuleCoding, setModuleCoding } from "@/lib/coding"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -61,9 +62,12 @@ export async function GET(_request: Request, { params }: Params) {
     SELECT c."id", c."title" FROM "course_modules" cm JOIN "courses" c ON c."id" = cm."courseId"
     WHERE cm."moduleId" = ${id} ORDER BY lower(c."title")`
 
+  const coding = await getModuleCoding(id)
+
   return NextResponse.json({
     ...rest,
     courses: courseRows,
+    coding,
     chapters: rest.chapters.map(ch => ({ ...ch, topicsWithoutContent: emptyByChapter.get(ch.id) ?? 0 })),
     isEnrolled: Boolean(enrollment),
     enrolledAt: enrollment?.enrolledAt ?? null,
@@ -81,6 +85,8 @@ export async function PATCH(request: Request, { params }: Params) {
     description?: string
     /** When given, the module is put in exactly these courses */
     courseIds?: unknown
+    /** "auto" (from the module code), "none", or a language: whether it's a coding module */
+    coding?: unknown
   }
 
   if (title !== undefined && !title.trim()) {
@@ -100,8 +106,15 @@ export async function PATCH(request: Request, { params }: Params) {
   if (Array.isArray(courseIds)) {
     await setModuleCourses(id, courseIds.filter((c): c is string => typeof c === "string"))
   }
+  if (typeof body.coding === "string") {
+    try {
+      await setModuleCoding(id, body.coding)
+    } catch {
+      return NextResponse.json({ error: "Unknown programming language" }, { status: 400 })
+    }
+  }
 
-  return NextResponse.json(updated)
+  return NextResponse.json({ ...updated, coding: await getModuleCoding(id) })
 }
 
 // DELETE /api/modules/:id - superusers only. Deletes the module with its chapters,

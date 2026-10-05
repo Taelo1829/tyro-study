@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { ArrowDown, ArrowUp, GraduationCap, ListChecks, Pencil, Plus, Search, Trash2, X } from "lucide-react"
+import { ArrowDown, ArrowUp, GraduationCap, ListChecks, Pencil, Plus, Search, Sparkles, Trash2, X } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/admin/modal"
+import { CourseImport } from "@/components/admin/course-import"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,6 +31,7 @@ export default function AdminCoursesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Course | null>(null)
   const [picking, setPicking] = useState<Course | null>(null)
+  const [building, setBuilding] = useState<Course | null>(null)
 
   const load = useCallback(async () => {
     const [c, m] = await Promise.all([fetch("/api/courses"), fetch("/api/modules")])
@@ -93,8 +95,8 @@ export default function AdminCoursesPage() {
                 if (!res.ok) throw new Error(data.error ?? "Failed to create the course")
                 setCourses(prev => [...prev, data as Course].sort((a, b) => a.title.localeCompare(b.title)))
                 setShowForm(false)
-                // Straight on to choosing its modules
-                setPicking(data as Course)
+                // Straight on to filling it: with AI, or by choosing modules
+                setBuilding(data as Course)
               }}
             />
           </CardContent>
@@ -108,7 +110,8 @@ export default function AdminCoursesPage() {
           {courses.length === 0 && (
             <Card>
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                No courses yet. Create one (e.g. BSc Computing) and choose the modules that belong to it.
+                No courses yet. Create one (e.g. BSc Computing), then build it with AI from its UNISA page or choose the
+                modules that belong to it.
               </CardContent>
             </Card>
           )}
@@ -127,7 +130,11 @@ export default function AdminCoursesPage() {
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="primary" onClick={() => setPicking(course)}>
+                    <Button size="sm" variant="primary" onClick={() => setBuilding(course)}>
+                      <Sparkles className="h-4 w-4" />
+                      Build with AI
+                    </Button>
+                    <Button size="sm" onClick={() => setPicking(course)}>
                       <ListChecks className="h-4 w-4" />
                       Modules
                     </Button>
@@ -196,6 +203,20 @@ export default function AdminCoursesPage() {
           onSaved={updated => {
             setCourses(prev => prev.map(c => (c.id === updated.id ? updated : c)))
             setEditing(null)
+          }}
+        />
+      )}
+
+      {building && (
+        <CourseImport
+          course={building}
+          open
+          onClose={() => setBuilding(null)}
+          onChanged={() => void load()}
+          onChooseManually={() => {
+            const course = courses.find(c => c.id === building.id) ?? building
+            setBuilding(null)
+            setPicking(course)
           }}
         />
       )}

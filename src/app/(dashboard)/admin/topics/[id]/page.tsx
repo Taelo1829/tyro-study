@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { BookOpen, FileText, Layers, ListChecks } from "lucide-react"
+import { BookOpen, Code2, FileText, Layers, ListChecks } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { ContentManager } from "@/components/admin/content-manager"
@@ -15,6 +15,7 @@ import { DeleteQuestionButton } from "@/components/admin/delete-question-button"
 import { MoveQuestionButton } from "@/components/admin/move-question-button"
 import { Button } from "@/components/ui/button"
 import { MathText } from "@/components/ui/math-text"
+import { ProjectManager } from "@/components/admin/project-manager"
 
 interface TopicDetail {
   id: string
@@ -30,6 +31,7 @@ interface TopicDetail {
   questions: {
     id: string
     question: string
+    paper?: string | null
     answers: { answer: string; isCorrect: boolean }[]
   }[]
   flashcards: { id: string; front: string; back: string }[]
@@ -42,6 +44,7 @@ export default function AdminTopicDetailPage() {
   const id = params.id as string
   const [topic, setTopic] = useState<TopicDetail | null>(null)
   const [tab, setTab] = useState("lesson")
+  const [projectCount, setProjectCount] = useState(0)
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/topics/${id}`)
@@ -100,7 +103,7 @@ export default function AdminTopicDetailPage() {
 
       {/* Tabs stay mounted (forceMount) so switching tabs never loses an unsaved lesson */}
       <Tabs value={tab} onValueChange={setTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 border border-foreground shadow-none">
+        <TabsList className="grid w-full grid-cols-5 border border-foreground shadow-none">
           <TabsTrigger value="lesson" className="gap-2 px-2">
             <BookOpen className="hidden h-4 w-4 sm:block" />
             <span>Lesson</span>
@@ -118,6 +121,11 @@ export default function AdminTopicDetailPage() {
             <Layers className="hidden h-4 w-4 sm:block" />
             <span className="truncate">Flashcards</span>
             <CountBadge n={topic._count.flashcards} />
+          </TabsTrigger>
+          <TabsTrigger value="projects" className="gap-2 px-2">
+            <Code2 className="hidden h-4 w-4 sm:block" />
+            <span className="truncate">Projects</span>
+            <CountBadge n={projectCount} />
           </TabsTrigger>
         </TabsList>
 
@@ -157,9 +165,16 @@ export default function AdminTopicDetailPage() {
                 {topic.questions.map((q, i) => (
                   <div key={q.id} className="rounded-2xl border border-border p-4">
                     <div className="mb-2 flex items-start justify-between gap-3">
-                      <p className="whitespace-pre-wrap font-medium">
-                        {i + 1}. <MathText text={q.question} />
-                      </p>
+                      <div>
+                        {q.paper && (
+                          <span className="mb-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                            Past paper · {q.paper}
+                          </span>
+                        )}
+                        <p className="whitespace-pre-wrap font-medium">
+                          {i + 1}. <MathText text={q.question} />
+                        </p>
+                      </div>
                       <div className="flex shrink-0 items-center">
                         <MoveQuestionButton questionId={q.id} questionText={q.question} currentTopicId={id} onMoved={load} />
                         <DeleteQuestionButton questionId={q.id} onDeleted={load} />
@@ -191,6 +206,11 @@ export default function AdminTopicDetailPage() {
               hasLesson={!!topic.content?.replace(/<[^>]+>/g, "").trim()}
               onChanged={load}
             />
+          </Panel>
+        </TabsContent>
+        <TabsContent value="projects" forceMount className="data-[state=inactive]:hidden">
+          <Panel title="Coding projects" description="Hands-on programming tasks for coding modules. Students upload their code and the AI marks it against each project's rubric.">
+            <ProjectManager topicId={id} moduleId={topic.chapter.module.id} onCount={setProjectCount} />
           </Panel>
         </TabsContent>
       </Tabs>

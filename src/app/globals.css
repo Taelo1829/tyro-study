@@ -371,6 +371,24 @@ body {
 }
 .topic-content th { font-weight: 700; background: var(--neo-inset-dark); }
 .topic-content pre { white-space: pre; font-size: 0.9rem; line-height: 1.55; }
+/* 3/4, x/y written as a numerator over a denominator (lessons, questions, flashcards) */
+.tc-frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0 0.15em;
+  font-size: 0.9em;
+  line-height: 1.15;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.tc-frac-num {
+  padding: 0 0.2em 0.1em;
+  border-bottom: 1.5px solid currentColor;
+}
+.tc-frac-den { padding: 0.1em 0.2em 0; }
+.tc-frac sup { font-size: 0.7em; }
 /* [[1,2],[3,4]] matrices inside lessons */
 .tc-matrix {
   position: relative;

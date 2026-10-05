@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-import { Crown, KeyRound, Search, Shield, ShieldOff, Trash2, Users } from "lucide-react"
+import { BarChart3, Crown, KeyRound, Search, Shield, ShieldOff, Trash2, Users } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -223,6 +223,15 @@ export default function AdminUsersPage() {
                   </div>
 
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {user._count.enrollments > 0 && (
+                      <Link
+                        href={`/admin/users/${user.id}/progress`}
+                        className="neo-button flex h-10 items-center gap-2 px-3.5 text-sm font-medium sm:px-4"
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                        Progress
+                      </Link>
+                    )}
                     {viewer.isSuperuser && isAdmin && (
                       <button
                         type="button"

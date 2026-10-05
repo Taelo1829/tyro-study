@@ -7,6 +7,7 @@ import NextLink from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
+import { ChapterProgressBar, formatDuration, type ModuleProgressData } from '@/components/progress/progress-report'
 
 interface ChapterDetail {
     title: string
@@ -16,6 +17,9 @@ interface ChapterDetail {
 const ChapterPage = () => {
     const [chapter, setChapter] = useState<ChapterDetail | null>(null)
     const [loading, setLoading] = useState(false)
+    // The chapter quiz's estimated time and this student's results on it
+    const [chapterProgress, setChapterProgress] = useState<ModuleProgressData["chapters"][number] | null>(null)
+    const [quizInfo, setQuizInfo] = useState<{ quizSize: number; estimateSeconds: number; best: number | null; attempts: number; failed: number; averageSeconds: number | null } | null>(null)
     const params = useParams()
     const router = useRouter()
     const id = params.chapterId
@@ -25,10 +29,19 @@ const ChapterPage = () => {
         const res = await fetch(`/api/chapters/${id}`)
         if (res.ok) setChapter(await res.json())
         setLoading(false)
-    }, [id])
+        const prog = await fetch(`/api/progress/module/${params.id}`).catch(() => null)
+        if (prog?.ok) {
+            const data = await prog.json()
+            const ch = data.chapters?.find((c: { id: string }) => c.id === id)
+            if (ch) {
+                setQuizInfo({ quizSize: ch.quizSize, estimateSeconds: ch.estimateSeconds, ...ch.stats })
+                setChapterProgress(ch)
+            }
+        }
+    }, [id, params.id])
 
     useEffect(() => {
-        load()
+        queueMicrotask(load)
     }, [load])
 
     if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>
@@ -44,10 +57,29 @@ const ChapterPage = () => {
                 />
             )}
 
+            {chapterProgress && (
+                <section className="mb-6 rounded-[1.5rem] border border-border bg-white px-5 py-4">
+                    <p className="mb-2 text-sm font-semibold">Your progress in this chapter</p>
+                    <ChapterProgressBar chapter={chapterProgress} />
+                </section>
+            )}
+
             {chapter && chapter.topics.some((topic) => topic._count.questions > 0) && (
                 <Card className="mb-6 border-primary/30 bg-primary/5">
                     <CardContent className="flex items-center justify-between py-4">
-                        <div><p className="font-semibold">Chapter quiz</p><p className="text-sm text-muted-foreground">Test everything in this chapter.</p></div>
+                        <div>
+                            <p className="font-semibold">Chapter quiz</p>
+                            <p className="text-sm text-muted-foreground">
+                                {quizInfo
+                                    ? `${quizInfo.quizSize} questions · estimated ${formatDuration(quizInfo.estimateSeconds)}`
+                                    : "Test everything in this chapter."}
+                            </p>
+                            {quizInfo && quizInfo.attempts > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                    Best {quizInfo.best}% · {quizInfo.attempts} {quizInfo.attempts === 1 ? "try" : "tries"} · {quizInfo.failed} failed · avg {formatDuration(quizInfo.averageSeconds)}
+                                </p>
+                            )}
+                        </div>
                         <NextLink href={`/modules/${chapter.module.id}/chapters/${id}/quiz`}><Button><PlayCircle /> Start quiz</Button></NextLink>
                     </CardContent>
                 </Card>

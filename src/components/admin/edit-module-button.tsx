@@ -3,6 +3,7 @@
 import { toPlainText } from "@/lib/plain-text"
 import { useState } from "react"
 import Link from "next/link"
+import { CODING_LANGUAGES } from "@/lib/coding-shared"
 import { Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,9 +15,24 @@ interface CourseLink {
   title: string
 }
 
+interface ModuleCoding {
+  language: string | null
+  auto: boolean
+}
+
+/** The select's value: "auto", "none" or a language */
+const codingChoice = (c?: ModuleCoding | null) => (!c || c.auto ? "auto" : c.language ?? "none")
+
 interface EditModuleButtonProps {
-  module: { id: string; title: string; description: string | null; courses?: CourseLink[] }
-  onSaved: (updated: { title: string; description: string | null; courses: CourseLink[] }) => void
+  module: {
+    id: string
+    title: string
+    description: string | null
+    courses?: CourseLink[]
+    /** Whether it's a coding module (language null = not), and whether that's automatic */
+    coding?: ModuleCoding | null
+  }
+  onSaved: (updated: { title: string; description: string | null; courses: CourseLink[]; coding?: ModuleCoding | null }) => void
   /** For the delete warning (superusers can delete from this window) */
   chapterCount?: number
   topicCount?: number
@@ -34,6 +50,7 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
   // Every course (loaded when the window opens) and the ones this module is in
   const [allCourses, setAllCourses] = useState<CourseLink[] | null>(null)
   const startCourseIds = (module.courses ?? []).map(c => c.id)
+  const [coding, setCoding] = useState(codingChoice(module.coding))
   const [courseIds, setCourseIds] = useState<string[]>(startCourseIds)
 
   function openEditor() {
@@ -41,6 +58,7 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
     setTitle(module.title)
     setDescription(toPlainText(module.description))
     setCourseIds(startCourseIds)
+    setCoding(codingChoice(module.coding))
     setError("")
     setOpen(true)
     fetch("/api/courses")
@@ -51,7 +69,8 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
 
   const coursesChanged =
     courseIds.length !== startCourseIds.length || courseIds.some(id => !startCourseIds.includes(id))
-  const unchanged =
+  const codingChanged = coding !== codingChoice(module.coding)
+  const unchanged = !codingChanged &&
     title.trim() === module.title && description.trim() === toPlainText(module.description) && !coursesChanged
 
   async function save(e: React.FormEvent) {
@@ -70,6 +89,7 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
           title: title.trim(),
           description: description.trim(),
           ...(coursesChanged && { courseIds }),
+          ...(codingChanged && { coding }),
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -77,7 +97,7 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
       const courses = coursesChanged
         ? (allCourses ?? []).filter(c => courseIds.includes(c.id))
         : module.courses ?? []
-      onSaved({ title: data.title, description: data.description, courses })
+      onSaved({ title: data.title, description: data.description, courses, coding: data.coding ?? module.coding })
       setOpen(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save the module")
@@ -126,6 +146,29 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
                 placeholder="What the module covers. Students see this before they join."
                 className="neo-inset w-full resize-y rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/50"
               />
+            </div>
+            <div>
+              <label htmlFor="module-coding" className="mb-1.5 block text-sm font-medium">Coding module</label>
+              <select
+                id="module-coding"
+                value={coding}
+                onChange={e => setCoding(e.target.value)}
+                disabled={saving}
+                className="neo-inset h-11 w-full rounded-full bg-transparent px-4 text-sm outline-none focus:ring-2 focus:ring-accent/50"
+              >
+                <option value="auto">
+                  Automatic: {/^(COS|INF|ICT)\d/.test(title.replace(/\s/g, "").toUpperCase()) ? "yes, C++ (COS, INF and ICT modules)" : "no (not a COS, INF or ICT module)"}
+                </option>
+                <option value="none">Not a coding module</option>
+                {Object.entries(CODING_LANGUAGES).map(([value, l]) => (
+                  <option key={value} value={value}>
+                    Coding module: {l.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Coding modules get coding projects: students upload their code and the AI marks it. The AI writes projects in this language.
+              </p>
             </div>
             <fieldset>
               <legend className="mb-1.5 text-sm font-medium">

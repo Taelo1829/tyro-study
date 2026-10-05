@@ -7,7 +7,6 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { TopicContentView } from "@/components/topic/topic-content-view"
 import { coursesForModule, getPublicTopic } from "@/lib/public-notes"
 import { lessonSummary, renderTopicContentServer } from "@/lib/topic-content-server"
-import { readingMinutes } from "@/lib/topic-content"
 import { SITE_NAME } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
@@ -45,7 +44,7 @@ export default async function PublicLessonPage({ params }: Props) {
         />
         <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{topic.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {topic.moduleTitle} · {topic.chapterTitle} · {readingMinutes(html)} min read
+          {topic.moduleTitle} · {topic.chapterTitle}
         </p>
 
         <div className="mt-8">

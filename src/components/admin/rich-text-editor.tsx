@@ -29,7 +29,7 @@ import {
     CircleCheck,
 } from "lucide-react";
 import { TopicContentView } from "@/components/topic/topic-content-view";
-import { contentForEditor, getVideoEmbedHtml, legacyToHtml, readingMinutes, sanitizeTopicHtml } from "@/lib/topic-content";
+import { contentForEditor, getVideoEmbedHtml, legacyToHtml, sanitizeTopicHtml } from "@/lib/topic-content";
 import { cn } from "@/lib/utils";
 
 /**
@@ -432,7 +432,6 @@ export default function NeumorphicEditor({ value, setHtml, placeholder = "Start 
                 </div>
                 <p className="text-xs text-muted-foreground">
                     {words} word{words !== 1 ? "s" : ""}
-                    {words > 0 && <> · {readingMinutes(html)} min read</>}
                 </p>
             </div>
 

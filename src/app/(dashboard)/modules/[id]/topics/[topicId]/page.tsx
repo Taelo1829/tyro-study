@@ -21,19 +21,21 @@ import {
     Lock,
     FileText,
     Video,
+    Code2,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { useCourseCrumb } from "@/components/modules/use-course-crumb"
 import FlashcardDeck from "@/components/modules/flash-card-decks"
+import { TopicProjects, type TopicProjectSummary } from "@/components/projects/topic-projects"
 import { TopicPdfReader } from "@/components/modules/topic-pdf-reader"
 import { Modal } from "@/components/admin/modal"
 import { Input } from "@/components/ui/input"
 import { MathText } from "@/components/ui/math-text"
 import { TopicContentView } from "@/components/topic/topic-content-view"
 import { AdSenseScript } from "@/components/ads/adsense-script"
-import { readingMinutes, renderTopicContent, splitTopicVideos } from "@/lib/topic-content"
+import { renderTopicContent, splitTopicVideos } from "@/lib/topic-content"
 
 interface Topic {
     id: string
@@ -97,6 +99,8 @@ export default function TopicPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isStartingQuiz, setIsStartingQuiz] = useState(false)
     const [activeTab, setActiveTab] = useState("content")
+    // Coding projects (coding modules)
+    const [projects, setProjects] = useState<TopicProjectSummary[]>([])
     const [isOpen, setIsOpen] = useState(false)
     const [assignmentIsOpen, setAssignmentIsOpen] = useState(false)
     const [file, setFile] = useState<File | null>(null)
@@ -143,9 +147,15 @@ export default function TopicPage() {
             }
         }
 
+        const fetchProjects = async () => {
+            const response = await fetch(`/api/topics/${topicId}/projects`).catch(() => null)
+            if (response?.ok) setProjects((await response.json()).projects ?? [])
+        }
+
         if (topicId) {
             fetchTopic()
             fetchProgress()
+            fetchProjects()
         }
     }, [topicId])
 
@@ -219,7 +229,8 @@ export default function TopicPage() {
     const { lesson: lessonHtml, videos } = splitTopicVideos(renderTopicContent(topic.content))
     const hasVideo = videos.length > 0
     const hasLesson = lessonHtml.replace(/<[^>]+>/g, "").trim().length > 0 || /<img/i.test(lessonHtml)
-    const tabCount = 1 + Number(hasVideo) + Number(hasPdfs) + Number(hasFlashcards) + Number(hasQuestions)
+    const hasProjects = projects.length > 0
+    const tabCount = 1 + Number(hasVideo) + Number(hasPdfs) + Number(hasFlashcards) + Number(hasQuestions) + Number(hasProjects)
     const isAdmin = session?.user?.role === "ADMIN"
 
     const toggle = () => {
@@ -332,6 +343,12 @@ export default function TopicPage() {
                                 <span>Flashcards</span>
                             </TabsTrigger>
                         )}
+                        {hasProjects && (
+                            <TabsTrigger value="projects" className="gap-2 px-2">
+                                <Code2 className="hidden h-4 w-4 sm:block" />
+                                <span>Projects</span>
+                            </TabsTrigger>
+                        )}
                         {hasQuestions && (
                             <TabsTrigger value="quiz-prep" className="gap-2 px-2">
                                 <PlayCircle className="hidden h-4 w-4 sm:block" />
@@ -343,11 +360,6 @@ export default function TopicPage() {
                     <TabsContent value="content">
                         <Sheet>
                             {/* The lesson, as written in the app (videos are in the Video tab) */}
-                            {hasLesson && (
-                                <p className="mb-6 text-sm text-muted-foreground">
-                                    {readingMinutes(lessonHtml)} min read · Take notes as you go.
-                                </p>
-                            )}
                             <TopicContentView
                                 content={topic.content}
                                 part="lesson"
@@ -404,6 +416,19 @@ export default function TopicPage() {
                         </TabsContent>
                     )}
 
+                    {/* Coding projects: upload your code, the AI marks it */}
+                    {hasProjects && (
+                        <TabsContent value="projects">
+                            <Sheet>
+                                <SheetHeading
+                                    title="Coding projects"
+                                    description="Write the program on your computer, then upload your files. The AI marks your code against each project's rubric and tells you what to improve."
+                                />
+                                <TopicProjects projects={projects} moduleId={topic.chapter.module.id} topicId={topic.id} />
+                            </Sheet>
+                        </TabsContent>
+                    )}
+
                     {/* Quiz Preparation Tab */}
                     <TabsContent value="quiz-prep">
                         <Sheet>
@@ -411,7 +436,7 @@ export default function TopicPage() {
                                 title="Ready to test your knowledge?"
                                 description={hasQuestions
                                         ? topic.questions.length > 20
-                                            ? `Each quiz picks 20 of this topic's ${topic.questions.length} questions, starting with ones you haven't done yet.`
+                                            ? `Each quiz picks 20 of this topic's ${topic.questions.length} questions at random, so every attempt is different.`
                                             : `This quiz contains ${topic.questions.length} questions covering all the key concepts.`
                                         : "No questions available for this topic yet."}
                             />

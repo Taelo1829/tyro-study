@@ -90,19 +90,120 @@ export function findPowers(text: string): PowerToken[] {
   }))
 }
 
+export interface FractionToken { start: number; end: number; numerator: string; denominator: string }
+
+// One side of a fraction: a number (3, 0.5), a single lowercase letter (x, y, λ) or both (2x),
+// either with an optional power (x^2), or a short bracketed expression ((a+b)).
+const FRACTION_SIDE = String.raw`(?:\d+(?:\.\d+)?(?:[a-zα-ω](?![\p{L}\p{N}]))?|[a-zα-ω](?![\p{L}\p{N}]))(?:\^(?:\{[^{}\n\u0001]+\}|\([^()\n\u0001]+\)|-?[\p{L}\p{N}]+))?|\([^()\n\u0001]{1,40}\)`
+/** a/b, x/y, 3/4, x^2/y, (a+b)/(c-d) - not dates (1/2/2024), paths, URLs or words (and/or) */
+const FRACTION = new RegExp(String.raw`(?<![\p{L}\p{N}_/.:\\])(${FRACTION_SIDE}) ?\/ ?(${FRACTION_SIDE})(?![\p{L}\p{N}_/])`, "gu")
+/** Slashed abbreviations that aren't fractions */
+const NOT_FRACTIONS = new Set(["n/a", "w/o", "c/o", "a/c", "w/e", "b/w", "s/o", "y/n", "24/7"])
+
+const unbracket = (side: string) => (/^\(.*\)$/.test(side) ? side.slice(1, -1).trim() : side)
+
+/** Every fraction written with a slash (3/4, x/y, (a+b)/c) in a piece of text */
+export function findFractions(text: string): FractionToken[] {
+  if (!text.includes("/")) return []
+  const out: FractionToken[] = []
+  for (const m of text.matchAll(FRACTION)) {
+    if (NOT_FRACTIONS.has(m[0].replace(/\s+/g, "").toLowerCase())) continue
+    out.push({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length, numerator: unbracket(m[1]), denominator: unbracket(m[2]) })
+  }
+  return out
+}
+
+// ---------------------------------------------------------------- subscripts
+
+/** x_1, x_{12}, a_{ij}: an underscore after a single letter (not snake_case words) */
+const SUBSCRIPT = /(?<=(?:^|[^\p{L}_])\p{L})_(?:\{([^{}\n\u0001]+)\}|(\p{N}{1,3}(?![\p{L}\p{N}])|\p{L}{1,2}(?![\p{L}\p{N}])))/gu
+/** x1, a12 typed without the underscore: a lone lowercase letter followed by 1–2 digits */
+const PLAIN_SUBSCRIPT = /(?<=(?:^|[^\p{L}_.])[a-z])(\d{1,2})(?![\p{L}\p{N}_])/gu
+/** The text reads as maths (an equation or expression), so x1 means x₁ */
+const MATHS_SIGNS = /[=+±≤≥<>−×·]|\s-\s/
+
+/**
+ * Stricter than looksLikeProgram (which also catches words like "for" and
+ * "if" in a maths question): real code structure only.
+ */
+const CODE = /[;{}]|==|<<|>>|#include|\b(?:for|while|if|switch)\s*\(|\b(?:int|double|float|char|bool|string|void|var|let|const|auto)\s+[A-Za-z_]\w*\s*[=;,()[]|\b(?:cout|cin|printf|print|console\.log)\s*[(<]|\bdef\s+\w+\s*\(|\breturn\b/
+function looksLikeCode(text: string) {
+  return CODE.test(text)
+}
+
+export interface SubscriptToken { start: number; end: number; value: string }
+
+/**
+ * Subscripts in a piece of text: x_1, a_{ij} always; x1 + x2 = 0 when the text
+ * reads as maths (an operator, or several such variables). Programs are left
+ * alone: there x1 and my_var are names.
+ */
+export function findSubscripts(text: string): SubscriptToken[] {
+  // (the braces in a_{ij} and x^{n+1} aren't code)
+  if (looksLikeCode(text.replace(/[_^]\{[^{}]*\}/g, ""))) return []
+  const out: SubscriptToken[] = [...text.matchAll(SUBSCRIPT)].map(m => ({
+    start: m.index ?? 0,
+    end: (m.index ?? 0) + m[0].length,
+    value: (m[1] ?? m[2] ?? "").trim(),
+  }))
+  const plain = [...text.matchAll(PLAIN_SUBSCRIPT)]
+  if (plain.length >= 2 || (plain.length === 1 && MATHS_SIGNS.test(text))) {
+    for (const m of plain) out.push({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length, value: m[1] })
+  }
+  return out.sort((a, b) => a.start - b.start)
+}
+
+export interface ScriptToken { start: number; end: number; kind: "sup" | "sub"; value: string }
+
+/** Powers and subscripts together, in order, without overlaps */
+export function findScripts(text: string): ScriptToken[] {
+  const all: ScriptToken[] = [
+    ...findPowers(text).map(p => ({ start: p.start, end: p.end, kind: "sup" as const, value: p.exponent })),
+    ...findSubscripts(text).map(s => ({ ...s, kind: "sub" as const })),
+  ].sort((a, b) => a.start - b.start)
+  const out: ScriptToken[] = []
+  for (const t of all) if (!out.length || t.start >= out[out.length - 1].end) out.push(t)
+  return out
+}
+
+/** Could this text hold a power or subscript? (cheap pre-check) */
+export function mayHaveScripts(text: string) {
+  return text.includes("^") || text.includes("_") || /[a-z]\d/.test(text)
+}
+
+const SUBSCRIPT_CHARS: Record<string, string> = {
+  "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄", "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉",
+  "+": "₊", "-": "₋", "=": "₌", "(": "₍", ")": "₎", a: "ₐ", e: "ₑ", i: "ᵢ", j: "ⱼ", k: "ₖ", n: "ₙ", m: "ₘ", o: "ₒ", x: "ₓ",
+}
+
+function toSubscript(value: string): string | null {
+  const chars = [...value.replace(/\s+/g, "")]
+  return chars.length > 0 && chars.every(ch => SUBSCRIPT_CHARS[ch]) ? chars.map(ch => SUBSCRIPT_CHARS[ch]).join("") : null
+}
+
 /** Powers in a short string as superscript characters where possible (for matrix cells) */
 function superscriptPowers(value: string): string {
   return value.replace(POWER, (whole, a?: string, b?: string, c?: string) => toSuperscript((a ?? b ?? c ?? "").trim()) ?? whole)
 }
 
 function latexToText(value: string): string {
-  let out = superscriptPowers(value)
+  let out = cellScripts(value)
   for (const [pattern, replacement] of LATEX_SYMBOLS) out = out.replace(pattern, replacement)
   return out.replace(/[{}]/g, "").replace(/\s+/g, " ")
 }
 
+/** A matrix cell: powers and subscripts as small characters where possible (a_{11} → a₁₁) */
+function cellScripts(value: string): string {
+  let out = superscriptPowers(value)
+  for (const t of findSubscripts(out).reverse()) {
+    const small = toSubscript(t.value)
+    if (small) out = out.slice(0, t.start) + small + out.slice(t.end)
+  }
+  return out
+}
+
 function parseBracketMatrix(literal: string): string[][] | null {
-  const rows = [...literal.matchAll(/\[([^[\]]*)\]/g)].map(m => m[1].split(",").map(cell => superscriptPowers(cell.replace(/\s+/g, " ").trim())))
+  const rows = [...literal.matchAll(/\[([^[\]]*)\]/g)].map(m => m[1].split(",").map(cell => cellScripts(cell.replace(/\s+/g, " ").trim())))
   if (rows.length === 0) return null
   const width = rows[0].length
   if (rows.some(row => row.length !== width || row.some(cell => cell === ""))) return null
@@ -208,15 +309,39 @@ export function Matrix({ rows, bracket = "b", className }: { rows: string[][]; b
   )
 }
 
-/** Plain text with x^2 / x^{n+1} shown as superscripts */
-function WithPowers({ text }: { text: string }) {
-  const powers = findPowers(text)
-  if (powers.length === 0) return <>{text}</>
+/** Plain text with fractions stacked (numerator over denominator) and powers raised */
+function WithMath({ text }: { text: string }) {
+  const fractions = looksLikeProgram(text) ? [] : findFractions(text)
+  if (fractions.length === 0) return <WithPowers text={text} />
   const out: React.ReactNode[] = []
   let last = 0
-  powers.forEach((p, i) => {
+  fractions.forEach((f, i) => {
+    if (f.start > last) out.push(<WithPowers key={`t${i}`} text={text.slice(last, f.start)} />)
+    out.push(<Fraction key={`f${i}`} numerator={f.numerator} denominator={f.denominator} />)
+    last = f.end
+  })
+  if (last < text.length) out.push(<WithPowers key="end" text={text.slice(last)} />)
+  return <>{out}</>
+}
+
+export function Fraction({ numerator, denominator }: { numerator: string; denominator: string }) {
+  return (
+    <span className="tc-frac" role="math" aria-label={`${numerator} over ${denominator}`}>
+      <span className="tc-frac-num" aria-hidden="true"><WithPowers text={numerator} /></span>
+      <span className="tc-frac-den" aria-hidden="true"><WithPowers text={denominator} /></span>
+    </span>
+  )
+}
+
+/** Plain text with x^2 / x^{n+1} shown as superscripts */
+function WithPowers({ text }: { text: string }) {
+  const scripts = mayHaveScripts(text) ? findScripts(text) : []
+  if (scripts.length === 0) return <>{text}</>
+  const out: React.ReactNode[] = []
+  let last = 0
+  scripts.forEach((p, i) => {
     if (p.start > last) out.push(text.slice(last, p.start))
-    out.push(<sup key={i}>{p.exponent}</sup>)
+    out.push(p.kind === "sup" ? <sup key={i}>{p.value}</sup> : <sub key={i}>{p.value}</sub>)
     last = p.end
   })
   if (last < text.length) out.push(text.slice(last))
@@ -226,11 +351,11 @@ function WithPowers({ text }: { text: string }) {
 export function MathText({ text, className }: { text: string | null | undefined; className?: string }) {
   if (!text) return null
   const parts = splitMath(text)
-  if (parts.length === 1 && parts[0].type === "text" && !text.includes("^")) return <>{text}</>
+  if (parts.length === 1 && parts[0].type === "text" && !mayHaveScripts(text) && !text.includes("/")) return <>{text}</>
   return (
     <span className={className}>
       {parts.map((part, i) =>
-        part.type === "text" ? <WithPowers key={i} text={part.value} /> : <Matrix key={i} rows={part.rows} bracket={part.bracket} />
+        part.type === "text" ? <WithMath key={i} text={part.value} /> : <Matrix key={i} rows={part.rows} bracket={part.bracket} />
       )}
     </span>
   )

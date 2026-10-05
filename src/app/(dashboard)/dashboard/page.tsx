@@ -6,6 +6,8 @@ import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { moduleProgress } from "@/lib/quiz-stats"
+import { moduleSteps } from "@/lib/progress-steps"
 import { recordDailyVisit } from "@/lib/streak"
 import { listCalendarEvents, type CalendarEventRow } from "@/lib/calendar"
 import Link from "next/link"
@@ -22,45 +24,26 @@ interface TopicUpNext {
   totalQuestions: number
 }
 
+/**
+ * Overall progress across the student's modules, counted the same way as the
+ * module progress bars: topic quizzes, chapter quizzes and mock exams passed.
+ */
 async function getStudyProgressPercent(userId: string) {
   const enrollments = await prisma.moduleEnrollment.findMany({
     where: { userId },
     select: { moduleId: true },
   })
+  if (enrollments.length === 0) return 0
 
-  const moduleIds = enrollments.map((enrollment) => enrollment.moduleId)
-  if (moduleIds.length === 0) return 0
-
-  const totalQuestions = await prisma.question.count({
-    where: {
-      topic: {
-        chapter: {
-          moduleId: { in: moduleIds },
-        },
-      },
-    },
-  })
-
-  if (totalQuestions === 0) return 0
-
-  const answeredQuestions = await prisma.userAnswer.groupBy({
-    by: ["questionId"],
-    where: {
-      userId,
-      question: {
-        topic: {
-          chapter: {
-            moduleId: { in: moduleIds },
-          },
-        },
-      },
-    },
-  })
-
-  return Math.min(
-    100,
-    Math.round((answeredQuestions.length / totalQuestions) * 100)
+  const steps = await Promise.all(
+    enrollments.map(async ({ moduleId }) => {
+      const progress = await moduleProgress(userId, moduleId)
+      return progress ? moduleSteps(progress) : { done: 0, total: 0 }
+    })
   )
+  const total = steps.reduce((n, s) => n + s.total, 0)
+  const done = steps.reduce((n, s) => n + s.done, 0)
+  return total ? Math.round((done / total) * 100) : 0
 }
 
 async function getCurrentStreakDays(userId: string) {
@@ -164,7 +147,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <DashboardWidget
           title="Study Progress"
-          description="Overall completion across modules"
+          description="Quizzes passed across your modules"
           delay={0}
           tone="blue"
         >

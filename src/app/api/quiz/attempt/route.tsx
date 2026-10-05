@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getTopicLock, lockedResponseBody } from "@/lib/topic-locks"
+import { MOCK_EXAM_PASS_MARK, moduleProgress } from "@/lib/quiz-stats"
 import type { Prisma } from "@/prisma/client"
 
 /** Extra time after an (optional) time limit for a late submit to arrive */
@@ -14,6 +15,97 @@ const questionInclude = {
 } as const
 
 type PoolQuestion = Prisma.QuestionGetPayload<{ include: typeof questionInclude }>
+
+/** Which questions came from a past paper (question id → paper name) */
+async function paperNames(ids: string[]): Promise<Map<string, string>> {
+    if (ids.length === 0) return new Map()
+    const rows = await prisma.$queryRaw<{ id: string; paper: string }[]>`
+        SELECT "id", "paper" FROM "questions" WHERE "paper" IS NOT NULL AND "id" = ANY(${ids}::text[])`
+    return new Map(rows.map(r => [r.id, r.paper]))
+}
+
+/** An unfinished quiz is picked up again (after a refresh) for this long */
+const RESUME_WINDOW_MS = 24 * 60 * 60_000
+
+/** Which quiz this is, saved in the attempt's settings so it can be resumed */
+function sourceKeyOf(body: { topicId?: string; chapterId?: string; moduleId?: string }) {
+    if (body.topicId) return `topic:${body.topicId}`
+    if (body.chapterId) return `chapter:${body.chapterId}`
+    if (body.moduleId) return `module:${body.moduleId}`
+    return null
+}
+
+function questionTopic(q: PoolQuestion) {
+    // Chapter-level questions have no topic, so this must be null-safe
+    return q.topic
+        ? {
+            id: q.topic.id,
+            title: q.topic.title,
+            chapter: q.topic.chapter.title,
+            module: q.topic.chapter.module.title,
+            moduleId: q.topic.chapter.moduleId,
+        }
+        : null
+}
+
+/**
+ * The user's unfinished attempt at this quiz, in the same shape as a new one
+ * plus the answers given so far, or null. Same questions, same option order
+ * (as saved when it started), and the original start time so the stopwatch
+ * carries on. Older unfinished attempts are closed as abandoned.
+ */
+async function resumeAttempt(userId: string, source: string) {
+    const open = await prisma.quizAttempt.findMany({
+        where: { userId, status: "IN_PROGRESS", settings: { contains: `"source":"${source}"` } },
+        orderBy: { startedAt: "desc" },
+        include: { questionAttempts: { orderBy: { order: "asc" } } },
+    })
+    const fresh = open.find(a => Date.now() - a.startedAt.getTime() < RESUME_WINDOW_MS)
+    const stale = open.filter(a => a !== fresh).map(a => a.id)
+    if (stale.length) {
+        await prisma.quizAttempt.updateMany({ where: { id: { in: stale } }, data: { status: "ABANDONED" } })
+    }
+    if (!fresh) return null
+
+    const saved = JSON.parse(fresh.questionsData) as { id: string; question: string; difficulty: string; answers: { id: string; answer: string }[] }[]
+    const pool = await prisma.question.findMany({ where: { id: { in: saved.map(q => q.id) } }, include: questionInclude })
+    const byId = new Map(pool.map(q => [q.id, q]))
+    // A question deleted since the quiz started can't be shown again: start over instead
+    if (saved.some(q => !byId.has(q.id))) {
+        await prisma.quizAttempt.update({ where: { id: fresh.id }, data: { status: "ABANDONED" } })
+        return null
+    }
+
+    const answered = fresh.questionAttempts
+        .filter(qa => qa.status === "ANSWERED" && qa.selectedAnswerId)
+        .map(qa => ({
+            questionId: qa.questionId,
+            selectedAnswerId: qa.selectedAnswerId!,
+            isCorrect: !!qa.isCorrect,
+            correctAnswerId: byId.get(qa.questionId)!.answers.find(a => a.isCorrect)?.id ?? null,
+        }))
+    const settings = JSON.parse(fresh.settings)
+    const papers = await paperNames(saved.map(q => q.id))
+
+    return {
+        attemptId: fresh.id,
+        resumed: true,
+        questions: saved.map(q => ({
+            id: q.id,
+            text: q.question,
+            difficulty: q.difficulty,
+            options: q.answers.map(a => ({ id: a.id, text: a.answer })),
+            topic: questionTopic(byId.get(q.id)!),
+            paper: papers.get(q.id) ?? null,
+        })),
+        answered,
+        totalQuestions: fresh.totalQuestions,
+        settings,
+        startedAt: fresh.startedAt,
+        serverNow: new Date(),
+        expiresAt: settings.timeLimit ? new Date(fresh.startedAt.getTime() + settings.timeLimit * 60000) : null,
+    }
+}
 
 // POST - Create a new quiz attempt
 export async function POST(req: NextRequest) {
@@ -54,6 +146,13 @@ export async function POST(req: NextRequest) {
             if (lock) return NextResponse.json(lockedResponseBody(lock), { status: 403 })
         }
 
+        // Refreshed or came back: carry on with the unfinished attempt at this quiz
+        const source = questionIds?.length ? null : sourceKeyOf({ topicId, chapterId, moduleId })
+        if (source && body.fresh !== true) {
+            const resumed = await resumeAttempt(user.id, source)
+            if (resumed) return NextResponse.json({ success: true, data: resumed })
+        }
+
         let questions: PoolQuestion[] = []
         let quizTopicId = topicId
         let quizModuleId = moduleId
@@ -75,14 +174,10 @@ export async function POST(req: NextRequest) {
             })
             quizTopicId = topicId
         } else if (moduleId) {
-            // Get questions for an entire module
+            // Mock exam: every question in the module (topics' and chapters' own)
             questions = await prisma.question.findMany({
                 where: {
-                    topic: {
-                        chapter: {
-                            moduleId,
-                        },
-                    },
+                    OR: [{ topic: { chapter: { moduleId } } }, { chapter: { moduleId } }],
                 },
                 include: questionInclude,
             })
@@ -118,44 +213,59 @@ export async function POST(req: NextRequest) {
                 : defaultQuizSize
         )
 
+        // Mock exam: questions shared out by chapter, timed from the student's
+        // chapter quiz times (at most 3 hours). Chapter quiz: an estimated time.
+        const progress = moduleId || chapterId
+            ? await moduleProgress(user.id, moduleId ?? (await prisma.chapter.findUnique({ where: { id: chapterId }, select: { moduleId: true } }))?.moduleId ?? "")
+            : null
+        const mockPlan = moduleId && !questionIds?.length ? progress?.mock.plan ?? null : null
+        const chapterEstimateSeconds = chapterId ? progress?.chapters.find(c => c.id === chapterId)?.estimateSeconds ?? null : null
+
         // Apply quiz settings
         const quizSettings = {
             randomizeQuestions: settings?.randomizeQuestions ?? true,
             randomizeOptions: settings?.randomizeOptions ?? true,
             questionsPerQuiz,
             // No time limit by default - the quiz is timed (stopwatch), not limited
-            timeLimit: settings?.timeLimit ?? null,
-            passingScore: settings?.passingScore ?? 70,
+            timeLimit: mockPlan ? mockPlan.timeLimitSeconds / 60 : settings?.timeLimit ?? null,
+            passingScore: mockPlan ? MOCK_EXAM_PASS_MARK : settings?.passingScore ?? 70,
+            // Shown before and during a chapter quiz (not enforced)
+            estimatedSeconds: chapterEstimateSeconds,
+            mockExam: !!mockPlan,
             allowRetry: settings?.allowRetry ?? true,
+            // Lets a refresh find this attempt again
+            source,
         }
 
-        // ── Rotate questions ────────────────────────────────────────────────
-        // Count how many times this user has answered each question in the pool
-        // (in submitted quizzes). Questions answered the fewest times are picked
-        // first, so you work through every question before any comes back a
-        // second time; then the cycle starts again. Ties are broken randomly.
-        const timesAnswered = await prisma.questionAttempt.groupBy({
-            by: ["questionId"],
-            where: {
-                questionId: { in: questions.map(q => q.id) },
-                status: "ANSWERED",
-                quizAttempt: { userId: user.id },
-            },
-            _count: { _all: true },
-        })
-        const answerCount = new Map(timesAnswered.map(t => [t.questionId, t._count._all]))
-        const countFor = (questionId: string) => answerCount.get(questionId) ?? 0
+        // ── Pick questions at random ────────────────────────────────────────
+        // Every quiz draws a fresh random set from the whole pool, in random
+        // order. (No rotation: a question can come up again in the next quiz.)
+        let finalQuestions = shuffleArray(questions).slice(0, questionsPerQuiz)
+        if (mockPlan) {
+            // Past-paper questions this student hasn't answered in a mock exam yet come first
+            const poolIds = questions.map(q => q.id)
+            const paperRows = await prisma.$queryRaw<{ id: string }[]>`
+                SELECT "id" FROM "questions" WHERE "paper" IS NOT NULL AND "id" = ANY(${poolIds}::text[])`
+            const seenRows = paperRows.length
+                ? await prisma.$queryRaw<{ questionId: string }[]>`
+                    SELECT DISTINCT qa."questionId" FROM "question_attempts" qa
+                    JOIN "quiz_attempts" a ON a."id" = qa."quizAttemptId"
+                    WHERE a."userId" = ${user.id} AND qa."status" = 'ANSWERED'
+                      AND a."settings" LIKE ${`%"source":"module:${moduleId}"%`}`
+                : []
+            const seen = new Set(seenRows.map(r => r.questionId))
+            const firstChoice = new Set(paperRows.map(r => r.id).filter(id => !seen.has(id)))
 
-        const ranked = shuffleArray(questions)
-            .map((q, i) => ({ q, i, count: countFor(q.id) }))
-            .sort((x, y) => x.count - y.count || x.i - y.i)
-
-        let finalQuestions = ranked.slice(0, questionsPerQuiz).map(r => r.q)
-
-        // Present the picked questions in random order (not grouped by count)
-        if (quizSettings.randomizeQuestions) {
-            finalQuestions = shuffleArray(finalQuestions)
+            // Each chapter's share: unseen past-paper questions first, then the rest, each at random
+            const chapterOf = (q: PoolQuestion) => q.topic?.chapter.id ?? q.chapterId
+            finalQuestions = shuffleArray(
+                mockPlan.perChapter.flatMap(part => {
+                    const inChapter = shuffleArray(questions.filter(q => chapterOf(q) === part.chapterId))
+                    return [...inChapter.filter(q => firstChoice.has(q.id)), ...inChapter.filter(q => !firstChoice.has(q.id))].slice(0, part.questions)
+                })
+            )
         }
+        quizSettings.questionsPerQuiz = finalQuestions.length
 
         // Randomize options for each question if enabled
         if (quizSettings.randomizeOptions) {
@@ -165,14 +275,6 @@ export async function POST(req: NextRequest) {
             }))
         }
 
-        // Progress through the current cycle, for the client to show if wanted
-        const lowestCount = Math.min(...questions.map(q => countFor(q.id)))
-        const rotation = {
-            totalInPool: questions.length,
-            seenAtLeastOnce: questions.filter(q => countFor(q.id) > 0).length,
-            remainingThisRound: questions.filter(q => countFor(q.id) === lowestCount).length,
-            round: lowestCount + 1,
-        }
 
         const quizAttempt = await prisma.quizAttempt.create({
             data: {
@@ -206,6 +308,7 @@ export async function POST(req: NextRequest) {
             })),
         })
 
+        const papers = await paperNames(finalQuestions.map(q => q.id))
         return NextResponse.json({
             success: true,
             data: {
@@ -218,24 +321,17 @@ export async function POST(req: NextRequest) {
                         id: a.id,
                         text: a.answer,
                     })),
-                    // Chapter-level questions have no topic, so this must be null-safe
-                    topic: q.topic
-                        ? {
-                            id: q.topic.id,
-                            title: q.topic.title,
-                            chapter: q.topic.chapter.title,
-                            module: q.topic.chapter.module.title,
-                            moduleId: q.topic.chapter.moduleId,
-                        }
-                        : null,
+                    topic: questionTopic(q),
+                    paper: papers.get(q.id) ?? null,
                 })),
                 totalQuestions: finalQuestions.length,
                 settings: quizSettings,
                 startedAt: quizAttempt.startedAt,
+                serverNow: new Date(),
+                answered: [],
                 expiresAt: quizSettings.timeLimit
                     ? new Date(Date.now() + quizSettings.timeLimit * 60000)
                     : null,
-                rotation,
             },
         })
     } catch (error) {
@@ -487,9 +583,10 @@ export async function PUT(req: NextRequest) {
             })
 
             // How long the quiz took, from the server's start/finish times
-            const durationSeconds = Math.max(
-                0,
-                Math.round((completedAt.getTime() - quizAttempt.startedAt.getTime()) / 1000)
+            // (a timed exam handed in late, e.g. after leaving the page, counts as its full time)
+            const durationSeconds = Math.min(
+                Math.max(0, Math.round((completedAt.getTime() - quizAttempt.startedAt.getTime()) / 1000)),
+                settings.timeLimit ? Math.round(settings.timeLimit * 60) : Infinity
             )
 
             // Save user answers to permanent storage

@@ -27,6 +27,8 @@ interface QuizQuestion {
     difficulty: string
     options: QuizOption[]
     topic: { id: string; title: string; moduleId?: string } | null
+    /** The past exam/assignment paper it comes from */
+    paper?: string | null
 }
 
 interface AnswerResult {
@@ -97,9 +99,14 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     const [nextStep, setNextStep] = useState<NextStep | null>(null)
     // Study notes for the questions this student got wrong
     const [notes, setNotes] = useState<{ status: "idle" | "loading" | "done" | "error"; items: MissedNote[] }>({ status: "idle", items: [] })
-    // Stopwatch: counts up from when the quiz loaded on this device
+    // Stopwatch: counts up from when the attempt started (on the server, so a refresh keeps the time)
     const [startedAt, setStartedAt] = useState<number | null>(null)
     const [now, setNow] = useState(() => Date.now())
+    // Mock exam: a real time limit (counts down, then submits itself)
+    const [limitMs, setLimitMs] = useState<number | null>(null)
+    // Chapter quiz: roughly how long it should take (not enforced)
+    const [estimateMs, setEstimateMs] = useState<number | null>(null)
+    const [timedOut, setTimedOut] = useState(false)
 
     const sourceKey = JSON.stringify(source)
     // Chapter/module quizzes cover several topics, so show which ones to revise
@@ -116,12 +123,16 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         setIndex(0)
         setChecking(false)
         setStartedAt(null)
+        setLimitMs(null)
+        setEstimateMs(null)
+        setTimedOut(false)
 
         try {
             const res = await fetch("/api/quiz/attempt", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                // The server picks how many questions and which ones (least-seen first)
+                // The server picks the questions at random, or hands back the
+                // unfinished attempt at this quiz (after a refresh) to carry on with
                 body: sourceKey,
             })
             const data = await res.json().catch(() => ({}))
@@ -132,10 +143,35 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                         : data.error ?? "Could not start the quiz."
                 )
             }
-            setAttemptId(data.data.attemptId)
-            setQuestions(data.data.questions)
-            setStartedAt(Date.now())
+            const attempt = data.data as {
+                attemptId: string
+                questions: QuizQuestion[]
+                answered?: { questionId: string; selectedAnswerId: string; isCorrect: boolean; correctAnswerId: string | null }[]
+                startedAt: string
+                serverNow?: string
+                settings?: { timeLimit?: number | null; estimatedSeconds?: number | null }
+            }
+            setAttemptId(attempt.attemptId)
+            setQuestions(attempt.questions)
+
+            // Answers already given (a resumed attempt): show them as answered
+            const answered = attempt.answered ?? []
+            setSelected(Object.fromEntries(answered.map(a => [a.questionId, a.selectedAnswerId])))
+            setResults(Object.fromEntries(answered.map(a => [a.questionId, { isCorrect: a.isCorrect, correctAnswerId: a.correctAnswerId }])))
+            const done = new Set(answered.map(a => a.questionId))
+            const firstOpen = attempt.questions.findIndex(q => !done.has(q.id))
+            setIndex(firstOpen === -1 ? Math.max(0, attempt.questions.length - 1) : firstOpen)
+
+            // Time so far, measured on the server's clock (this device's clock may differ)
+            const elapsed = attempt.serverNow
+                ? Math.max(0, new Date(attempt.serverNow).getTime() - new Date(attempt.startedAt).getTime())
+                : 0
+            setStartedAt(Date.now() - elapsed)
             setNow(Date.now())
+            const limit = Number(attempt.settings?.timeLimit)
+            setLimitMs(limit > 0 ? limit * 60_000 : null)
+            const estimate = Number(attempt.settings?.estimatedSeconds)
+            setEstimateMs(estimate > 0 ? estimate * 1000 : null)
             setPhase("answering")
         } catch (err) {
             setError(err instanceof Error ? err.message : "Could not start the quiz.")
@@ -191,6 +227,32 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     }, [final, missedCount, attemptId])
 
     const elapsedMs = startedAt ? Math.max(0, now - startedAt) : null
+    const leftMs = limitMs !== null && elapsedMs !== null ? Math.max(0, limitMs - elapsedMs) : null
+
+    // Time's up: hand the exam in (unanswered questions count as wrong)
+    const outOfTime = phase === "answering" && leftMs === 0
+    useEffect(() => {
+        if (!outOfTime || !attemptId) return
+        let live = true
+        fetch("/api/quiz/attempt", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ attemptId, finish: true }),
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (!live) return
+                setTimedOut(true)
+                if (data && typeof data.score === "number") setFinal(readFinal(data))
+                setPhase("results")
+            })
+            .catch(() => {})
+        return () => {
+            live = false
+        }
+        // readFinal is a plain helper; this runs once when the time runs out
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [outOfTime, attemptId])
 
     function readFinal(data: Record<string, unknown>): FinalResult {
         return {
@@ -234,6 +296,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                 },
             }))
             // Answering the last question completes the attempt on the server
+            if (data.timedOut) setTimedOut(true)
             if (data.completed) setFinal(readFinal(data))
         } catch (err) {
             setError(err instanceof Error ? err.message : "Could not save your answer.")
@@ -357,6 +420,11 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 <span className="text-4xl">📊</span>
                             </div>
                             <h1 className="mb-2 text-3xl font-bold text-foreground">Quiz Results</h1>
+                            {timedOut && (
+                                <p className="mb-2 text-sm font-medium text-orange-700">
+                                    Time ran out, so the exam was handed in. Questions you hadn&apos;t answered count as wrong.
+                                </p>
+                            )}
                             {final?.durationSeconds != null && (
                                 <p className="mb-2 text-sm text-muted-foreground">
                                     ⏱ Time taken: <span className="font-mono font-semibold tabular-nums text-foreground">{formatClock(final.durationSeconds * 1000)}</span>
@@ -564,13 +632,25 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 <span className="text-sm text-muted-foreground">
                                     Question {index + 1} of {questions.length}
                                 </span>
-                                {elapsedMs !== null && (
+                                {leftMs !== null ? (
+                                    <span
+                                        role="timer"
+                                        aria-label="Time left"
+                                        className={`neo-pressed rounded-full px-3 py-1 font-mono text-sm font-semibold tabular-nums ${leftMs < 5 * 60_000 ? "text-red-600" : "text-foreground"}`}
+                                    >
+                                        ⏳ {formatClock(leftMs)} left
+                                    </span>
+                                ) : elapsedMs !== null && (
                                     <span
                                         role="timer"
                                         aria-label="Time taken so far"
                                         className="neo-pressed rounded-full px-3 py-1 font-mono text-sm font-semibold tabular-nums text-foreground"
+                                        title={estimateMs ? `Estimated time: about ${Math.round(estimateMs / 60_000)} min` : undefined}
                                     >
                                         ⏱ {formatClock(elapsedMs)}
+                                        {estimateMs !== null && (
+                                            <span className="font-normal text-muted-foreground"> / ~{Math.round(estimateMs / 60_000)} min</span>
+                                        )}
                                     </span>
                                 )}
                             </div>
@@ -596,6 +676,9 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 </span>
                             )}
                         </div>
+                        {current.paper && (
+                            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Past paper · {current.paper}</p>
+                        )}
                         <h2 className="whitespace-pre-wrap text-xl font-semibold text-foreground"><MathText text={current.text} /></h2>
                     </div>
 

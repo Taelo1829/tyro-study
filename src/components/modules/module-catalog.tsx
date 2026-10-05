@@ -7,6 +7,7 @@ import { BookOpen, ChevronRight, GraduationCap, Search, UserMinus, UserPlus, X }
 import { Card, CardContent } from "@/components/ui/card"
 import { useModuleStore } from "@/app/(dashboard)/modules/store"
 import { BROWSE_COURSE_KEY } from "./use-course-crumb"
+import { StepsBar } from "@/components/progress/progress-report"
 
 export interface ModuleItem {
   id: string
@@ -36,16 +37,24 @@ interface ModuleCatalogProps {
   showAvailableOnly?: boolean
   /** Show course chips and a search box above the list */
   searchable?: boolean
+  /** "Browse modules" button in the empty My modules message */
+  onBrowse?: () => void
+  /** Called after each load with how many modules this list shows */
+  onCount?: (count: number) => void
 }
 
 export function ModuleCatalog({
   showEnrolledOnly = false,
   showAvailableOnly = false,
   searchable = false,
+  onBrowse,
+  onCount,
 }: ModuleCatalogProps) {
   const [query, setQuery] = useState("")
   const [modules, setModules] = useState<ModuleItem[]>([])
   const [courses, setCourses] = useState<CourseItem[]>([])
+  // Joined modules: how far through each one the student is
+  const [progress, setProgress] = useState<Record<string, { done: number; total: number; percent: number }>>({})
   const [course, setCourseState] = useState<CourseChoice>("all")
   const [loading, setLoading] = useState(true)
   const [actionId, setActionId] = useState<string | null>(null)
@@ -55,10 +64,15 @@ export function ModuleCatalog({
     if (res.ok) {
       const mods: ModuleItem[] = await res.json()
       setModules(mods)
+      onCount?.(mods.filter(m => (showEnrolledOnly ? m.isEnrolled : showAvailableOnly ? !m.isEnrolled : true)).length)
     }
     if (courseRes.ok) setCourses(await courseRes.json())
     setLoading(false)
-  }, [])
+    if (showEnrolledOnly) {
+      const prog = await fetch("/api/progress/modules").catch(() => null)
+      if (prog?.ok) setProgress(await prog.json())
+    }
+  }, [onCount, showEnrolledOnly, showAvailableOnly])
 
   useEffect(() => {
     queueMicrotask(load)
@@ -228,9 +242,21 @@ export function ModuleCatalog({
     return (
       <Card>
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          {showEnrolledOnly
-            ? "You haven't joined any modules yet. Browse available modules below."
-            : showAvailableOnly
+          {showEnrolledOnly ? (
+            <>
+              <p>You haven&apos;t joined any modules yet.</p>
+              {onBrowse && (
+                <button
+                  type="button"
+                  onClick={onBrowse}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background"
+                >
+                  Browse modules
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              )}
+            </>
+          ) : showAvailableOnly
               ? "You're enrolled in all available modules."
               : "No modules available yet."}
         </CardContent>
@@ -287,6 +313,16 @@ export function ModuleCatalog({
                   </span>
                 )}
               </p>
+              {m.isEnrolled && progress[m.id] && progress[m.id].total > 0 && (
+                <StepsBar
+                  className="mt-3"
+                  size="sm"
+                  label={`${m.title} progress`}
+                  percent={progress[m.id].percent}
+                  complete={progress[m.id].done === progress[m.id].total}
+                  detail={`${progress[m.id].done} of ${progress[m.id].total} quizzes passed`}
+                />
+              )}
             </div>
 
             <div className="flex items-stretch bg-foreground">
