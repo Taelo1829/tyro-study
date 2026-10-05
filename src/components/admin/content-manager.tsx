@@ -23,6 +23,8 @@ interface ContentManagerProps {
   initialContent: string
   initialAssignment?: string
   onSaved: () => void
+  /** Coding modules: "Try it yourself" exercises / typed questions were written for the saved AI lesson */
+  onPracticeAdded?: () => void
 }
 
 export function ContentManager({
@@ -30,6 +32,7 @@ export function ContentManager({
   initialContent,
   initialAssignment = "",
   onSaved,
+  onPracticeAdded,
 }: ContentManagerProps) {
   const [content, setContent] = useState(initialContent)
   const [loading, setLoading] = useState(false)
@@ -42,6 +45,9 @@ export function ContentManager({
   const [aiBusy, setAiBusy] = useState(false)
   const [aiError, setAiError] = useState("")
   const [videoOpen, setVideoOpen] = useState(false)
+  // The editor holds an AI-written lesson that hasn't been saved yet
+  const [aiDraft, setAiDraft] = useState(false)
+  const [practice, setPractice] = useState<{ busy: boolean; text: string; error?: boolean }>({ busy: false, text: "" })
 
   const hasContent = content.replace(/<[^>]+>/g, "").trim().length > 0
 
@@ -60,6 +66,7 @@ export function ContentManager({
       const draft = sanitizeTopicHtml(data.html ?? "")
       if (!draft) throw new Error("The AI didn't return any lesson content")
       setContent(draft)
+      setAiDraft(true)
       setAiOpen(false)
       setMessage(
         `AI draft added${data.usedPdfs ? ` (based on ${data.usedPdfs} PDF${data.usedPdfs > 1 ? "s" : ""})` : ""}. Check it over, edit anything you like, then press Save lesson.`
@@ -68,6 +75,33 @@ export function ContentManager({
       setAiError(err instanceof Error ? err.message : "The AI couldn't write this lesson")
     } finally {
       setAiBusy(false)
+    }
+  }
+
+  /** Coding modules only (the server skips other topics, and topics that already have exercises) */
+  async function writePractice() {
+    setPractice({ busy: true, text: "Writing “Try it yourself” exercises and type-the-answer questions for this lesson…" })
+    try {
+      const res = await fetch(`/api/topics/${topicId}/exercises/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auto: true, exercises: 2, questions: 5 }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error ?? "Couldn't write the exercises")
+      if (data.skipped) return setPractice({ busy: false, text: "" })
+      setPractice({
+        busy: false,
+        text: `Added ${data.exercises} “Try it yourself” exercise${data.exercises === 1 ? "" : "s"} and ${data.questions} type-the-answer question${data.questions === 1 ? "" : "s"} (see the Coding and Questions tabs).`,
+      })
+      onSaved()
+      onPracticeAdded?.()
+    } catch (err) {
+      setPractice({
+        busy: false,
+        error: true,
+        text: `The lesson is saved, but the exercises weren't written: ${err instanceof Error ? err.message : "try again from the Coding tab"}`,
+      })
     }
   }
 
@@ -86,6 +120,11 @@ export function ContentManager({
       }
       setMessage("Content saved")
       onSaved()
+      // A saved AI lesson in a coding module gets its "Try it yourself" exercises and typed questions
+      if (aiDraft) {
+        setAiDraft(false)
+        void writePractice()
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Save failed")
     } finally {
@@ -177,6 +216,12 @@ export function ContentManager({
             Add Assignment
           </Button>
         </div>
+        {practice.text && (
+          <p className={cn("flex items-center gap-2 text-sm", practice.error ? "text-red-600" : practice.busy ? "text-muted-foreground" : "text-green-700")} role="status">
+            {practice.busy && <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent" />}
+            {practice.text}
+          </p>
+        )}
         {message && (
           <p className="text-sm text-muted-foreground">{message}</p>
         )}

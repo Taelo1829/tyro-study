@@ -49,6 +49,8 @@ export default function AdminTopicDetailPage() {
   const [tab, setTab] = useState("lesson")
   const [projectCount, setProjectCount] = useState(0)
   const [exerciseCount, setExerciseCount] = useState(0)
+  // Bumped when exercises are written from the Lesson tab, so the Coding tab reloads them
+  const [practiceVersion, setPracticeVersion] = useState(0)
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/topics/${id}`)
@@ -139,6 +141,7 @@ export default function AdminTopicDetailPage() {
             initialContent={topic.content ?? ""}
             initialAssignment={topic.assignment ?? ""}
             onSaved={load}
+            onPracticeAdded={() => setPracticeVersion(v => v + 1)}
           />
         </TabsContent>
 
@@ -224,7 +227,7 @@ export default function AdminTopicDetailPage() {
           </Panel>
           <div className="mt-10 border-t-2 border-foreground pt-8">
             <Panel title="Try it yourself" description="Fill-in-the-blank code exercises shown after the lesson, checked instantly, plus type-the-answer quiz questions.">
-              <ExerciseManager topicId={id} onCount={setExerciseCount} onQuestionsAdded={load} />
+              <ExerciseManager key={practiceVersion} topicId={id} onCount={setExerciseCount} onQuestionsAdded={load} />
             </Panel>
           </div>
         </TabsContent>
