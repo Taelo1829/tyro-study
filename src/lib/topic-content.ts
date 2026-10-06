@@ -11,6 +11,7 @@
  */
 
 import { findFractions, findMath, findScripts, looksLikeProgram, mayHaveScripts } from "@/components/ui/math-text"
+import { GRAPH_ATTRIBUTES, graphSpecFrom, renderGraphSvg } from "@/lib/graph"
 
 // ── Video embeds ─────────────────────────────────────────────────────────────
 
@@ -135,7 +136,8 @@ const ALLOWED_TAGS = new Set([
 const RENAME: Record<string, string> = { B: "strong", I: "em", STRIKE: "s", DEL: "s", H1: "h2", H5: "h4", H6: "h4" }
 /** Removed together with everything inside */
 const DROP = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "OBJECT", "EMBED", "FORM", "INPUT", "BUTTON", "SELECT", "TEXTAREA", "META", "LINK", "TITLE", "HEAD", "SVG", "MATH"])
-const ALLOWED_CLASSES = new Set(["topic-video-embed", "callout", "callout-tip", "callout-warning"])
+// "graph": a maths graph marker (lib/graph.ts), drawn when the lesson is shown
+const ALLOWED_CLASSES = new Set(["topic-video-embed", "callout", "callout-tip", "callout-warning", "graph"])
 
 const ALLOWED_ATTRS: Record<string, string[]> = {
   A: ["href"],
@@ -145,6 +147,8 @@ const ALLOWED_ATTRS: Record<string, string[]> = {
   TD: ["colspan", "rowspan"],
   TH: ["colspan", "rowspan"],
   OL: ["start"],
+  // Graph settings (only matter on <div class="graph">)
+  DIV: [...GRAPH_ATTRIBUTES],
 }
 
 function safeUrl(value: string, { media = false } = {}) {
@@ -508,8 +512,35 @@ export function sanitizeTopicHtml(html: string, { matrices = false } = {}): stri
     renderMatrices(root, doc)
     renderFractions(root, doc)
     renderPowers(root, doc)
+    // Last, so the maths formatting above never touches the SVG text
+    renderGraphs(root, doc)
   }
   return root.innerHTML
+}
+
+/**
+ * Turn graph markers (<div class="graph" data-fn="…">caption</div>) into
+ * graphs drawn by lib/graph.ts. A marker that can't be drawn is removed.
+ */
+function renderGraphs(root: Element, doc: Document) {
+  root.querySelectorAll("div.graph").forEach(marker => {
+    const title = marker.textContent?.trim() || "Graph"
+    const svg = renderGraphSvg(graphSpecFrom(name => marker.getAttribute(name)), title)
+    if (!svg) {
+      marker.remove()
+      return
+    }
+    const figure = doc.createElement("figure")
+    figure.className = "lesson-graph-figure"
+    // Our own SVG markup (built from numbers and escaped labels), not user HTML
+    figure.innerHTML = svg
+    if (marker.textContent?.trim()) {
+      const caption = doc.createElement("figcaption")
+      while (marker.firstChild) caption.appendChild(marker.firstChild)
+      figure.appendChild(caption)
+    }
+    marker.replaceWith(figure)
+  })
 }
 
 /** Content as stored → safe HTML for students */

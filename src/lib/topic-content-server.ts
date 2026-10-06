@@ -1,5 +1,6 @@
 import sanitizeHtml from "sanitize-html"
 import { legacyToHtml, looksLikeHtml } from "@/lib/topic-content"
+import { GRAPH_ATTRIBUTES, renderGraphMarkersInHtml } from "@/lib/graph"
 
 /**
  * Server-side version of renderTopicContent (lib/topic-content.ts): turns a
@@ -21,9 +22,9 @@ const OPTIONS: sanitizeHtml.IOptions = {
     td: ["colspan", "rowspan"],
     th: ["colspan", "rowspan"],
     ol: ["start"],
-    div: ["class"],
+    div: ["class", ...GRAPH_ATTRIBUTES],
   },
-  allowedClasses: { div: ["topic-video-embed", "callout", "callout-tip", "callout-warning"] },
+  allowedClasses: { div: ["topic-video-embed", "callout", "callout-tip", "callout-warning", "graph"] },
   allowedSchemes: ["http", "https", "mailto"],
   allowedSchemesByTag: { img: ["http", "https"], video: ["http", "https"] },
   allowedIframeHostnames: ["www.youtube.com", "www.youtube-nocookie.com", "player.vimeo.com"],
@@ -42,7 +43,8 @@ const OPTIONS: sanitizeHtml.IOptions = {
 export function renderTopicContentServer(content: string | null | undefined): string {
   if (!content?.trim()) return ""
   const html = looksLikeHtml(content) ? content : legacyToHtml(content)
-  return sanitizeHtml(html, OPTIONS)
+  // Graph markers are drawn after cleaning (their SVG is ours, not user HTML)
+  return renderGraphMarkersInHtml(sanitizeHtml(html, OPTIONS))
     .replace(/<p>(\s|&nbsp;|<br \/>|<br>)*<\/p>/g, "")
     .trim()
 }

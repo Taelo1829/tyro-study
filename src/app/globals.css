@@ -355,6 +355,17 @@ body {
 .topic-content .callout > :first-child { margin-top: 0; }
 .topic-content .callout > :last-child { margin-bottom: 0; }
 .topic-content figure { margin: 1.25rem 0; }
+/* Maths graphs drawn by lib/graph.ts */
+.topic-content .lesson-graph-figure svg {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 0.75rem;
+  border: 1px solid var(--neo-inset-dark);
+  background: #ffffff;
+}
 .topic-content figure img { margin: 0 auto; }
 .topic-content figcaption {
   margin-top: 0.4rem;
