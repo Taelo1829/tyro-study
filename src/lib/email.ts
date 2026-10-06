@@ -23,7 +23,10 @@ export async function sendEmail({ to, subject, text, html }: { to: string; subje
     body: JSON.stringify({ from, to: [to], subject, text, ...(html ? { html } : {}) }),
   })
   if (!response.ok) {
-    throw new Error(`Email provider returned ${response.status}`)
+    // Include Resend's explanation (e.g. "The gmail.com domain is not verified")
+    // so the real cause shows up in the Vercel logs
+    const detail = await response.text().catch(() => "")
+    throw new Error(`Email provider returned ${response.status}: ${detail}`)
   }
 }
 
