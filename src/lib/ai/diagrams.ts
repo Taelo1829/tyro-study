@@ -1,4 +1,4 @@
-import { getOpenAIClient } from "@/lib/ai/openai"
+import { cleanForAi, getOpenAIClient } from "@/lib/ai/openai"
 
 /**
  * Labelled diagrams for lessons (the eye, the heart, a flower, a cell…).
@@ -132,7 +132,7 @@ export async function pickDiagram(
   const listing = shown
     .map((c, i) => `${i + 1}. "${c.title}"${c.description ? ` - ${c.description}` : ""}`)
     .join("\n")
-  const text = `Course/topic context: ${want.context}\nDiagram wanted: ${want.caption}\n(searched for: ${want.search})\n\nCandidates:\n${listing}`
+  const text = cleanForAi(`Course/topic context: ${want.context}\nDiagram wanted: ${want.caption}\n(searched for: ${want.search})\n\nCandidates:\n${listing}`)
 
   const openai = getOpenAIClient()
   const ask = async (withImages: boolean) => {

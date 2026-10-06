@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
-import { getOpenAIClient } from "@/lib/ai/openai"
+import { cleanForAi, getOpenAIClient } from "@/lib/ai/openai"
 import { prisma } from "@/lib/prisma"
 import { notationFor } from "@/lib/ai/unisa"
 import { BULK_BATCH_SIZE } from "@/lib/bulk-import"
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
         },
         {
           role: "user",
-          content: `Create flashcards from:\n\n${source.slice(0, 50_000)}`,
+          content: cleanForAi(`Create flashcards from:\n\n${source.slice(0, 50_000)}`),
         },
       ],
     })

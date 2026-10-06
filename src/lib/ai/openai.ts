@@ -9,6 +9,19 @@ export function getOpenAIClient() {
 }
 
 /**
+ * Make text safe to send to OpenAI. Cutting a string with .slice() can split
+ * an emoji (common in YouTube titles and descriptions) and leave half of it
+ * behind - a "lone surrogate". OpenAI rejects the whole request when that
+ * happens: "400 Invalid body: failed to parse JSON value". Stray control
+ * characters (often in PDF text) are dropped too.
+ */
+export function cleanForAi(text: string): string {
+  return text
+    .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+}
+
+/**
  * Ask the AI for a JSON object and parse it, retrying when the reply is
  * unusable. JSON mode sometimes gets stuck emitting blank lines until it runs
  * out of room, which leaves cut-off JSON ("Expected ',' or '}' … line 8093").
@@ -42,10 +55,10 @@ export async function chatJson<T>({
         {
           role: "system",
           content: retrying
-            ? `${system}\n\nReturn compact JSON on as few lines as possible, with no blank lines or padding, and make sure it is complete and valid.`
-            : system,
+            ? cleanForAi(`${system}\n\nReturn compact JSON on as few lines as possible, with no blank lines or padding, and make sure it is complete and valid.`)
+            : cleanForAi(system),
         },
-        { role: "user", content: user },
+        { role: "user", content: cleanForAi(user) },
       ],
     })
 

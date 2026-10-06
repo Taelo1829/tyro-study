@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from "@/lib/auth"
 import { prisma } from '@/lib/prisma'
-import { getOpenAIClient } from "@/lib/ai/openai"
+import { cleanForAi, getOpenAIClient } from "@/lib/ai/openai"
 import { getServerSession } from 'next-auth'
 
 interface GradeResult {
@@ -111,8 +111,8 @@ Grade this submission.`
             temperature: 0.2,
             max_tokens: 1000,
             messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt },
+                { role: 'system', content: cleanForAi(systemPrompt) },
+                { role: 'user', content: cleanForAi(userPrompt) },
             ],
         })
 

@@ -1,4 +1,4 @@
-import { getOpenAIClient } from "./openai"
+import { cleanForAi, getOpenAIClient } from "./openai"
 
 export interface ExtractedQuestion {
   question: string
@@ -41,7 +41,7 @@ export async function extractQuestionsFromText(
       { role: "system", content: SYSTEM_PROMPT },
       {
         role: "user",
-        content: `Extract multiple-choice questions from this study material:\n\n${text}`,
+        content: cleanForAi(`Extract multiple-choice questions from this study material:\n\n${text}`),
       },
     ],
   })
