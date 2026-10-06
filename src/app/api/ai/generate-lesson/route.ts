@@ -14,7 +14,8 @@ import { prisma } from "@/lib/prisma"
  */
 
 export const runtime = "nodejs"
-export const maxDuration = 120
+// Detailed (~4,000-word) lessons can take a couple of minutes to write
+export const maxDuration = 300
 
 /** Max characters of PDF text sent to the model */
 const PDF_TEXT_LIMIT = 40_000

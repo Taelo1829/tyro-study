@@ -1,5 +1,6 @@
 import { chatJson } from "@/lib/ai/openai"
 import { UNISA_CONTEXT } from "@/lib/ai/unisa"
+import { resolveLessonDiagrams } from "@/lib/ai/diagrams"
 
 /**
  * The AI lesson writer and question writer, shared by the "Write with AI" /
@@ -13,7 +14,7 @@ export type Length = "short" | "standard" | "detailed"
 export const LENGTH_GUIDE: Record<Length, string> = {
   short: "about 400–600 words",
   standard: "about 900–1,300 words",
-  detailed: "about 1,800–2,500 words",
+  detailed: "about 3,500–4,500 words",
 }
 
 export const LESSON_SYSTEM_PROMPT = `You are an experienced lecturer writing study material for students at UNISA (the University of South Africa).
@@ -28,13 +29,16 @@ Spend the words on teaching. Start straight away with the first concept (one or 
 Structure:
 1. The main teaching, split under clear headings (<h2>) and subheadings (<h3>), from basics to harder ideas, each with at least one fully worked example (show every step).
 2. "Watch out" boxes for common mistakes students make in exams and assignments, placed where the mistake happens.
+   Labelled diagrams: when the topic teaches a physical structure students must be able to identify and label (an organ such as the eye, heart, ear, kidney or brain; a cell or organelle; a flower, leaf, root or seed; a tooth, a nephron, a joint, a neuron; lab apparatus or a geological/geographical feature), place a diagram marker right where the text first describes that structure - not at the end. Use at most 3 markers per lesson, only where a picture genuinely helps, and none for maths, code, accounting or other topics without a physical structure.
+   Marker format (exactly): <div class="diagram" data-search="human eye labelled diagram">The structure of the human eye</div> - data-search is a short English search for a labelled diagram on Wikimedia Commons (name the structure plus "labelled diagram" or "anatomy"); the text inside is the caption.
+   A real diagram is inserted at the marker later, but sometimes none is found, so the text must still make complete sense on its own: describe every part in words, and never refer to labels, letters or numbers in the picture.
 3. A short summary list at the end, then 2–4 self-check questions (questions only, no answers) under a heading "Check your understanding".
 
-Formatting: return HTML using ONLY these tags: <h2> <h3> <p> <strong> <em> <ul> <ol> <li> <blockquote> <pre> <code> <table> <thead> <tbody> <tr> <th> <td> <hr> <div class="callout">, <div class="callout callout-tip">, <div class="callout callout-warning">.
+Formatting: return HTML using ONLY these tags: <h2> <h3> <p> <strong> <em> <ul> <ol> <li> <blockquote> <pre> <code> <table> <thead> <tbody> <tr> <th> <td> <hr> <div class="callout">, <div class="callout callout-tip">, <div class="callout callout-warning">, and diagram markers (<div class="diagram" data-search="…">caption</div>).
 - Callout boxes (use sparingly, inside the teaching, never as an opener): <div class="callout"><p><strong>Remember:</strong> …</p></div> for a rule or formula worth memorising, <div class="callout callout-tip"><p><strong>Tip:</strong> …</p></div>, <div class="callout callout-warning"><p><strong>Watch out:</strong> …</p></div>
 - Code goes in <pre><code>…</code></pre> with < and > escaped as &lt; &gt;.
 - Matrices: write them inline as [[1, 2], [3, 4]] (rows in brackets); the app draws them as matrices. Other maths: plain text such as x^2, x_1, √x, ≤, × (the app shows x^2 as a superscript and x_1 or a_{ij} as subscripts; never write x1 when you mean x with subscript 1). Follow the module's notation line. Fractions: a/b, 3/4, x^2/y or (a+b)/(c-d) with brackets round longer parts (the app draws them as a numerator over a denominator); never \frac or LaTeX. Equations go in <p>, never in <pre> or <code> - those are only for program code.
-- No <h1> (the topic title is already shown), no inline styles, no images, no links, no markdown.
+- No <h1> (the topic title is already shown), no inline styles, no <img> tags (use diagram markers instead), no links, no markdown.
 
 Respond with JSON only: { "html": "<the lesson HTML>" }`
 
@@ -59,14 +63,23 @@ export function trimLessonPreamble(html: string): string {
 
 /** Write a lesson from a prompt describing the topic; returns the lesson HTML */
 export async function writeLessonHtml(userPrompt: string): Promise<string> {
-  // Detailed lessons are ~2,500 words of HTML: leave plenty of room
-  const parsed = await chatJson<{ html?: unknown }>({ system: LESSON_SYSTEM_PROMPT, user: userPrompt, temperature: 0.5, maxTokens: 12000 })
+  // Detailed lessons are ~4,000 words of HTML (about 10k tokens): leave plenty
+  // of room, up to gpt-4o-mini's 16,384-token output limit
+  const parsed = await chatJson<{ html?: unknown }>({ system: LESSON_SYSTEM_PROMPT, user: userPrompt, temperature: 0.5, maxTokens: 16000 })
   const html = typeof parsed.html === "string"
     ? parsed.html.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "").trim()
     : ""
   if (!html) throw new Error("The AI didn't return any lesson content")
 
-  return trimLessonPreamble(html) || html
+  const lesson = trimLessonPreamble(html) || html
+  // Swap diagram markers for real labelled diagrams from Wikimedia Commons,
+  // picked by the AI (markers with no good match are dropped)
+  try {
+    return await resolveLessonDiagrams(lesson, userPrompt)
+  } catch (error) {
+    console.warn("Diagram step failed, saving the lesson without diagrams:", error)
+    return lesson.replace(/<div\b[^>]*class=["']diagram["'][^>]*>[\s\S]*?<\/div>/gi, "")
+  }
 }
 
 // ---------------------------------------------------------------- questions

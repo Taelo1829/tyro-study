@@ -15,7 +15,7 @@ type LessonLength = "short" | "standard" | "detailed"
 const LENGTHS: { id: LessonLength; label: string; hint: string }[] = [
   { id: "short", label: "Short", hint: "~500 words" },
   { id: "standard", label: "Standard", hint: "~1,100 words" },
-  { id: "detailed", label: "Detailed", hint: "~2,000 words" },
+  { id: "detailed", label: "Detailed", hint: "~4,000 words" },
 ]
 
 interface ContentManagerProps {
