@@ -238,6 +238,61 @@ export default function TopicPage() {
     const tabCount = 1 + Number(hasVideo) + Number(hasPdfs) + Number(hasFlashcards) + Number(hasQuestions) + Number(hasProjects)
     const isAdmin = session?.user?.role === "ADMIN"
 
+    // The "take the quiz" card, shown at the end of the lesson and under the video
+    const quizCard = (heading: string) => (
+        <section className="mt-10 overflow-hidden rounded-[2rem] border-2 border-foreground bg-white">
+            <div className="px-5 pb-4 pt-5">
+                <p className="flex items-start gap-2 text-lg font-semibold">
+                    <Trophy className="mt-1 h-5 w-5 shrink-0" />
+                    {heading}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {Math.min(topic.questions.length, 20)} questions · pass mark 70% · no time limit
+                </p>
+                {!!progress && progress.quizAttempts > 0 && (
+                    <p className="mt-2 text-sm">
+                        Best{" "}
+                        <span className={progress.bestScore >= 70 ? "font-semibold text-green-700" : "font-semibold text-orange-700"}>
+                            {progress.bestScore}%
+                        </span>
+                        <span className="text-muted-foreground">
+                            {" "}· {progress.quizAttempts} {progress.quizAttempts === 1 ? "try" : "tries"}
+                        </span>
+                    </p>
+                )}
+                {hasFlashcards && (
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("flashcards")}
+                        className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
+                    >
+                        <Sparkles className="h-4 w-4" />
+                        Review the flashcards first
+                    </button>
+                )}
+            </div>
+            <button
+                type="button"
+                onClick={handleStartQuiz}
+                disabled={isStartingQuiz}
+                className="flex min-h-12 w-full items-center justify-center gap-2 bg-foreground px-4 text-sm font-semibold text-background hover:bg-foreground/90 disabled:opacity-70"
+            >
+                {isStartingQuiz ? (
+                    <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Starting quiz...
+                    </>
+                ) : (
+                    <>
+                        <PlayCircle className="h-4 w-4" />
+                        {progress && progress.quizAttempts > 0 ? "Take the quiz again" : "Start quiz"}
+                    </>
+                )}
+            </button>
+        </section>
+    )
+
+
     const toggle = () => {
         setIsOpen(!isOpen)
     }
@@ -392,58 +447,7 @@ export default function TopicPage() {
                             )}
 
                             {/* Done reading? The quiz is right here (it's also in the Quiz Prep tab) */}
-                            {hasQuestions && (
-                                <section className="mt-10 overflow-hidden rounded-[2rem] border-2 border-foreground bg-white">
-                                    <div className="px-5 pb-4 pt-5">
-                                        <p className="flex items-start gap-2 text-lg font-semibold">
-                                            <Trophy className="mt-1 h-5 w-5 shrink-0" />
-                                            Finished the lesson? Take the quiz
-                                        </p>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            {Math.min(topic.questions.length, 20)} questions · pass mark 70% · no time limit
-                                        </p>
-                                        {!!progress && progress.quizAttempts > 0 && (
-                                            <p className="mt-2 text-sm">
-                                                Best{" "}
-                                                <span className={progress.bestScore >= 70 ? "font-semibold text-green-700" : "font-semibold text-orange-700"}>
-                                                    {progress.bestScore}%
-                                                </span>
-                                                <span className="text-muted-foreground">
-                                                    {" "}· {progress.quizAttempts} {progress.quizAttempts === 1 ? "try" : "tries"}
-                                                </span>
-                                            </p>
-                                        )}
-                                        {hasFlashcards && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setActiveTab("flashcards")}
-                                                className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
-                                            >
-                                                <Sparkles className="h-4 w-4" />
-                                                Review the flashcards first
-                                            </button>
-                                        )}
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={handleStartQuiz}
-                                        disabled={isStartingQuiz}
-                                        className="flex min-h-12 w-full items-center justify-center gap-2 bg-foreground px-4 text-sm font-semibold text-background hover:bg-foreground/90 disabled:opacity-70"
-                                    >
-                                        {isStartingQuiz ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                Starting quiz...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <PlayCircle className="h-4 w-4" />
-                                                {progress && progress.quizAttempts > 0 ? "Take the quiz again" : "Start quiz"}
-                                            </>
-                                        )}
-                                    </button>
-                                </section>
-                            )}
+                            {hasQuestions && quizCard("Finished the lesson? Take the quiz")}
                         </Sheet>
                     </TabsContent>
 
@@ -455,6 +459,8 @@ export default function TopicPage() {
                                     description="Watch, pause and rewind as often as you need."
                                 />
                                 <TopicContentView content={topic.content} part="videos" />
+                                {/* Watched it? Go straight to the quiz */}
+                                {hasQuestions && quizCard("Watched the video? Take the quiz")}
                             </Sheet>
                         </TabsContent>
                     )}

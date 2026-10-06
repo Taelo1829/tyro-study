@@ -5,6 +5,7 @@ import { recordDailyVisit } from "@/lib/streak"
 import { TopNav } from "@/components/layout/top-nav"
 import { MobileNav } from "@/components/layout/mobile-nav"
 import { PresenceProvider } from "@/components/providers/presence-provider"
+import { InstallPrompt } from "@/components/pwa/install-prompt"
 
 export default async function DashboardLayout({
   children,
@@ -35,6 +36,8 @@ export default async function DashboardLayout({
           {children}
         </main>
         <MobileNav isAdmin={isAdmin} />
+        {/* "Install Tyro Study" pop-up, until the app is installed */}
+        <InstallPrompt />
       </div>
     </PresenceProvider>
   )
