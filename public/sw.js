@@ -1,15 +1,25 @@
 self.addEventListener("push", (event) => {
+  // Messages with text (calendar reminders) carry their own title, body and
+  // link; an empty push is a chat ping, as before.
+  let message = null
+  try {
+    message = event.data ? event.data.json() : null
+  } catch {
+    message = null
+  }
+
   const tag =
+    message?.tag ??
     self.crypto?.randomUUID?.() ??
     `chat-message-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
   event.waitUntil(
-    self.registration.showNotification("New chat message", {
-      body: "Open Tyro Study to read your latest message.",
+    self.registration.showNotification(message?.title ?? "New chat message", {
+      body: message?.body ?? "Open Tyro Study to read your latest message.",
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-192.png",
       tag,
-      data: { url: "/chat" },
+      data: { url: message?.url ?? "/chat" },
       renotify: true,
     })
   )

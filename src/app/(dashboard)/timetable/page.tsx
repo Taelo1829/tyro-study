@@ -19,6 +19,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Modal, ModalBody, ModalHeader } from "@/components/admin/modal"
 import { toast } from "@/hooks/use-toast"
+import { askForNotificationsOnTap, usePushNotifications } from "@/hooks/use-push-notifications"
 import { cn } from "@/lib/utils"
 
 // ─── Types & constants ───────────────────────────────────────────────────────
@@ -56,6 +57,29 @@ const TYPES: Record<EventType, {
   REMINDER: { label: "Reminder", short: "Note", icon: Bell, dot: "bg-emerald-400", chip: "tint-mint text-emerald-900" },
 }
 const TYPE_ORDER: EventType[] = ["STUDY_SESSION", "ASSIGNMENT", "EXAM", "REMINDER"]
+
+// Reminder choices: minutes before the start (timed events) …
+const REMIND_OPTIONS = [
+  { value: "none", label: "No reminder" },
+  { value: "0", label: "At the start time" },
+  { value: "5", label: "5 minutes before" },
+  { value: "15", label: "15 minutes before" },
+  { value: "30", label: "30 minutes before" },
+  { value: "60", label: "1 hour before" },
+  { value: "1440", label: "1 day before" },
+]
+// … or a time of day (all-day events)
+const ALL_DAY_REMIND_OPTIONS = [
+  { value: "none", label: "No reminder" },
+  { value: "morning", label: "On the day, at 8:00" },
+  { value: "evening-before", label: "The evening before, at 18:00" },
+]
+const DEFAULT_REMIND: Record<EventType, string> = {
+  STUDY_SESSION: "15",
+  ASSIGNMENT: "1440",
+  EXAM: "60",
+  REMINDER: "0",
+}
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"]
 
 const monthFormat = new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" })
@@ -160,6 +184,8 @@ export default function TimetablePage() {
   return (
     <>
       <Header title="Timetable" subtitle="Tap a day to plan study sessions, due dates and exams" />
+
+      <ReminderBanner />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         {/* Calendar */}
@@ -491,6 +517,9 @@ function EventForm({
   const [dueTime, setDueTime] = useState("23:00")
   const [notes, setNotes] = useState("")
   const [repeatWeeks, setRepeatWeeks] = useState(1)
+  // Reminder choice; follows the type's default until the student picks one
+  const [remindChoice, setRemindChoice] = useState<string | null>(null)
+  const remind = remindChoice ?? (allDay ? "morning" : DEFAULT_REMIND[type])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
 
@@ -499,6 +528,9 @@ function EventForm({
   async function submit(event: React.FormEvent) {
     event.preventDefault()
     setError("")
+    // A reminder needs notifications: offer them now, while this tap still
+    // counts as the student's own action (browsers only show the prompt then)
+    if (remind !== "none") askForNotificationsOnTap()
 
     let startAt: Date
     let endAt: Date | null = null
@@ -515,6 +547,15 @@ function EventForm({
       }
     }
 
+    // When to send the reminder, worked out here so it's in the student's own time zone
+    let remindAt: Date | null = null
+    if (allDay) {
+      if (remind === "morning") remindAt = atTime(day, "08:00")
+      else if (remind === "evening-before") remindAt = atTime(addDays(day, -1), "18:00")
+    } else if (remind !== "none" && !Number.isNaN(Number(remind))) {
+      remindAt = new Date(startAt.getTime() - Number(remind) * 60_000)
+    }
+
     setSaving(true)
     try {
       const res = await fetch("/api/calendar", {
@@ -529,6 +570,7 @@ function EventForm({
           allDay,
           notes,
           repeatWeeks: type === "STUDY_SESSION" ? repeatWeeks : 1,
+          remindAt: remindAt?.toISOString() ?? null,
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -621,6 +663,22 @@ function EventForm({
         </div>
       ))}
 
+      <div>
+        <label htmlFor="event-remind" className="mb-1.5 block text-sm font-medium">Remind me</label>
+        <select
+          id="event-remind"
+          value={remind}
+          onChange={e => setRemindChoice(e.target.value)}
+          className={fieldClass}
+        >
+          {(allDay ? ALL_DAY_REMIND_OPTIONS : REMIND_OPTIONS).map(o => (
+            <option key={o.value} value={o.value}>
+              {o.value === "0" && type === "ASSIGNMENT" ? "When it's due" : o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {type === "STUDY_SESSION" && (
         <div>
           <label htmlFor="event-repeat" className="mb-1.5 block text-sm font-medium">Repeat</label>
@@ -659,5 +717,58 @@ function EventForm({
         </Button>
       </div>
     </form>
+  )
+}
+
+// ─── Reminders switch ────────────────────────────────────────────────────────
+
+/**
+ * Asks the student to turn on notifications so calendar reminders reach them.
+ * Hidden once they're on (the hook then keeps this device registered).
+ */
+function ReminderBanner() {
+  const { supported, enabled, blocked, needsInstall, loading, enable } = usePushNotifications()
+
+  if (enabled) return null
+
+  let message: React.ReactNode = null
+  let action: React.ReactNode = null
+  if (needsInstall) {
+    message = (
+      <>
+        To get reminders on iPhone or iPad, add Tyro Study to your Home Screen first (Share, then{" "}
+        <span className="font-semibold">Add to Home Screen</span>) and open it from there.
+      </>
+    )
+  } else if (!supported) {
+    return null
+  } else if (blocked) {
+    message = "Notifications are blocked for Tyro Study. Allow them in your browser's site settings to get reminders."
+  } else {
+    message = "Get a notification before your study sessions, due dates and exams."
+    action = (
+      <Button
+        variant="primary"
+        size="sm"
+        disabled={loading}
+        onClick={async () => {
+          const ok = await enable()
+          if (ok) toast.success("Reminders are on", "You'll be notified before each entry on your timetable")
+          else toast.error("Couldn't turn on reminders", "Check that notifications are allowed for this site")
+        }}
+      >
+        {loading ? "Turning on…" : "Turn on reminders"}
+      </Button>
+    )
+  }
+
+  return (
+    <Card className="mb-5 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="flex items-start gap-2.5 text-sm">
+        <Bell className="mt-0.5 h-4 w-4 shrink-0" />
+        <span>{message}</span>
+      </p>
+      {action}
+    </Card>
   )
 }

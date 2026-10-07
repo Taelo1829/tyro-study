@@ -385,6 +385,10 @@ model CalendarEvent {
   endAt     DateTime?
   allDay    Boolean   @default(false)
   completed Boolean   @default(false)
+  /// When to send the reminder notification (null = no reminder)
+  remindAt   DateTime?
+  /// When the reminder was sent (so it goes out once)
+  remindedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
 
@@ -392,6 +396,7 @@ model CalendarEvent {
   module Module? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
 
   @@index([userId, startAt])
+  @@index([remindAt])
   @@map("calendar_events")
 }
 

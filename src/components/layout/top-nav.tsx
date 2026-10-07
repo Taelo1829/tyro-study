@@ -10,7 +10,7 @@ import { UserAvatar } from "@/components/ui/user-avatar"
 import { MAIN_NAV, navLabel } from "@/lib/navigation"
 import { useTerms } from "@/hooks/use-level"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
-import { usePushNotifications } from "@/hooks/use-push-notifications"
+import { askForNotificationsOnTap, usePushNotifications } from "@/hooks/use-push-notifications"
 
 interface TopNavProps {
   isAdmin?: boolean
@@ -76,6 +76,8 @@ export function TopNav({ isAdmin = false }: TopNavProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  // Opening Chats is a natural moment to offer message notifications
+                  onClick={item.href === "/chat" ? askForNotificationsOnTap : undefined}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",

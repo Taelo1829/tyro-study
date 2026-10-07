@@ -3,7 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { pusherServer, conversationChannel, EVENTS, userChannel } from '@/lib/pusher'
 import { getServerSession } from 'next-auth'
-import { sendChatPushNotifications } from '@/lib/web-push'
+import { sendPushToUser } from '@/lib/web-push'
 
 const messageInclude = {
   sender: { select: { id: true, name: true, email: true, image: true } },
@@ -143,7 +143,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await sendChatPushNotifications(recipientId)
+    // Show who it's from and what they said (one notification per chat, updated)
+    const senderName = message.sender?.name?.trim() || message.sender?.email?.split('@')[0] || 'New message'
+    const preview =
+      type === 'IMAGE' ? '📷 Photo'
+        : type === 'VOICE' ? '🎤 Voice note'
+          : Array.from((content ?? '').trim().replace(/\s+/g, ' ')).slice(0, 140).join('')
+    await sendPushToUser(recipientId, {
+      title: senderName,
+      body: preview || 'New message',
+      url: '/chat',
+      tag: `chat-${conversationId}`,
+    })
   } catch (error) {
     console.error('Web push error:', error)
   }

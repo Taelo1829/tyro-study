@@ -16,6 +16,13 @@ function isValidDate(value: unknown): value is string {
   return typeof value === "string" && !Number.isNaN(new Date(value).getTime())
 }
 
+/** A repeat's reminder, shifted by `offsetMs`; none if that time has already passed */
+function reminderFor(remind: Date | null, offsetMs: number) {
+  if (!remind) return null
+  const at = new Date(remind.getTime() + offsetMs)
+  return at.getTime() < Date.now() - 60_000 ? null : at.toISOString()
+}
+
 // GET /api/calendar?from=ISO&to=ISO - the signed-in user's events in that range
 export async function GET(request: Request) {
   const { error, userId } = await requireAuth()
@@ -50,6 +57,8 @@ export async function POST(request: Request) {
     endAt?: string | null
     allDay?: boolean
     repeatWeeks?: number
+    /** When to send a reminder (worked out in the browser, in its time zone); null = none */
+    remindAt?: string | null
   }
 
   const type = body.type as CalendarEventType
@@ -80,6 +89,17 @@ export async function POST(request: Request) {
     moduleId = body.moduleId
   }
 
+  // Reminder: no later than the event itself, and no more than a week before it
+  let remind: Date | null = null
+  if (body.remindAt) {
+    if (!isValidDate(body.remindAt)) return NextResponse.json({ error: "Reminder time is invalid" }, { status: 400 })
+    remind = new Date(body.remindAt)
+    const lead = start.getTime() - remind.getTime()
+    if (lead < -12 * 3_600_000 || lead > 7 * 86_400_000) {
+      return NextResponse.json({ error: "Reminders can be set up to a week before" }, { status: 400 })
+    }
+  }
+
   const repeatWeeks = Math.min(MAX_REPEAT_WEEKS, Math.max(1, Math.floor(Number(body.repeatWeeks) || 1)))
   const weekMs = 7 * 86_400_000
   const notes = body.notes?.trim() || null
@@ -95,6 +115,7 @@ export async function POST(request: Request) {
       startIso: new Date(start.getTime() + i * weekMs).toISOString(),
       endIso: end ? new Date(end.getTime() + i * weekMs).toISOString() : null,
       allDay: !!body.allDay,
+      remindIso: reminderFor(remind, i * weekMs),
     })
   }
 

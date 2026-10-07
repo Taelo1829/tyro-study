@@ -61,17 +61,20 @@ export interface NewCalendarEvent {
   startIso: string
   endIso: string | null
   allDay: boolean
+  /** When to send a reminder notification (null = none) */
+  remindIso: string | null
 }
 
 export function insertCalendarEvent(e: NewCalendarEvent) {
   return prisma.$executeRaw`
     INSERT INTO "calendar_events"
-      ("id", "userId", "moduleId", "type", "title", "notes", "startAt", "endAt", "allDay")
+      ("id", "userId", "moduleId", "type", "title", "notes", "startAt", "endAt", "allDay", "remindAt")
     VALUES (
       ${e.id}, ${e.userId}, ${e.moduleId}, ${e.type}, ${e.title}, ${e.notes},
       (${e.startIso}::timestamptz AT TIME ZONE 'UTC'),
       ${e.endIso === null ? null : e.endIso}::timestamptz AT TIME ZONE 'UTC',
-      ${e.allDay}
+      ${e.allDay},
+      ${e.remindIso === null ? null : e.remindIso}::timestamptz AT TIME ZONE 'UTC'
     )
   `
 }
