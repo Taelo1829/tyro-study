@@ -229,19 +229,28 @@ export default async function DashboardPage() {
             </Link>
           ) : (
             <ul className="space-y-2">
-              {timetable.today.slice(0, 4).map(e => (
-                <li key={e.id}>
-                  <Link href="/timetable" className="flex items-center gap-3 rounded-2xl bg-muted px-3 py-2 hover:bg-tint-blue">
-                    <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{e.title}</span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {timeLabel(e)}{e.moduleTitle && ` · ${e.moduleTitle}`}
+              {timetable.today.slice(0, 4).map(e => {
+                // A study session for a module goes straight to that module
+                const toModule = e.type === "STUDY_SESSION" && !!e.moduleId
+                const Icon = toModule ? BookOpen : Calendar
+                return (
+                  <li key={e.id}>
+                    <Link
+                      href={toModule ? `/modules/${e.moduleId}` : "/timetable"}
+                      className="flex items-center gap-3 rounded-2xl bg-muted px-3 py-2 hover:bg-tint-blue"
+                    >
+                      <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{e.title}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {timeLabel(e)}{e.moduleTitle && ` · ${e.moduleTitle}`}
+                        </span>
                       </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
+                      {toModule && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                    </Link>
+                  </li>
+                )
+              })}
               {timetable.today.length > 4 && (
                 <li className="px-1 text-xs text-muted-foreground">+{timetable.today.length - 4} more today</li>
               )}

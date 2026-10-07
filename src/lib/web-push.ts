@@ -1,10 +1,13 @@
 import crypto from "crypto"
 import { prisma } from "@/lib/prisma"
 
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT ?? "mailto:admin@tyro-study.com"
+// Values pasted into Vercel sometimes carry spaces or quotes; ignore them
+const cleanEnv = (value: string | undefined) => value?.trim().replace(/^["']|["']$/g, "").trim() || undefined
+
+const VAPID_SUBJECT = cleanEnv(process.env.VAPID_SUBJECT) ?? "https://www.tyrostudy.co.za"
 // Either name works (.env.local uses VAPID_PUBLIC_KEY)
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? process.env.VAPID_PUBLIC_KEY
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY
+const VAPID_PUBLIC_KEY = cleanEnv(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) ?? cleanEnv(process.env.VAPID_PUBLIC_KEY)
+const VAPID_PRIVATE_KEY = cleanEnv(process.env.VAPID_PRIVATE_KEY)
 
 interface StoredPushSubscription {
   id: string
@@ -166,8 +169,43 @@ export function encryptPushPayload(payload: string, p256dh: string, auth: string
  * accepted it.
  */
 export async function sendPushMessage(subscription: StoredPushSubscriptionWithKeys, message: PushMessage): Promise<boolean> {
+  return (await deliverPush(subscription, message)).ok
+}
+
+/** What's wrong with the push settings, in plain words, or null when they look right */
+export function pushConfigProblem(): string | null {
+  if (!VAPID_PUBLIC_KEY) return "VAPID_PUBLIC_KEY is not set in the server's environment variables"
+  if (!VAPID_PRIVATE_KEY) return "VAPID_PRIVATE_KEY is not set in the server's environment variables"
+  const pub = base64UrlToBuffer(VAPID_PUBLIC_KEY)
+  const priv = base64UrlToBuffer(VAPID_PRIVATE_KEY)
+  if (pub.length !== 65 || pub[0] !== 4) return `VAPID_PUBLIC_KEY doesn't look like a VAPID public key (${pub.length} bytes, expected 65)`
+  if (priv.length !== 32) return `VAPID_PRIVATE_KEY doesn't look like a VAPID private key (${priv.length} bytes, expected 32)`
+  try {
+    // The two keys must be a pair
+    const ecdh = crypto.createECDH("prime256v1")
+    ecdh.setPrivateKey(priv)
+    if (!ecdh.getPublicKey().equals(pub)) return "VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY are not a matching pair"
+  } catch {
+    return "VAPID_PRIVATE_KEY is not a valid key"
+  }
+  if (!/^(mailto:|https:\/\/)/.test(VAPID_SUBJECT)) return `VAPID_SUBJECT must start with "mailto:" or "https://" (it is "${VAPID_SUBJECT}")`
+  return null
+}
+
+export interface PushDelivery {
+  ok: boolean
+  /** HTTP status from the push service (0 = not sent) */
+  status: number
+  /** The push service's explanation, or why it wasn't sent */
+  detail: string
+}
+
+/** Send one message and report exactly what the push service said */
+export async function deliverPush(subscription: StoredPushSubscriptionWithKeys, message: PushMessage): Promise<PushDelivery> {
+  const problem = pushConfigProblem()
+  if (problem) return { ok: false, status: 0, detail: problem }
   const authorization = getVapidAuthorization(subscription.endpoint)
-  if (!authorization) return false
+  if (!authorization) return { ok: false, status: 0, detail: "Could not sign the message with the VAPID keys" }
 
   const body = encryptPushPayload(JSON.stringify(message), subscription.p256dh, subscription.auth)
   const res = await fetch(subscription.endpoint, {
@@ -183,15 +221,17 @@ export async function sendPushMessage(subscription: StoredPushSubscriptionWithKe
     body: new Uint8Array(body),
   })
 
+  const detail = (await res.text().catch(() => "")).slice(0, 300)
   if (res.status === 404 || res.status === 410) {
+    // The browser dropped this subscription (unsubscribed, data cleared, app removed)
     await prisma.pushSubscription.delete({ where: { id: subscription.id } }).catch(() => {})
-    return false
+    return { ok: false, status: res.status, detail: "This device's subscription has expired; it was removed. Turn notifications on again on that device." }
   }
   if (!res.ok) {
-    console.warn("Push service refused a message:", res.status, await res.text().catch(() => ""))
-    return false
+    console.warn("Push service refused a message:", res.status, detail)
+    return { ok: false, status: res.status, detail: detail || res.statusText }
   }
-  return true
+  return { ok: true, status: res.status, detail: "Accepted by the push service" }
 }
 
 /** Send a notification to every browser/device the user turned notifications on for */
