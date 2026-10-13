@@ -3,9 +3,10 @@ import { ADSENSE_CLIENT } from "@/lib/site"
 
 /**
  * Loads Google AdSense (Auto ads). Only include this on pages with real
- * content - lessons, notes, the home page - never on login/register,
- * loading, error or otherwise empty screens. (AdSense rejects sites that show
- * "Google-served ads on screens without publisher-content".)
+ * content - lessons - never on login/register, loading, error or otherwise
+ * empty screens (AdSense rejects "Google-served ads on screens without
+ * publisher-content"), nor on pages that are mostly navigation, like lists of
+ * modules or topics (rejected as "Site Behavior: Navigation").
  */
 export function AdSenseScript() {
   return (

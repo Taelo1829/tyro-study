@@ -5,7 +5,10 @@ import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site"
 
 /**
  * Header + footer for the public pages (home, study notes, about, privacy,
- * terms). `ads` loads AdSense - only pass it on pages with real content.
+ * terms). `ads` loads AdSense - only pass it on lesson pages. Pages that are
+ * mostly lists of links (home, notes index, module index) must not show ads:
+ * Auto ads drop in between the rows, where they look like menu items, and
+ * AdSense rejects that ("Site Behavior: Navigation").
  */
 export function PublicShell({ children, ads = false }: { children: React.ReactNode; ads?: boolean }) {
   return (

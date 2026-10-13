@@ -30,7 +30,7 @@ export default async function PublicModulePage({ params }: Props) {
   const courseCrumb = courses.length === 1 ? [{ label: courses[0].title, href: `/notes#course-${courses[0].id}` }] : []
 
   return (
-    <PublicShell ads>
+    <PublicShell>
       <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
         <Breadcrumbs className="px-0" items={[{ label: "Study notes", href: "/notes" }, ...courseCrumb, { label: mod.title }]} />
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{mod.title}</h1>

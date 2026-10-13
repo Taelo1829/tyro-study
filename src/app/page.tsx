@@ -58,7 +58,7 @@ export default async function HomePage() {
   const modules = await listPublicModules()
 
   return (
-    <PublicShell ads={modules.length > 0}>
+    <PublicShell>
       {/* Intro */}
       <section className="mx-auto max-w-3xl px-4 pb-12 pt-14 text-center sm:pt-20">
         <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">

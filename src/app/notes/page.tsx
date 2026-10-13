@@ -40,7 +40,7 @@ export default async function NotesIndexPage({ searchParams }: Props) {
   const loose = modules.filter(m => !inCourse.has(m.id))
 
   return (
-    <PublicShell ads={modules.length > 0}>
+    <PublicShell>
       <div className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Study notes</h1>
         <p className="mt-3 text-muted-foreground">

@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
+import { ArrowLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { ScratchPad } from "./scratch-pad"
 import { MathText } from "@/components/ui/math-text"
 import { TopicContentView } from "@/components/topic/topic-content-view"
@@ -361,12 +363,12 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     // Stays pinned just under the fixed top bar while scrolling through the quiz
     const backLink = (
         <div className="sticky top-[4.5rem] z-40 -mx-4 mb-3 bg-background/95 px-4 py-2 backdrop-blur sm:top-[5.25rem] sm:mx-0 sm:px-0">
-            <Link
-                href={backHref}
-                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-                ← {backLabel}
-            </Link>
+            <Button asChild variant="default" size="sm">
+                <Link href={backHref}>
+                    <ArrowLeft className="h-4 w-4" />
+                    {backLabel}
+                </Link>
+            </Button>
         </div>
     )
 
