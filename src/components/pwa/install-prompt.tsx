@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
  *   the steps (Share → Add to Home Screen / File → Add to Dock).
  * - Already running as the installed app, or installed from this browser:
  *   never shown.
- * - "Later" hides it for the rest of this visit; it comes back next time.
+ * - "Later" hides it until the next calendar day (local time), then it asks again.
  */
 
 interface BeforeInstallPromptEvent extends Event {
@@ -25,8 +25,21 @@ interface BeforeInstallPromptEvent extends Event {
 type Mode = "prompt" | "ios" | "mac-safari"
 
 const INSTALLED_KEY = "tyro-pwa-installed"
-const LATER_KEY = "tyro-pwa-later"
+// Stores the time (ms) the prompt may show again after "Later"
+const LATER_KEY = "tyro-pwa-later-until"
 const SHOW_DELAY_MS = 2500
+
+// Midnight at the start of tomorrow, in the student's own time zone
+function startOfTomorrow() {
+  const d = new Date()
+  d.setHours(24, 0, 0, 0)
+  return d.getTime()
+}
+
+function isSnoozed() {
+  const until = Number(read(local, LATER_KEY))
+  return Number.isFinite(until) && until > Date.now()
+}
 
 // Storage can be blocked (private mode, strict settings), so never let it throw
 function read(storage: () => Storage, key: string) {
@@ -44,7 +57,6 @@ function write(storage: () => Storage, key: string, value: string) {
   }
 }
 const local = () => window.localStorage
-const session = () => window.sessionStorage
 
 function isRunningInstalled() {
   return (
@@ -72,7 +84,7 @@ export function InstallPrompt() {
 
   useEffect(() => {
     if (isRunningInstalled() || read(local, INSTALLED_KEY)) return
-    if (read(session, LATER_KEY)) return
+    if (isSnoozed()) return
 
     let timer: ReturnType<typeof setTimeout> | undefined
     const showSoon = (next: Mode) => {
@@ -110,7 +122,7 @@ export function InstallPrompt() {
   }, [])
 
   const later = () => {
-    write(session, LATER_KEY, "1")
+    write(local, LATER_KEY, String(startOfTomorrow()))
     setOpen(false)
   }
 
