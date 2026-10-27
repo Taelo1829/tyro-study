@@ -25,7 +25,7 @@ type Part = { type: "text"; value: string } | { type: "matrix"; rows: string[][]
 
 // U+0001 marks a block boundary when lesson HTML is flattened to text; nothing matches across it.
 // [[...],[...],...] - inner rows contain no brackets
-const BRACKET_MATRIX = String.raw`\[\s*\[[^[\]\u0001]*\](?:\s*,?\s*\[[^[\]\u0001]*\])*\s*\]`
+export const BRACKET_MATRIX = String.raw`\[\s*\[[^[\]\u0001]*\](?:\s*,?\s*\[[^[\]\u0001]*\])*\s*\]`
 // \begin{bmatrix} a & b \\ c & d \end{bmatrix} (also pmatrix, vmatrix, Vmatrix, Bmatrix, matrix, array)
 const LATEX_MATRIX = String.raw`\\begin\{([pbBvV]?matrix|array)\}(?:\{[^}\u0001]*\})?([^\u0001]*?)\\end\{\1\}`
 // <matrix> a b </matrix> c d </matrix>: pseudo-tags (one closing tag per row), also
@@ -231,12 +231,53 @@ function cellScripts(value: string): string {
   return out
 }
 
+const LONE_OPERATOR = /^[+\-*/=×·]$/
+const ENDS_WITH_OPERATOR = /[+\-*/=×·^]$/
+const STARTS_WITH_OPERATOR = /^[+*/=×·^]/ // not "-": "2 -3" is two cells
+
+/**
+ * Cells of a row typed with spaces instead of commas: "1 3 k^2 + 1  k+6".
+ * Words joined by an operator stay together, so that row is 1 | 3 | k^2 + 1 | k+6.
+ */
+function splitSpacedRow(row: string): string[] {
+  const cells: string[] = []
+  let joinNext = false
+  for (const word of row.trim().split(/\s+/).filter(Boolean)) {
+    const isOperator = LONE_OPERATOR.test(word)
+    if (cells.length > 0 && (joinNext || isOperator || STARTS_WITH_OPERATOR.test(word))) cells[cells.length - 1] += ` ${word}`
+    else cells.push(word)
+    joinNext = isOperator || ENDS_WITH_OPERATOR.test(word)
+  }
+  return cells
+}
+
+const isRectangular = (rows: string[][]) =>
+  rows.length > 0 && rows.every(row => row.length === rows[0].length && row.every(cell => cell !== ""))
+
+/**
+ * The cells of a [[…], […]] literal as typed (k^2 stays k^2), or null when it
+ * isn't a rectangular matrix. Used by the notepad, which renders cells itself.
+ */
+export function parseMatrixCells(literal: string): string[][] | null {
+  const raw = [...literal.matchAll(/\[([^[\]]*)\]/g)].map(m => m[1])
+  if (raw.length === 0) return null
+  const tidy = (rows: string[][]) => rows.map(row => row.map(cell => cell.replace(/\s+/g, " ").trim()))
+
+  let rows: string[][] | null = null
+  if (raw.some(row => row.includes(","))) {
+    // [[1, 2], [3, 4]]
+    rows = tidy(raw.map(row => row.split(",")))
+  } else {
+    // [[1 2] [3 4]] typed with spaces: join operators first, else split on wide gaps
+    const spaced = raw.map(splitSpacedRow)
+    const gapped = tidy(raw.map(row => row.trim().split(/\s{2,}|\t+/)))
+    rows = isRectangular(spaced) ? spaced : isRectangular(gapped) ? gapped : null
+  }
+  return rows && isRectangular(rows) ? rows : null
+}
+
 function parseBracketMatrix(literal: string): string[][] | null {
-  const rows = [...literal.matchAll(/\[([^[\]]*)\]/g)].map(m => m[1].split(",").map(cell => cellScripts(cell.replace(/\s+/g, " ").trim())))
-  if (rows.length === 0) return null
-  const width = rows[0].length
-  if (rows.some(row => row.length !== width || row.some(cell => cell === ""))) return null
-  return rows
+  return parseMatrixCells(literal)?.map(row => row.map(cellScripts)) ?? null
 }
 
 function parseLatexMatrix(body: string): string[][] | null {

@@ -38,6 +38,7 @@ import { MathText } from "@/components/ui/math-text"
 import { TopicContentView } from "@/components/topic/topic-content-view"
 import { AdSenseScript } from "@/components/ads/adsense-script"
 import { renderTopicContent, splitTopicVideos } from "@/lib/topic-content"
+import { TopicPdfDownload } from "@/components/topic/topic-pdf-download"
 
 interface Topic {
     id: string
@@ -419,6 +420,23 @@ export default function TopicPage() {
 
                     <TabsContent value="content">
                         <Sheet>
+                            {/* Save the lesson (with takeaways and flashcards) as a PDF */}
+                            {(hasLesson || hasFlashcards) && (
+                                <div className="mb-4 flex justify-end">
+                                    <TopicPdfDownload
+                                        topicTitle={topic.title}
+                                        moduleTitle={topic.chapter.module.title}
+                                        chapterTitle={topic.chapter.title}
+                                        content={topic.content}
+                                        takeaways={topic.questions
+                                            .filter(q => q.kind !== "blank")
+                                            .slice(0, 5)
+                                            .map(q => extractKeyPoint(q.question))}
+                                        flashcards={topic.flashcards}
+                                    />
+                                </div>
+                            )}
+
                             {/* The lesson, as written in the app (videos are in the Video tab) */}
                             <TopicContentView
                                 content={topic.content}
