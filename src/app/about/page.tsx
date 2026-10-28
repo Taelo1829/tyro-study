@@ -19,7 +19,7 @@ export default function AboutPage() {
       </p>
       <h2>What you&apos;ll find here</h2>
       <ul>
-        <li><strong>Study notes</strong> for each topic of a module, explained in plain English with worked examples, key ideas and common mistakes. Many are <Link href="/notes">free to read</Link> without an account.</li>
+        <li><strong>Study notes</strong> for each topic of a module, explained in plain English with worked examples, key ideas and common mistakes. A selection is <Link href="/notes">free to read</Link> without an account.</li>
         <li><strong>Practice quizzes</strong> for every topic and chapter, with instant feedback and the topics to revise.</li>
         <li><strong>Flashcards</strong> for quick revision of definitions and key facts.</li>
         <li><strong>A study timetable</strong> for study sessions, assignment due dates and exams.</li>
@@ -27,9 +27,8 @@ export default function AboutPage() {
       </ul>
       <h2>How the notes are made</h2>
       <p>
-        Lessons are written and organised by the {SITE_NAME} team, following the structure of each module. Some first drafts
-        are prepared with the help of AI writing tools and are then reviewed and edited before they are published. If you
-        spot a mistake, please let us know.
+        Lessons are written and organised by the {SITE_NAME} team, following the structure of each module. If you spot a
+        mistake, please let us know.
       </p>
       <h2>Independent</h2>
       <p>

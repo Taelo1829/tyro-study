@@ -48,7 +48,6 @@ export class NoTextError extends Error {
   }
 }
 
-/** The most pages a scanned book may have for OCR (each page is one AI call) */
 export const MAX_OCR_PAGES = 1000
 
 /**
@@ -156,7 +155,6 @@ function pageIndex(data: TextbookData, linesPerPage: number, width: number) {
     .join("\n")
 }
 
-/** Ask the AI for the book's chapters and topics, then tidy and check the page ranges */
 export async function proposeOutline(data: TextbookData, mod: { title: string; description: string | null }): Promise<ProposedChapter[]> {
   // The page index is the biggest part of the prompt: make it fit long books
   let index = pageIndex(data, 3, 110)

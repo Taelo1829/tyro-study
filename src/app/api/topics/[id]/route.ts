@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { hasWrittenContent } from "@/lib/topic-content"
 import { blankQuestionIds } from "@/lib/question-kinds"
 import { getLockedFlags, getTopicLock, lockedResponseBody, setTopicLocked } from "@/lib/topic-locks"
+import { isTopicPublished, setTopicPublished } from "@/lib/topic-publish"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -80,6 +81,7 @@ export async function GET(_request: Request, { params }: Params) {
       return { ...q, kind, answers: kind === "blank" && !isAdmin ? [] : q.answers, paper: papers.get(q.id) ?? null }
     }),
     locked: (await getLockedFlags([topic.id])).has(topic.id),
+    published: isAdmin ? await isTopicPublished(topic.id) : undefined,
     nextTopic: nextTopic?.id ?? null,
   })
 }
@@ -89,16 +91,20 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const { id } = await params
   const body = await request.json()
-  const { title, content, order, assignment, locked } = body as {
+  const { title, content, order, assignment, locked, published } = body as {
     title?: string
     content?: string
     order?: number
     assignment?: string
     locked?: boolean
+    published?: boolean
   }
 
   if (locked !== undefined) {
     await setTopicLocked(id, Boolean(locked))
+  }
+  if (published !== undefined) {
+    await setTopicPublished(id, Boolean(published))
   }
 
   const topic = await prisma.topic.update({
@@ -111,7 +117,11 @@ export async function PATCH(request: Request, { params }: Params) {
     },
   })
 
-  return NextResponse.json({ ...topic, locked: (await getLockedFlags([id])).has(id) })
+  return NextResponse.json({
+    ...topic,
+    locked: (await getLockedFlags([id])).has(id),
+    published: await isTopicPublished(id),
+  })
 }
 
 export async function DELETE(_request: Request, { params }: Params) {

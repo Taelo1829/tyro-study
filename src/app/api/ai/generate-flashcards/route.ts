@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       flashcards: { front: string; back: string }[]
     }
     if (!Array.isArray(parsed.flashcards)) {
-      throw new Error("Invalid AI response")
+      throw new Error("Invalid response")
     }
 
     const cards = parsed.flashcards

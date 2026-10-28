@@ -63,6 +63,8 @@ model QuestionAttempt {
   isCorrect        Boolean?     @default(false)
   order            Int
   status           AnswerStatus @default(PENDING)
+  /// What the student typed (blank questions)
+  typedAnswer      String?
   answeredAt       DateTime?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
@@ -87,6 +89,10 @@ model User {
   image         String?
   password      String?
   role          Role      @default(STUDENT)
+  /// Superusers manage admins: change roles, grant superuser, delete admins
+  isSuperuser   Boolean   @default(false)
+  /// "tertiary" (university modules) or "highschool" (Grade 11 and 12 subjects)
+  level         String    @default("tertiary")
   streakDays    Int       @default(0)
   lastVisitDate DateTime?
   createdAt     DateTime  @default(now())
@@ -100,11 +106,14 @@ model User {
   notifications          Notification[]
   enrollments            ModuleEnrollment[]
   quizAttempts           QuizAttempt[]
-  sentFriendRequests     Friendship[]       @relation("FriendshipSender")
-  receivedFriendRequests Friendship[]       @relation("FriendshipReceiver")
-  conversationsAsUser1   Conversation[]     @relation("ConversationUser1")
-  conversationsAsUser2   Conversation[]     @relation("ConversationUser2")
-  sentMessages           Message[]          @relation("MessageSender")
+  sentFriendRequests     Friendship[]        @relation("FriendshipSender")
+  receivedFriendRequests Friendship[]        @relation("FriendshipReceiver")
+  conversationsAsUser1   Conversation[]      @relation("ConversationUser1")
+  conversationsAsUser2   Conversation[]      @relation("ConversationUser2")
+  sentMessages           Message[]           @relation("MessageSender")
+  calendarEvents         CalendarEvent[]
+  emailOtps              EmailOtp[]
+  projectSubmissions     ProjectSubmission[]
 
   @@map("users")
 }
@@ -155,12 +164,47 @@ model Module {
   description String?
   createdAt   DateTime @default(now())
 
-  chapters     Chapter[]
-  timetables   Timetable[]
-  enrollments  ModuleEnrollment[]
-  quizAttempts QuizAttempt[]
+  chapters       Chapter[]
+  timetables     Timetable[]
+  enrollments    ModuleEnrollment[]
+  quizAttempts   QuizAttempt[]
+  calendarEvents CalendarEvent[]
+  courses        CourseModule[]
+  /// NULL = from the module code (COS/INF/ICT → C++), "none" = not a coding module, else the language
+  codingLanguage String?
+  /// "tertiary" (a university module) or "highschool" (a Grade 11 or 12 subject)
+  level          String             @default("tertiary")
 
   @@map("modules")
+}
+
+/// Top of the hierarchy: Course > Module > Chapter > Topic.
+/// Read and written with SQL (src/lib/courses.ts) so it works before the client is regenerated.
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  /// "tertiary" (a qualification) or "highschool" (a grade: Grade 11, Grade 12)
+  level       String   @default("tertiary")
+  createdAt   DateTime @default(now())
+
+  modules CourseModule[]
+
+  @@map("courses")
+}
+
+/// A module can be part of several courses, or none
+model CourseModule {
+  courseId String
+  moduleId String
+  position Int    @default(0)
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, moduleId])
+  @@index([moduleId])
+  @@map("course_modules")
 }
 
 model ModuleEnrollment {
@@ -201,12 +245,19 @@ model Topic {
   order      Int      @default(0)
   createdAt  DateTime @default(now())
   assignment String?  @db.Text
+  /// Students must pass the previous topic's quiz before this topic opens
+  locked     Boolean  @default(false)
+  /// Shown as a public study note at /notes (no sign-in, sitemap, ads)
+  published  Boolean  @default(false)
 
   chapter      Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   questions    Question[]
   flashcards   Flashcard[]
   quizAttempts QuizAttempt[]
   pdfs         TopicPdf[]
+
+  codingProjects CodingProject[]
+  exercises      TopicExercise[]
 
   @@index([chapterId])
   @@map("topics")
@@ -236,12 +287,19 @@ model Assignment_Attempt {
 }
 
 model Question {
-  id         String   @id @default(cuid())
-  topicId    String?
-  chapterId  String?
-  question   String   @db.Text
-  difficulty String   @default("medium")
-  createdAt  DateTime @default(now())
+  id                 String    @id @default(cuid())
+  topicId            String?
+  chapterId          String?
+  question           String    @db.Text
+  difficulty         String    @default("medium")
+  createdAt          DateTime  @default(now())
+  /// AI study note, written once when a student first gets this question wrong
+  studyNote          String?   @db.Text
+  studyNoteClaimedAt DateTime?
+  /// The past exam/assignment paper it came from (mock exams ask these first)
+  paper              String?
+  /// "mcq" (pick an option) or "blank" (type the answer; every answer row is an accepted answer)
+  kind               String    @default("mcq")
 
   topic            Topic?            @relation(fields: [topicId], references: [id], onDelete: Cascade)
   chapter          Chapter?          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -274,6 +332,8 @@ model UserAnswer {
   questionId       String
   selectedAnswerId String?
   isCorrect        Boolean
+  /// What the student typed (blank questions)
+  typedAnswer      String?
   answeredAt       DateTime @default(now())
 
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -312,6 +372,34 @@ model Timetable {
 
   @@index([userId])
   @@map("timetable")
+}
+
+/// Timetable calendar entries: study sessions, assignment due dates, exams, reminders.
+/// type is one of STUDY_SESSION | ASSIGNMENT | EXAM | REMINDER (checked by the API).
+model CalendarEvent {
+  id         String    @id @default(cuid())
+  userId     String
+  moduleId   String?
+  type       String    @default("STUDY_SESSION")
+  title      String
+  notes      String?   @db.Text
+  startAt    DateTime
+  endAt      DateTime?
+  allDay     Boolean   @default(false)
+  completed  Boolean   @default(false)
+  /// When to send the reminder notification (null = no reminder)
+  remindAt   DateTime?
+  /// When the reminder was sent (so it goes out once)
+  remindedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module Module? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+
+  @@index([userId, startAt])
+  @@index([remindAt])
+  @@map("calendar_events")
 }
 
 model Notification {
@@ -402,4 +490,93 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+
+/// One-time codes emailed to check an address works (sign-up and email change)
+model EmailOtp {
+  id         String   @id @default(cuid())
+  /// "register" or "email-change"
+  purpose    String
+  /// The email for sign-up, the user id for an email change
+  key        String
+  email      String
+  userId     String?
+  codeHash   String
+  /// Sign-up details kept until the code is confirmed (name, password hash)
+  payload    Json?
+  attempts   Int      @default(0)
+  sends      Int      @default(1)
+  expiresAt  DateTime
+  lastSentAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([purpose, key])
+  @@map("email_otps")
+}
+
+/// A topic's hands-on programming task (coding modules), marked by AI against its rubric.
+/// Read and written with SQL (src/lib/projects.ts).
+model CodingProject {
+  id          String   @id @default(cuid())
+  topicId     String
+  title       String
+  /// HTML: the task, requirements, example run
+  brief       String   @db.Text
+  language    String
+  starterCode String?  @db.Text
+  /// JSON: [{ criterion, points }], points add up to 100
+  rubric      String   @db.Text
+  difficulty  String   @default("medium")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  topic       Topic               @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  submissions ProjectSubmission[]
+
+  @@index([topicId])
+  @@map("coding_projects")
+}
+
+/// A student's uploaded files for a project, with the AI's marks
+model ProjectSubmission {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  /// JSON: [{ name, content }]
+  files     String   @db.Text
+  score     Int
+  /// JSON: { summary, rubric: [{ criterion, points, max, comment }], strengths, improvements }
+  feedback  String   @db.Text
+  createdAt DateTime @default(now())
+
+  project CodingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, userId])
+  @@map("project_submissions")
+}
+
+/// A "Try it yourself" exercise in a coding lesson: code with ____ blanks to fill in.
+/// Read and written with SQL (src/lib/exercises.ts).
+model TopicExercise {
+  id           String   @id @default(cuid())
+  topicId      String
+  title        String
+  /// What to do (plain text)
+  instructions String   @db.Text
+  /// The code, with a ____ where each blank goes
+  code         String   @db.Text
+  /// JSON: [{ answers: ["x > 5", "5 < x"] }], one per blank, in order
+  blanks       String   @db.Text
+  explanation  String?  @db.Text
+  language     String
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId])
+  @@map("topic_exercises")
 }

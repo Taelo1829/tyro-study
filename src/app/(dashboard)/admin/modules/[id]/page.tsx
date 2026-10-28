@@ -13,6 +13,7 @@ import { PaperUploader } from "@/components/admin/paper-uploader"
 import { ModuleExerciseBuilder } from "@/components/admin/module-exercise-builder"
 import { EditModuleButton } from "@/components/admin/edit-module-button"
 import { DeleteModuleButton } from "@/components/admin/delete-module-button"
+import { ModulePublishControl } from "@/components/admin/module-publish-control"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -108,6 +109,8 @@ export default function AdminModuleDetailPage() {
           />
         </div>
       </div>
+
+      <ModulePublishControl moduleId={id} />
 
       {showForm && (
         <Card className="mb-6">

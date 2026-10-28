@@ -2,13 +2,6 @@ import { chatJson } from "@/lib/ai/openai"
 import { UNISA_CONTEXT } from "@/lib/ai/unisa"
 import { resolveLessonDiagrams } from "@/lib/ai/diagrams"
 
-/**
- * The AI lesson writer and question writer, shared by the "Write with AI" /
- * "Generate questions" buttons and the textbook import.
- */
-
-// ---------------------------------------------------------------- lessons
-
 export type Length = "short" | "standard" | "detailed"
 
 export const LENGTH_GUIDE: Record<Length, string> = {
@@ -76,11 +69,10 @@ export async function writeLessonHtml(userPrompt: string): Promise<string> {
   const html = typeof parsed.html === "string"
     ? parsed.html.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "").trim()
     : ""
-  if (!html) throw new Error("The AI didn't return any lesson content")
+  if (!html) throw new Error("No content was found")
 
   const lesson = trimLessonPreamble(html) || html
   // Swap diagram markers for real labelled diagrams from Wikimedia Commons,
-  // picked by the AI (markers with no good match are dropped)
   try {
     return await resolveLessonDiagrams(lesson, userPrompt)
   } catch (error) {
@@ -134,7 +126,7 @@ const normalise = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").tri
  */
 export async function writeQuestions(userPrompt: string, existing: string[], difficulty: DifficultyChoice): Promise<GeneratedQuestion[]> {
   const parsed = await chatJson<{ questions?: unknown }>({ system: QUESTIONS_SYSTEM_PROMPT, user: userPrompt, temperature: 0.6, maxTokens: 8000 })
-  if (!Array.isArray(parsed.questions)) throw new Error("Invalid AI response")
+  if (!Array.isArray(parsed.questions)) throw new Error("Invalid response")
 
   // Keep only well-formed questions that aren't duplicates
   const seen = new Set(existing.map(normalise))
@@ -185,7 +177,7 @@ export async function writeFlashcards(userPrompt: string, count: number): Promis
     temperature: 0.4,
     maxTokens: 4000,
   })
-  if (!Array.isArray(parsed.flashcards)) throw new Error("Invalid AI response")
+  if (!Array.isArray(parsed.flashcards)) throw new Error("Invalid response")
   const seen = new Set<string>()
   const cards: { front: string; back: string }[] = []
   for (const item of parsed.flashcards as Record<string, unknown>[]) {

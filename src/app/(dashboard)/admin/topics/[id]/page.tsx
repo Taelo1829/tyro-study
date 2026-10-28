@@ -9,6 +9,7 @@ import { TopicPdfManager } from "@/components/admin/topic-pdf-manager"
 import { ExcelBulkImport } from "@/components/admin/excel-bulk-import"
 import { FlashcardTools } from "@/components/admin/flashcard-tools"
 import { LockTopicToggle } from "@/components/admin/lock-topic-toggle"
+import { PublishTopicToggle } from "@/components/admin/publish-topic-toggle"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AiQuestionGenerator } from "@/components/admin/ai-question-generator"
 import { DeleteQuestionButton } from "@/components/admin/delete-question-button"
@@ -24,6 +25,7 @@ interface TopicDetail {
   content: string | null
   assignment: string | null
   locked?: boolean
+  published?: boolean
   chapter: {
     id: string
     title: string
@@ -105,6 +107,14 @@ export default function AdminTopicDetailPage() {
         topicId={id}
         locked={!!topic.locked}
         onChanged={locked => setTopic(prev => (prev ? { ...prev, locked } : prev))}
+      />
+
+      <PublishTopicToggle
+        topicId={id}
+        published={!!topic.published}
+        locked={!!topic.locked}
+        hasLesson={!!topic.content?.replace(/<[^>]+>/g, "").trim() || /<(img|iframe|video)/i.test(topic.content ?? "")}
+        onChanged={published => setTopic(prev => (prev ? { ...prev, published } : prev))}
       />
 
       {/* Tabs stay mounted (forceMount) so switching tabs never loses an unsaved lesson */}

@@ -1,12 +1,6 @@
 import { extractTextFromPdf } from "./pdf-parser"
 import { gradeOfTitle } from "@/lib/levels"
 
-/**
- * Shared context for AI features. Every module in Tyro Study is a UNISA
- * (University of South Africa) module, so lessons and questions are written
- * with UNISA's distance-learning students in mind.
- */
-
 export const UNISA_CONTEXT = `About the students and context (keep this in mind throughout):
 - UNISA (the University of South Africa) is a distance-learning (ODeL) university. Students mostly study on their own, often part-time while working, so material must stand on its own without a lecturer to fill gaps.
 - Many students study in their second or third language. Use clear, plain academic English with short sentences, and avoid idioms and slang.
@@ -85,7 +79,7 @@ export async function readPdfText(pdfs: { title: string; url: string }[], limit:
       const pdfText = await extractTextFromPdf(Buffer.from(await res.arrayBuffer()))
       text += `\n\n--- ${pdf.title} ---\n${pdfText}`
     } catch (err) {
-      console.warn("AI: could not read PDF", pdf.title, err)
+      console.warn("could not read PDF", pdf.title, err)
     }
   }
   return text.slice(0, limit).trim()

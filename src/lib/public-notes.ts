@@ -1,12 +1,14 @@
 import { prisma } from "@/lib/prisma"
 import { listCourses } from "@/lib/courses"
 import { toPlainText } from "@/lib/plain-text"
+import { orFallback } from "@/lib/db-safe"
 
 /**
  * Public study notes: the written lessons anyone (including search engines
  * and AdSense review) can read without signing in.
  *
- * A topic is public when it has a written lesson (text, image or video - the
+ * A topic is public when an admin has published it (lib/topic-publish.ts),
+ * it has a written lesson (text, image or video - the
  * same rule as hasWrittenContent in lib/topic-content.ts) and is NOT locked
  * (locked topics stay in-app so students can't read ahead of the lock).
  * Quizzes, flashcards, PDFs, assignments and progress stay behind login.
@@ -25,7 +27,8 @@ export interface PublicTopicRow {
 
 /** Every public topic, in course order (module title, chapter order, topic order) */
 export async function listPublicTopics(): Promise<PublicTopicRow[]> {
-  const rows = await prisma.$queryRaw<PublicTopicRow[]>`
+  // Nothing is public until the "published" migration has run
+  const rows = await orFallback(() => prisma.$queryRaw<PublicTopicRow[]>`
     SELECT t."id", t."title",
            c."id" AS "chapterId", c."title" AS "chapterTitle",
            m."id" AS "moduleId", m."title" AS "moduleTitle", m."description" AS "moduleDescription",
@@ -33,14 +36,15 @@ export async function listPublicTopics(): Promise<PublicTopicRow[]> {
     FROM "topics" t
     JOIN "chapters" c ON c."id" = t."chapterId"
     JOIN "modules" m ON m."id" = c."moduleId"
-    WHERE t."locked" = false
+    WHERE t."published" = true
+      AND t."locked" = false
       AND t."content" IS NOT NULL
       AND (
         t."content" ~* '<(img|iframe|video)'
         OR regexp_replace(t."content", '<[^>]*>|&nbsp;|\\s', '', 'gi') <> ''
       )
     ORDER BY m."title" ASC, c."order" ASC, c."createdAt" ASC, t."order" ASC, t."createdAt" ASC
-  `
+  `, [])
   // Descriptions are plain text (older ones may hold editor HTML like "<p>&nbsp;</p>")
   return rows.map(r => ({ ...r, moduleDescription: toPlainText(r.moduleDescription) || null }))
 }
@@ -124,7 +128,7 @@ export async function searchPublicTopics(query: string, limit = 40): Promise<Pub
   const q = query.trim().slice(0, 100)
   if (!q) return []
   const pattern = `%${q.replace(/[\\%_]/g, ch => `\\${ch}`)}%`
-  const rows = await prisma.$queryRaw<(PublicTopicRow & { text: string; titleMatch: boolean })[]>`
+  const rows = await orFallback(() => prisma.$queryRaw<(PublicTopicRow & { text: string; titleMatch: boolean })[]>`
     SELECT t."id", t."title",
            c."id" AS "chapterId", c."title" AS "chapterTitle",
            m."id" AS "moduleId", m."title" AS "moduleTitle", m."description" AS "moduleDescription",
@@ -137,7 +141,8 @@ export async function searchPublicTopics(query: string, limit = 40): Promise<Pub
     FROM "topics" t
     JOIN "chapters" c ON c."id" = t."chapterId"
     JOIN "modules" m ON m."id" = c."moduleId"
-    WHERE t."locked" = false
+    WHERE t."published" = true
+      AND t."locked" = false
       AND t."content" IS NOT NULL
       AND (
         t."content" ~* '<(img|iframe|video)'
@@ -149,7 +154,7 @@ export async function searchPublicTopics(query: string, limit = 40): Promise<Pub
       )
     ORDER BY "titleMatch" DESC, m."title" ASC, c."order" ASC, c."createdAt" ASC, t."order" ASC, t."createdAt" ASC
     LIMIT ${limit}
-  `
+  `, [])
   const needle = q.toLowerCase()
   return rows.map(({ text, titleMatch, ...row }) => {
     const clean = text.trim()

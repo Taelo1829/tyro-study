@@ -53,7 +53,7 @@ export async function extractQuestionsFromText(
 
   const parsed = JSON.parse(raw) as ExtractionResult
   if (!Array.isArray(parsed.questions)) {
-    throw new Error("Invalid AI response format")
+    throw new Error("Invalid response format")
   }
 
   const questions = parsed.questions

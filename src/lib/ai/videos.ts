@@ -2,17 +2,6 @@ import { chatJson } from "@/lib/ai/openai"
 import { UNISA_CONTEXT, htmlToText, moduleLines } from "@/lib/ai/unisa"
 import { prisma } from "@/lib/prisma"
 
-/**
- * Find a YouTube video for a topic:
- * 1. The AI reads the module, chapter and topic (and the lesson, if there is
- *    one) and describes the ideal video, plus a YouTube search for it.
- * 2. The YouTube Data API returns embeddable videos for that search.
- * 3. The AI picks the one that best matches the description (or none).
- *
- * Needs YOUTUBE_API_KEY. Quota: each search costs 100 units of YouTube's free
- * 10,000 a day, so about 100 topics a day.
- */
-
 export interface VideoCandidate {
   id: string
   url: string
@@ -27,10 +16,9 @@ export interface VideoCandidate {
 }
 
 export interface VideoSuggestion {
-  /** What the ideal video covers (written by the AI) */
+  /** What the ideal video covers  */
   description: string
   query: string
-  /** The AI's pick, or null when nothing found is a good match */
   video: VideoCandidate | null
   reason: string
   /** Other videos the search found, best first */

@@ -109,7 +109,7 @@ async function writeNote(questionId: string): Promise<string> {
 
   const parsed = await chatJson<{ html?: unknown }>({ system: NOTE_PROMPT, user: prompt, temperature: 0.4, maxTokens: 2500 })
   const html = typeof parsed.html === "string" ? parsed.html.trim() : ""
-  if (!html) throw new Error("The AI didn't return a note")
+  if (!html) throw new Error("No Note was returned")
   return html
 }
 

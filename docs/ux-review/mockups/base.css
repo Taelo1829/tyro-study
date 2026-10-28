@@ -1,0 +1,42 @@
+@import url("https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --ink: #16181d; --muted: #6b7280; --line: #e3e7ec; --soft: #f4f6f8;
+  --blue: #d6eafb; --mint: #dcefe6; --slate: #e2e9ef; --sky: #4cb2f5;
+  --orange: #ff6b3d; --green: #16a34a; --red: #e5484d; --amber: #fff4e5;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 390px; height: 780px; overflow: hidden; }
+body { font-family: Urbanist, system-ui, sans-serif; color: var(--ink); background: #fff; position: relative; -webkit-font-smoothing: antialiased; }
+body.grey { background: #eef1f4; }
+.page { padding: 0 16px; }
+svg { display: block; }
+.muted { color: var(--muted); }
+.row { display: flex; align-items: center; gap: 10px; }
+.between { justify-content: space-between; }
+.xs { font-size: 12px; } .sm { font-size: 14px; } .md { font-size: 16px; }
+.b5 { font-weight: 500; } .b6 { font-weight: 600; } .b7 { font-weight: 700; } .b8 { font-weight: 800; }
+
+/* Top bar */
+.top { height: 64px; margin: 12px 12px 0; border-radius: 999px; background: #fff; box-shadow: 0 6px 20px -8px rgba(22,24,29,.15); border: 1px solid var(--line); display: flex; align-items: center; padding: 0 10px; gap: 10px; }
+.logo { width: 40px; height: 40px; border-radius: 999px; background: var(--ink); display: grid; place-items: center; color: #fff; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700; background: var(--soft); }
+.avatar { width: 38px; height: 38px; border-radius: 999px; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 700; }
+
+/* Bottom nav */
+.nav { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 68px; border-radius: 999px; background: rgba(255,255,255,.96); box-shadow: 0 8px 24px -8px rgba(22,24,29,.2); border: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; padding: 0 8px; }
+.nav a { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10.5px; font-weight: 600; color: var(--muted); padding: 7px 12px; border-radius: 999px; text-decoration: none; }
+.nav a.on { background: var(--ink); color: #fff; }
+
+/* Cards & buttons */
+.card { background: #fff; border-radius: 26px; padding: 18px; }
+.outline { border: 1.5px solid var(--line); }
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; border-radius: 999px; font-weight: 700; font-size: 16px; background: var(--ink); color: #fff; }
+.btn.white { background: #fff; color: var(--ink); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.bar { height: 8px; border-radius: 999px; background: var(--soft); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 999px; background: var(--ink); }
+.tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+
+/* Annotation pins (numbered callouts on mockups) */
+.pin { position: absolute; width: 22px; height: 22px; border-radius: 999px; background: var(--orange); color: #fff; font-size: 12px; font-weight: 800; display: grid; place-items: center; box-shadow: 0 0 0 3px #fff; z-index: 20; }

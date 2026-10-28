@@ -49,6 +49,17 @@ export type VerificationToken = $Result.DefaultSelection<Prisma.$VerificationTok
  */
 export type Module = $Result.DefaultSelection<Prisma.$ModulePayload>
 /**
+ * Model Course
+ * Top of the hierarchy: Course > Module > Chapter > Topic.
+ * Read and written with SQL (src/lib/courses.ts) so it works before the client is regenerated.
+ */
+export type Course = $Result.DefaultSelection<Prisma.$CoursePayload>
+/**
+ * Model CourseModule
+ * A module can be part of several courses, or none
+ */
+export type CourseModule = $Result.DefaultSelection<Prisma.$CourseModulePayload>
+/**
  * Model ModuleEnrollment
  * 
  */
@@ -99,6 +110,12 @@ export type Flashcard = $Result.DefaultSelection<Prisma.$FlashcardPayload>
  */
 export type Timetable = $Result.DefaultSelection<Prisma.$TimetablePayload>
 /**
+ * Model CalendarEvent
+ * Timetable calendar entries: study sessions, assignment due dates, exams, reminders.
+ * type is one of STUDY_SESSION | ASSIGNMENT | EXAM | REMINDER (checked by the API).
+ */
+export type CalendarEvent = $Result.DefaultSelection<Prisma.$CalendarEventPayload>
+/**
  * Model Notification
  * 
  */
@@ -123,6 +140,28 @@ export type Message = $Result.DefaultSelection<Prisma.$MessagePayload>
  * 
  */
 export type PushSubscription = $Result.DefaultSelection<Prisma.$PushSubscriptionPayload>
+/**
+ * Model EmailOtp
+ * One-time codes emailed to check an address works (sign-up and email change)
+ */
+export type EmailOtp = $Result.DefaultSelection<Prisma.$EmailOtpPayload>
+/**
+ * Model CodingProject
+ * A topic's hands-on programming task (coding modules), marked by AI against its rubric.
+ * Read and written with SQL (src/lib/projects.ts).
+ */
+export type CodingProject = $Result.DefaultSelection<Prisma.$CodingProjectPayload>
+/**
+ * Model ProjectSubmission
+ * A student's uploaded files for a project, with the AI's marks
+ */
+export type ProjectSubmission = $Result.DefaultSelection<Prisma.$ProjectSubmissionPayload>
+/**
+ * Model TopicExercise
+ * A "Try it yourself" exercise in a coding lesson: code with ____ blanks to fill in.
+ * Read and written with SQL (src/lib/exercises.ts).
+ */
+export type TopicExercise = $Result.DefaultSelection<Prisma.$TopicExercisePayload>
 
 /**
  * Enums
@@ -387,6 +426,26 @@ export class PrismaClient<
   get module(): Prisma.ModuleDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.course`: Exposes CRUD operations for the **Course** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Courses
+    * const courses = await prisma.course.findMany()
+    * ```
+    */
+  get course(): Prisma.CourseDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.courseModule`: Exposes CRUD operations for the **CourseModule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CourseModules
+    * const courseModules = await prisma.courseModule.findMany()
+    * ```
+    */
+  get courseModule(): Prisma.CourseModuleDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.moduleEnrollment`: Exposes CRUD operations for the **ModuleEnrollment** model.
     * Example usage:
     * ```ts
@@ -487,6 +546,16 @@ export class PrismaClient<
   get timetable(): Prisma.TimetableDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.calendarEvent`: Exposes CRUD operations for the **CalendarEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CalendarEvents
+    * const calendarEvents = await prisma.calendarEvent.findMany()
+    * ```
+    */
+  get calendarEvent(): Prisma.CalendarEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.notification`: Exposes CRUD operations for the **Notification** model.
     * Example usage:
     * ```ts
@@ -535,6 +604,46 @@ export class PrismaClient<
     * ```
     */
   get pushSubscription(): Prisma.PushSubscriptionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.emailOtp`: Exposes CRUD operations for the **EmailOtp** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EmailOtps
+    * const emailOtps = await prisma.emailOtp.findMany()
+    * ```
+    */
+  get emailOtp(): Prisma.EmailOtpDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.codingProject`: Exposes CRUD operations for the **CodingProject** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CodingProjects
+    * const codingProjects = await prisma.codingProject.findMany()
+    * ```
+    */
+  get codingProject(): Prisma.CodingProjectDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.projectSubmission`: Exposes CRUD operations for the **ProjectSubmission** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProjectSubmissions
+    * const projectSubmissions = await prisma.projectSubmission.findMany()
+    * ```
+    */
+  get projectSubmission(): Prisma.ProjectSubmissionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.topicExercise`: Exposes CRUD operations for the **TopicExercise** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more TopicExercises
+    * const topicExercises = await prisma.topicExercise.findMany()
+    * ```
+    */
+  get topicExercise(): Prisma.TopicExerciseDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -976,6 +1085,8 @@ export namespace Prisma {
     Session: 'Session',
     VerificationToken: 'VerificationToken',
     Module: 'Module',
+    Course: 'Course',
+    CourseModule: 'CourseModule',
     ModuleEnrollment: 'ModuleEnrollment',
     Chapter: 'Chapter',
     Topic: 'Topic',
@@ -986,11 +1097,16 @@ export namespace Prisma {
     UserAnswer: 'UserAnswer',
     Flashcard: 'Flashcard',
     Timetable: 'Timetable',
+    CalendarEvent: 'CalendarEvent',
     Notification: 'Notification',
     Friendship: 'Friendship',
     Conversation: 'Conversation',
     Message: 'Message',
-    PushSubscription: 'PushSubscription'
+    PushSubscription: 'PushSubscription',
+    EmailOtp: 'EmailOtp',
+    CodingProject: 'CodingProject',
+    ProjectSubmission: 'ProjectSubmission',
+    TopicExercise: 'TopicExercise'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1006,7 +1122,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "quizAttempt" | "questionAttempt" | "user" | "account" | "session" | "verificationToken" | "module" | "moduleEnrollment" | "chapter" | "topic" | "topicPdf" | "assignment_Attempt" | "question" | "answer" | "userAnswer" | "flashcard" | "timetable" | "notification" | "friendship" | "conversation" | "message" | "pushSubscription"
+      modelProps: "quizAttempt" | "questionAttempt" | "user" | "account" | "session" | "verificationToken" | "module" | "course" | "courseModule" | "moduleEnrollment" | "chapter" | "topic" | "topicPdf" | "assignment_Attempt" | "question" | "answer" | "userAnswer" | "flashcard" | "timetable" | "calendarEvent" | "notification" | "friendship" | "conversation" | "message" | "pushSubscription" | "emailOtp" | "codingProject" | "projectSubmission" | "topicExercise"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1525,6 +1641,154 @@ export namespace Prisma {
           count: {
             args: Prisma.ModuleCountArgs<ExtArgs>
             result: $Utils.Optional<ModuleCountAggregateOutputType> | number
+          }
+        }
+      }
+      Course: {
+        payload: Prisma.$CoursePayload<ExtArgs>
+        fields: Prisma.CourseFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CourseFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CourseFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload>
+          }
+          findFirst: {
+            args: Prisma.CourseFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CourseFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload>
+          }
+          findMany: {
+            args: Prisma.CourseFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload>[]
+          }
+          create: {
+            args: Prisma.CourseCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload>
+          }
+          createMany: {
+            args: Prisma.CourseCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CourseCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload>[]
+          }
+          delete: {
+            args: Prisma.CourseDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload>
+          }
+          update: {
+            args: Prisma.CourseUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload>
+          }
+          deleteMany: {
+            args: Prisma.CourseDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CourseUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CourseUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload>[]
+          }
+          upsert: {
+            args: Prisma.CourseUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoursePayload>
+          }
+          aggregate: {
+            args: Prisma.CourseAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCourse>
+          }
+          groupBy: {
+            args: Prisma.CourseGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CourseGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CourseCountArgs<ExtArgs>
+            result: $Utils.Optional<CourseCountAggregateOutputType> | number
+          }
+        }
+      }
+      CourseModule: {
+        payload: Prisma.$CourseModulePayload<ExtArgs>
+        fields: Prisma.CourseModuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CourseModuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CourseModuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload>
+          }
+          findFirst: {
+            args: Prisma.CourseModuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CourseModuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload>
+          }
+          findMany: {
+            args: Prisma.CourseModuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload>[]
+          }
+          create: {
+            args: Prisma.CourseModuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload>
+          }
+          createMany: {
+            args: Prisma.CourseModuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CourseModuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload>[]
+          }
+          delete: {
+            args: Prisma.CourseModuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload>
+          }
+          update: {
+            args: Prisma.CourseModuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload>
+          }
+          deleteMany: {
+            args: Prisma.CourseModuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CourseModuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CourseModuleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload>[]
+          }
+          upsert: {
+            args: Prisma.CourseModuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CourseModulePayload>
+          }
+          aggregate: {
+            args: Prisma.CourseModuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCourseModule>
+          }
+          groupBy: {
+            args: Prisma.CourseModuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CourseModuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CourseModuleCountArgs<ExtArgs>
+            result: $Utils.Optional<CourseModuleCountAggregateOutputType> | number
           }
         }
       }
@@ -2268,6 +2532,80 @@ export namespace Prisma {
           }
         }
       }
+      CalendarEvent: {
+        payload: Prisma.$CalendarEventPayload<ExtArgs>
+        fields: Prisma.CalendarEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CalendarEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CalendarEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload>
+          }
+          findFirst: {
+            args: Prisma.CalendarEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CalendarEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload>
+          }
+          findMany: {
+            args: Prisma.CalendarEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload>[]
+          }
+          create: {
+            args: Prisma.CalendarEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload>
+          }
+          createMany: {
+            args: Prisma.CalendarEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CalendarEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload>[]
+          }
+          delete: {
+            args: Prisma.CalendarEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload>
+          }
+          update: {
+            args: Prisma.CalendarEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.CalendarEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CalendarEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CalendarEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.CalendarEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarEventPayload>
+          }
+          aggregate: {
+            args: Prisma.CalendarEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCalendarEvent>
+          }
+          groupBy: {
+            args: Prisma.CalendarEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CalendarEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CalendarEventCountArgs<ExtArgs>
+            result: $Utils.Optional<CalendarEventCountAggregateOutputType> | number
+          }
+        }
+      }
       Notification: {
         payload: Prisma.$NotificationPayload<ExtArgs>
         fields: Prisma.NotificationFieldRefs
@@ -2638,6 +2976,302 @@ export namespace Prisma {
           }
         }
       }
+      EmailOtp: {
+        payload: Prisma.$EmailOtpPayload<ExtArgs>
+        fields: Prisma.EmailOtpFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EmailOtpFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EmailOtpFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload>
+          }
+          findFirst: {
+            args: Prisma.EmailOtpFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EmailOtpFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload>
+          }
+          findMany: {
+            args: Prisma.EmailOtpFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload>[]
+          }
+          create: {
+            args: Prisma.EmailOtpCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload>
+          }
+          createMany: {
+            args: Prisma.EmailOtpCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EmailOtpCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload>[]
+          }
+          delete: {
+            args: Prisma.EmailOtpDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload>
+          }
+          update: {
+            args: Prisma.EmailOtpUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload>
+          }
+          deleteMany: {
+            args: Prisma.EmailOtpDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EmailOtpUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EmailOtpUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload>[]
+          }
+          upsert: {
+            args: Prisma.EmailOtpUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailOtpPayload>
+          }
+          aggregate: {
+            args: Prisma.EmailOtpAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEmailOtp>
+          }
+          groupBy: {
+            args: Prisma.EmailOtpGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EmailOtpGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EmailOtpCountArgs<ExtArgs>
+            result: $Utils.Optional<EmailOtpCountAggregateOutputType> | number
+          }
+        }
+      }
+      CodingProject: {
+        payload: Prisma.$CodingProjectPayload<ExtArgs>
+        fields: Prisma.CodingProjectFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CodingProjectFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CodingProjectFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload>
+          }
+          findFirst: {
+            args: Prisma.CodingProjectFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CodingProjectFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload>
+          }
+          findMany: {
+            args: Prisma.CodingProjectFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload>[]
+          }
+          create: {
+            args: Prisma.CodingProjectCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload>
+          }
+          createMany: {
+            args: Prisma.CodingProjectCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CodingProjectCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload>[]
+          }
+          delete: {
+            args: Prisma.CodingProjectDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload>
+          }
+          update: {
+            args: Prisma.CodingProjectUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload>
+          }
+          deleteMany: {
+            args: Prisma.CodingProjectDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CodingProjectUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CodingProjectUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload>[]
+          }
+          upsert: {
+            args: Prisma.CodingProjectUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CodingProjectPayload>
+          }
+          aggregate: {
+            args: Prisma.CodingProjectAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCodingProject>
+          }
+          groupBy: {
+            args: Prisma.CodingProjectGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CodingProjectGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CodingProjectCountArgs<ExtArgs>
+            result: $Utils.Optional<CodingProjectCountAggregateOutputType> | number
+          }
+        }
+      }
+      ProjectSubmission: {
+        payload: Prisma.$ProjectSubmissionPayload<ExtArgs>
+        fields: Prisma.ProjectSubmissionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProjectSubmissionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProjectSubmissionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload>
+          }
+          findFirst: {
+            args: Prisma.ProjectSubmissionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProjectSubmissionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload>
+          }
+          findMany: {
+            args: Prisma.ProjectSubmissionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload>[]
+          }
+          create: {
+            args: Prisma.ProjectSubmissionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload>
+          }
+          createMany: {
+            args: Prisma.ProjectSubmissionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProjectSubmissionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload>[]
+          }
+          delete: {
+            args: Prisma.ProjectSubmissionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload>
+          }
+          update: {
+            args: Prisma.ProjectSubmissionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProjectSubmissionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProjectSubmissionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ProjectSubmissionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload>[]
+          }
+          upsert: {
+            args: Prisma.ProjectSubmissionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProjectSubmissionPayload>
+          }
+          aggregate: {
+            args: Prisma.ProjectSubmissionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProjectSubmission>
+          }
+          groupBy: {
+            args: Prisma.ProjectSubmissionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProjectSubmissionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProjectSubmissionCountArgs<ExtArgs>
+            result: $Utils.Optional<ProjectSubmissionCountAggregateOutputType> | number
+          }
+        }
+      }
+      TopicExercise: {
+        payload: Prisma.$TopicExercisePayload<ExtArgs>
+        fields: Prisma.TopicExerciseFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TopicExerciseFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TopicExerciseFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload>
+          }
+          findFirst: {
+            args: Prisma.TopicExerciseFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TopicExerciseFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload>
+          }
+          findMany: {
+            args: Prisma.TopicExerciseFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload>[]
+          }
+          create: {
+            args: Prisma.TopicExerciseCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload>
+          }
+          createMany: {
+            args: Prisma.TopicExerciseCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TopicExerciseCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload>[]
+          }
+          delete: {
+            args: Prisma.TopicExerciseDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload>
+          }
+          update: {
+            args: Prisma.TopicExerciseUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload>
+          }
+          deleteMany: {
+            args: Prisma.TopicExerciseDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TopicExerciseUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.TopicExerciseUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload>[]
+          }
+          upsert: {
+            args: Prisma.TopicExerciseUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TopicExercisePayload>
+          }
+          aggregate: {
+            args: Prisma.TopicExerciseAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTopicExercise>
+          }
+          groupBy: {
+            args: Prisma.TopicExerciseGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TopicExerciseGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TopicExerciseCountArgs<ExtArgs>
+            result: $Utils.Optional<TopicExerciseCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2753,6 +3387,8 @@ export namespace Prisma {
     session?: SessionOmit
     verificationToken?: VerificationTokenOmit
     module?: ModuleOmit
+    course?: CourseOmit
+    courseModule?: CourseModuleOmit
     moduleEnrollment?: ModuleEnrollmentOmit
     chapter?: ChapterOmit
     topic?: TopicOmit
@@ -2763,11 +3399,16 @@ export namespace Prisma {
     userAnswer?: UserAnswerOmit
     flashcard?: FlashcardOmit
     timetable?: TimetableOmit
+    calendarEvent?: CalendarEventOmit
     notification?: NotificationOmit
     friendship?: FriendshipOmit
     conversation?: ConversationOmit
     message?: MessageOmit
     pushSubscription?: PushSubscriptionOmit
+    emailOtp?: EmailOtpOmit
+    codingProject?: CodingProjectOmit
+    projectSubmission?: ProjectSubmissionOmit
+    topicExercise?: TopicExerciseOmit
   }
 
   /* Types for Logging */
@@ -2891,6 +3532,9 @@ export namespace Prisma {
     conversationsAsUser1: number
     conversationsAsUser2: number
     sentMessages: number
+    calendarEvents: number
+    emailOtps: number
+    projectSubmissions: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2906,6 +3550,9 @@ export namespace Prisma {
     conversationsAsUser1?: boolean | UserCountOutputTypeCountConversationsAsUser1Args
     conversationsAsUser2?: boolean | UserCountOutputTypeCountConversationsAsUser2Args
     sentMessages?: boolean | UserCountOutputTypeCountSentMessagesArgs
+    calendarEvents?: boolean | UserCountOutputTypeCountCalendarEventsArgs
+    emailOtps?: boolean | UserCountOutputTypeCountEmailOtpsArgs
+    projectSubmissions?: boolean | UserCountOutputTypeCountProjectSubmissionsArgs
   }
 
   // Custom InputTypes
@@ -3003,6 +3650,27 @@ export namespace Prisma {
     where?: MessageWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCalendarEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CalendarEventWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountEmailOtpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EmailOtpWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountProjectSubmissionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProjectSubmissionWhereInput
+  }
+
 
   /**
    * Count Type ModuleCountOutputType
@@ -3013,6 +3681,8 @@ export namespace Prisma {
     timetables: number
     enrollments: number
     quizAttempts: number
+    calendarEvents: number
+    courses: number
   }
 
   export type ModuleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3020,6 +3690,8 @@ export namespace Prisma {
     timetables?: boolean | ModuleCountOutputTypeCountTimetablesArgs
     enrollments?: boolean | ModuleCountOutputTypeCountEnrollmentsArgs
     quizAttempts?: boolean | ModuleCountOutputTypeCountQuizAttemptsArgs
+    calendarEvents?: boolean | ModuleCountOutputTypeCountCalendarEventsArgs
+    courses?: boolean | ModuleCountOutputTypeCountCoursesArgs
   }
 
   // Custom InputTypes
@@ -3059,6 +3731,51 @@ export namespace Prisma {
    */
   export type ModuleCountOutputTypeCountQuizAttemptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: QuizAttemptWhereInput
+  }
+
+  /**
+   * ModuleCountOutputType without action
+   */
+  export type ModuleCountOutputTypeCountCalendarEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CalendarEventWhereInput
+  }
+
+  /**
+   * ModuleCountOutputType without action
+   */
+  export type ModuleCountOutputTypeCountCoursesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CourseModuleWhereInput
+  }
+
+
+  /**
+   * Count Type CourseCountOutputType
+   */
+
+  export type CourseCountOutputType = {
+    modules: number
+  }
+
+  export type CourseCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    modules?: boolean | CourseCountOutputTypeCountModulesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CourseCountOutputType without action
+   */
+  export type CourseCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseCountOutputType
+     */
+    select?: CourseCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CourseCountOutputType without action
+   */
+  export type CourseCountOutputTypeCountModulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CourseModuleWhereInput
   }
 
 
@@ -3111,6 +3828,8 @@ export namespace Prisma {
     flashcards: number
     quizAttempts: number
     pdfs: number
+    codingProjects: number
+    exercises: number
   }
 
   export type TopicCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3118,6 +3837,8 @@ export namespace Prisma {
     flashcards?: boolean | TopicCountOutputTypeCountFlashcardsArgs
     quizAttempts?: boolean | TopicCountOutputTypeCountQuizAttemptsArgs
     pdfs?: boolean | TopicCountOutputTypeCountPdfsArgs
+    codingProjects?: boolean | TopicCountOutputTypeCountCodingProjectsArgs
+    exercises?: boolean | TopicCountOutputTypeCountExercisesArgs
   }
 
   // Custom InputTypes
@@ -3157,6 +3878,20 @@ export namespace Prisma {
    */
   export type TopicCountOutputTypeCountPdfsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TopicPdfWhereInput
+  }
+
+  /**
+   * TopicCountOutputType without action
+   */
+  export type TopicCountOutputTypeCountCodingProjectsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CodingProjectWhereInput
+  }
+
+  /**
+   * TopicCountOutputType without action
+   */
+  export type TopicCountOutputTypeCountExercisesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TopicExerciseWhereInput
   }
 
 
@@ -3308,6 +4043,37 @@ export namespace Prisma {
    */
   export type MessageCountOutputTypeCountRepliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MessageWhereInput
+  }
+
+
+  /**
+   * Count Type CodingProjectCountOutputType
+   */
+
+  export type CodingProjectCountOutputType = {
+    submissions: number
+  }
+
+  export type CodingProjectCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    submissions?: boolean | CodingProjectCountOutputTypeCountSubmissionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CodingProjectCountOutputType without action
+   */
+  export type CodingProjectCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProjectCountOutputType
+     */
+    select?: CodingProjectCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CodingProjectCountOutputType without action
+   */
+  export type CodingProjectCountOutputTypeCountSubmissionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProjectSubmissionWhereInput
   }
 
 
@@ -4632,6 +5398,7 @@ export namespace Prisma {
     isCorrect: boolean | null
     order: number | null
     status: $Enums.AnswerStatus | null
+    typedAnswer: string | null
     answeredAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -4645,6 +5412,7 @@ export namespace Prisma {
     isCorrect: boolean | null
     order: number | null
     status: $Enums.AnswerStatus | null
+    typedAnswer: string | null
     answeredAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -4658,6 +5426,7 @@ export namespace Prisma {
     isCorrect: number
     order: number
     status: number
+    typedAnswer: number
     answeredAt: number
     createdAt: number
     updatedAt: number
@@ -4681,6 +5450,7 @@ export namespace Prisma {
     isCorrect?: true
     order?: true
     status?: true
+    typedAnswer?: true
     answeredAt?: true
     createdAt?: true
     updatedAt?: true
@@ -4694,6 +5464,7 @@ export namespace Prisma {
     isCorrect?: true
     order?: true
     status?: true
+    typedAnswer?: true
     answeredAt?: true
     createdAt?: true
     updatedAt?: true
@@ -4707,6 +5478,7 @@ export namespace Prisma {
     isCorrect?: true
     order?: true
     status?: true
+    typedAnswer?: true
     answeredAt?: true
     createdAt?: true
     updatedAt?: true
@@ -4807,6 +5579,7 @@ export namespace Prisma {
     isCorrect: boolean | null
     order: number
     status: $Enums.AnswerStatus
+    typedAnswer: string | null
     answeredAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -4839,6 +5612,7 @@ export namespace Prisma {
     isCorrect?: boolean
     order?: boolean
     status?: boolean
+    typedAnswer?: boolean
     answeredAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4855,6 +5629,7 @@ export namespace Prisma {
     isCorrect?: boolean
     order?: boolean
     status?: boolean
+    typedAnswer?: boolean
     answeredAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4871,6 +5646,7 @@ export namespace Prisma {
     isCorrect?: boolean
     order?: boolean
     status?: boolean
+    typedAnswer?: boolean
     answeredAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4887,12 +5663,13 @@ export namespace Prisma {
     isCorrect?: boolean
     order?: boolean
     status?: boolean
+    typedAnswer?: boolean
     answeredAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type QuestionAttemptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "quizAttemptId" | "questionId" | "selectedAnswerId" | "isCorrect" | "order" | "status" | "answeredAt" | "createdAt" | "updatedAt", ExtArgs["result"]["questionAttempt"]>
+  export type QuestionAttemptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "quizAttemptId" | "questionId" | "selectedAnswerId" | "isCorrect" | "order" | "status" | "typedAnswer" | "answeredAt" | "createdAt" | "updatedAt", ExtArgs["result"]["questionAttempt"]>
   export type QuestionAttemptInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     quizAttempt?: boolean | QuizAttemptDefaultArgs<ExtArgs>
     question?: boolean | QuestionDefaultArgs<ExtArgs>
@@ -4924,6 +5701,10 @@ export namespace Prisma {
       isCorrect: boolean | null
       order: number
       status: $Enums.AnswerStatus
+      /**
+       * What the student typed (blank questions)
+       */
+      typedAnswer: string | null
       answeredAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -5360,6 +6141,7 @@ export namespace Prisma {
     readonly isCorrect: FieldRef<"QuestionAttempt", 'Boolean'>
     readonly order: FieldRef<"QuestionAttempt", 'Int'>
     readonly status: FieldRef<"QuestionAttempt", 'AnswerStatus'>
+    readonly typedAnswer: FieldRef<"QuestionAttempt", 'String'>
     readonly answeredAt: FieldRef<"QuestionAttempt", 'DateTime'>
     readonly createdAt: FieldRef<"QuestionAttempt", 'DateTime'>
     readonly updatedAt: FieldRef<"QuestionAttempt", 'DateTime'>
@@ -5829,6 +6611,8 @@ export namespace Prisma {
     image: string | null
     password: string | null
     role: $Enums.Role | null
+    isSuperuser: boolean | null
+    level: string | null
     streakDays: number | null
     lastVisitDate: Date | null
     createdAt: Date | null
@@ -5844,6 +6628,8 @@ export namespace Prisma {
     image: string | null
     password: string | null
     role: $Enums.Role | null
+    isSuperuser: boolean | null
+    level: string | null
     streakDays: number | null
     lastVisitDate: Date | null
     createdAt: Date | null
@@ -5859,6 +6645,8 @@ export namespace Prisma {
     image: number
     password: number
     role: number
+    isSuperuser: number
+    level: number
     streakDays: number
     lastVisitDate: number
     createdAt: number
@@ -5884,6 +6672,8 @@ export namespace Prisma {
     image?: true
     password?: true
     role?: true
+    isSuperuser?: true
+    level?: true
     streakDays?: true
     lastVisitDate?: true
     createdAt?: true
@@ -5899,6 +6689,8 @@ export namespace Prisma {
     image?: true
     password?: true
     role?: true
+    isSuperuser?: true
+    level?: true
     streakDays?: true
     lastVisitDate?: true
     createdAt?: true
@@ -5914,6 +6706,8 @@ export namespace Prisma {
     image?: true
     password?: true
     role?: true
+    isSuperuser?: true
+    level?: true
     streakDays?: true
     lastVisitDate?: true
     createdAt?: true
@@ -6016,6 +6810,8 @@ export namespace Prisma {
     image: string | null
     password: string | null
     role: $Enums.Role
+    isSuperuser: boolean
+    level: string
     streakDays: number
     lastVisitDate: Date | null
     createdAt: Date
@@ -6050,6 +6846,8 @@ export namespace Prisma {
     image?: boolean
     password?: boolean
     role?: boolean
+    isSuperuser?: boolean
+    level?: boolean
     streakDays?: boolean
     lastVisitDate?: boolean
     createdAt?: boolean
@@ -6067,6 +6865,9 @@ export namespace Prisma {
     conversationsAsUser1?: boolean | User$conversationsAsUser1Args<ExtArgs>
     conversationsAsUser2?: boolean | User$conversationsAsUser2Args<ExtArgs>
     sentMessages?: boolean | User$sentMessagesArgs<ExtArgs>
+    calendarEvents?: boolean | User$calendarEventsArgs<ExtArgs>
+    emailOtps?: boolean | User$emailOtpsArgs<ExtArgs>
+    projectSubmissions?: boolean | User$projectSubmissionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -6078,6 +6879,8 @@ export namespace Prisma {
     image?: boolean
     password?: boolean
     role?: boolean
+    isSuperuser?: boolean
+    level?: boolean
     streakDays?: boolean
     lastVisitDate?: boolean
     createdAt?: boolean
@@ -6093,6 +6896,8 @@ export namespace Prisma {
     image?: boolean
     password?: boolean
     role?: boolean
+    isSuperuser?: boolean
+    level?: boolean
     streakDays?: boolean
     lastVisitDate?: boolean
     createdAt?: boolean
@@ -6108,6 +6913,8 @@ export namespace Prisma {
     image?: boolean
     password?: boolean
     role?: boolean
+    isSuperuser?: boolean
+    level?: boolean
     streakDays?: boolean
     lastVisitDate?: boolean
     createdAt?: boolean
@@ -6115,7 +6922,7 @@ export namespace Prisma {
     lastSeen?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "password" | "role" | "streakDays" | "lastVisitDate" | "createdAt" | "updatedAt" | "lastSeen", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "password" | "role" | "isSuperuser" | "level" | "streakDays" | "lastVisitDate" | "createdAt" | "updatedAt" | "lastSeen", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -6129,6 +6936,9 @@ export namespace Prisma {
     conversationsAsUser1?: boolean | User$conversationsAsUser1Args<ExtArgs>
     conversationsAsUser2?: boolean | User$conversationsAsUser2Args<ExtArgs>
     sentMessages?: boolean | User$sentMessagesArgs<ExtArgs>
+    calendarEvents?: boolean | User$calendarEventsArgs<ExtArgs>
+    emailOtps?: boolean | User$emailOtpsArgs<ExtArgs>
+    projectSubmissions?: boolean | User$projectSubmissionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -6149,6 +6959,9 @@ export namespace Prisma {
       conversationsAsUser1: Prisma.$ConversationPayload<ExtArgs>[]
       conversationsAsUser2: Prisma.$ConversationPayload<ExtArgs>[]
       sentMessages: Prisma.$MessagePayload<ExtArgs>[]
+      calendarEvents: Prisma.$CalendarEventPayload<ExtArgs>[]
+      emailOtps: Prisma.$EmailOtpPayload<ExtArgs>[]
+      projectSubmissions: Prisma.$ProjectSubmissionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6158,6 +6971,14 @@ export namespace Prisma {
       image: string | null
       password: string | null
       role: $Enums.Role
+      /**
+       * Superusers manage admins: change roles, grant superuser, delete admins
+       */
+      isSuperuser: boolean
+      /**
+       * "tertiary" (university modules) or "highschool" (Grade 11 and 12 subjects)
+       */
+      level: string
       streakDays: number
       lastVisitDate: Date | null
       createdAt: Date
@@ -6569,6 +7390,9 @@ export namespace Prisma {
     conversationsAsUser1<T extends User$conversationsAsUser1Args<ExtArgs> = {}>(args?: Subset<T, User$conversationsAsUser1Args<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     conversationsAsUser2<T extends User$conversationsAsUser2Args<ExtArgs> = {}>(args?: Subset<T, User$conversationsAsUser2Args<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sentMessages<T extends User$sentMessagesArgs<ExtArgs> = {}>(args?: Subset<T, User$sentMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    calendarEvents<T extends User$calendarEventsArgs<ExtArgs> = {}>(args?: Subset<T, User$calendarEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    emailOtps<T extends User$emailOtpsArgs<ExtArgs> = {}>(args?: Subset<T, User$emailOtpsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    projectSubmissions<T extends User$projectSubmissionsArgs<ExtArgs> = {}>(args?: Subset<T, User$projectSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6605,6 +7429,8 @@ export namespace Prisma {
     readonly image: FieldRef<"User", 'String'>
     readonly password: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'Role'>
+    readonly isSuperuser: FieldRef<"User", 'Boolean'>
+    readonly level: FieldRef<"User", 'String'>
     readonly streakDays: FieldRef<"User", 'Int'>
     readonly lastVisitDate: FieldRef<"User", 'DateTime'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
@@ -7288,6 +8114,78 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MessageScalarFieldEnum | MessageScalarFieldEnum[]
+  }
+
+  /**
+   * User.calendarEvents
+   */
+  export type User$calendarEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    where?: CalendarEventWhereInput
+    orderBy?: CalendarEventOrderByWithRelationInput | CalendarEventOrderByWithRelationInput[]
+    cursor?: CalendarEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CalendarEventScalarFieldEnum | CalendarEventScalarFieldEnum[]
+  }
+
+  /**
+   * User.emailOtps
+   */
+  export type User$emailOtpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    where?: EmailOtpWhereInput
+    orderBy?: EmailOtpOrderByWithRelationInput | EmailOtpOrderByWithRelationInput[]
+    cursor?: EmailOtpWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EmailOtpScalarFieldEnum | EmailOtpScalarFieldEnum[]
+  }
+
+  /**
+   * User.projectSubmissions
+   */
+  export type User$projectSubmissionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    where?: ProjectSubmissionWhereInput
+    orderBy?: ProjectSubmissionOrderByWithRelationInput | ProjectSubmissionOrderByWithRelationInput[]
+    cursor?: ProjectSubmissionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProjectSubmissionScalarFieldEnum | ProjectSubmissionScalarFieldEnum[]
   }
 
   /**
@@ -10536,6 +11434,8 @@ export namespace Prisma {
     title: string | null
     description: string | null
     createdAt: Date | null
+    codingLanguage: string | null
+    level: string | null
   }
 
   export type ModuleMaxAggregateOutputType = {
@@ -10543,6 +11443,8 @@ export namespace Prisma {
     title: string | null
     description: string | null
     createdAt: Date | null
+    codingLanguage: string | null
+    level: string | null
   }
 
   export type ModuleCountAggregateOutputType = {
@@ -10550,6 +11452,8 @@ export namespace Prisma {
     title: number
     description: number
     createdAt: number
+    codingLanguage: number
+    level: number
     _all: number
   }
 
@@ -10559,6 +11463,8 @@ export namespace Prisma {
     title?: true
     description?: true
     createdAt?: true
+    codingLanguage?: true
+    level?: true
   }
 
   export type ModuleMaxAggregateInputType = {
@@ -10566,6 +11472,8 @@ export namespace Prisma {
     title?: true
     description?: true
     createdAt?: true
+    codingLanguage?: true
+    level?: true
   }
 
   export type ModuleCountAggregateInputType = {
@@ -10573,6 +11481,8 @@ export namespace Prisma {
     title?: true
     description?: true
     createdAt?: true
+    codingLanguage?: true
+    level?: true
     _all?: true
   }
 
@@ -10653,6 +11563,8 @@ export namespace Prisma {
     title: string
     description: string | null
     createdAt: Date
+    codingLanguage: string | null
+    level: string
     _count: ModuleCountAggregateOutputType | null
     _min: ModuleMinAggregateOutputType | null
     _max: ModuleMaxAggregateOutputType | null
@@ -10677,10 +11589,14 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     createdAt?: boolean
+    codingLanguage?: boolean
+    level?: boolean
     chapters?: boolean | Module$chaptersArgs<ExtArgs>
     timetables?: boolean | Module$timetablesArgs<ExtArgs>
     enrollments?: boolean | Module$enrollmentsArgs<ExtArgs>
     quizAttempts?: boolean | Module$quizAttemptsArgs<ExtArgs>
+    calendarEvents?: boolean | Module$calendarEventsArgs<ExtArgs>
+    courses?: boolean | Module$coursesArgs<ExtArgs>
     _count?: boolean | ModuleCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["module"]>
 
@@ -10689,6 +11605,8 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     createdAt?: boolean
+    codingLanguage?: boolean
+    level?: boolean
   }, ExtArgs["result"]["module"]>
 
   export type ModuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -10696,6 +11614,8 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     createdAt?: boolean
+    codingLanguage?: boolean
+    level?: boolean
   }, ExtArgs["result"]["module"]>
 
   export type ModuleSelectScalar = {
@@ -10703,14 +11623,18 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     createdAt?: boolean
+    codingLanguage?: boolean
+    level?: boolean
   }
 
-  export type ModuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "createdAt", ExtArgs["result"]["module"]>
+  export type ModuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "createdAt" | "codingLanguage" | "level", ExtArgs["result"]["module"]>
   export type ModuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     chapters?: boolean | Module$chaptersArgs<ExtArgs>
     timetables?: boolean | Module$timetablesArgs<ExtArgs>
     enrollments?: boolean | Module$enrollmentsArgs<ExtArgs>
     quizAttempts?: boolean | Module$quizAttemptsArgs<ExtArgs>
+    calendarEvents?: boolean | Module$calendarEventsArgs<ExtArgs>
+    courses?: boolean | Module$coursesArgs<ExtArgs>
     _count?: boolean | ModuleCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ModuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -10723,12 +11647,22 @@ export namespace Prisma {
       timetables: Prisma.$TimetablePayload<ExtArgs>[]
       enrollments: Prisma.$ModuleEnrollmentPayload<ExtArgs>[]
       quizAttempts: Prisma.$QuizAttemptPayload<ExtArgs>[]
+      calendarEvents: Prisma.$CalendarEventPayload<ExtArgs>[]
+      courses: Prisma.$CourseModulePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       title: string
       description: string | null
       createdAt: Date
+      /**
+       * NULL = from the module code (COS/INF/ICT → C++), "none" = not a coding module, else the language
+       */
+      codingLanguage: string | null
+      /**
+       * "tertiary" (a university module) or "highschool" (a Grade 11 or 12 subject)
+       */
+      level: string
     }, ExtArgs["result"]["module"]>
     composites: {}
   }
@@ -11127,6 +12061,8 @@ export namespace Prisma {
     timetables<T extends Module$timetablesArgs<ExtArgs> = {}>(args?: Subset<T, Module$timetablesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TimetablePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     enrollments<T extends Module$enrollmentsArgs<ExtArgs> = {}>(args?: Subset<T, Module$enrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModuleEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     quizAttempts<T extends Module$quizAttemptsArgs<ExtArgs> = {}>(args?: Subset<T, Module$quizAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$QuizAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    calendarEvents<T extends Module$calendarEventsArgs<ExtArgs> = {}>(args?: Subset<T, Module$calendarEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    courses<T extends Module$coursesArgs<ExtArgs> = {}>(args?: Subset<T, Module$coursesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11160,6 +12096,8 @@ export namespace Prisma {
     readonly title: FieldRef<"Module", 'String'>
     readonly description: FieldRef<"Module", 'String'>
     readonly createdAt: FieldRef<"Module", 'DateTime'>
+    readonly codingLanguage: FieldRef<"Module", 'String'>
+    readonly level: FieldRef<"Module", 'String'>
   }
     
 
@@ -11649,6 +12587,54 @@ export namespace Prisma {
   }
 
   /**
+   * Module.calendarEvents
+   */
+  export type Module$calendarEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    where?: CalendarEventWhereInput
+    orderBy?: CalendarEventOrderByWithRelationInput | CalendarEventOrderByWithRelationInput[]
+    cursor?: CalendarEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CalendarEventScalarFieldEnum | CalendarEventScalarFieldEnum[]
+  }
+
+  /**
+   * Module.courses
+   */
+  export type Module$coursesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    where?: CourseModuleWhereInput
+    orderBy?: CourseModuleOrderByWithRelationInput | CourseModuleOrderByWithRelationInput[]
+    cursor?: CourseModuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CourseModuleScalarFieldEnum | CourseModuleScalarFieldEnum[]
+  }
+
+  /**
    * Module without action
    */
   export type ModuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11664,6 +12650,2163 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ModuleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Course
+   */
+
+  export type AggregateCourse = {
+    _count: CourseCountAggregateOutputType | null
+    _min: CourseMinAggregateOutputType | null
+    _max: CourseMaxAggregateOutputType | null
+  }
+
+  export type CourseMinAggregateOutputType = {
+    id: string | null
+    title: string | null
+    description: string | null
+    level: string | null
+    createdAt: Date | null
+  }
+
+  export type CourseMaxAggregateOutputType = {
+    id: string | null
+    title: string | null
+    description: string | null
+    level: string | null
+    createdAt: Date | null
+  }
+
+  export type CourseCountAggregateOutputType = {
+    id: number
+    title: number
+    description: number
+    level: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CourseMinAggregateInputType = {
+    id?: true
+    title?: true
+    description?: true
+    level?: true
+    createdAt?: true
+  }
+
+  export type CourseMaxAggregateInputType = {
+    id?: true
+    title?: true
+    description?: true
+    level?: true
+    createdAt?: true
+  }
+
+  export type CourseCountAggregateInputType = {
+    id?: true
+    title?: true
+    description?: true
+    level?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CourseAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Course to aggregate.
+     */
+    where?: CourseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Courses to fetch.
+     */
+    orderBy?: CourseOrderByWithRelationInput | CourseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CourseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Courses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Courses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Courses
+    **/
+    _count?: true | CourseCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CourseMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CourseMaxAggregateInputType
+  }
+
+  export type GetCourseAggregateType<T extends CourseAggregateArgs> = {
+        [P in keyof T & keyof AggregateCourse]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCourse[P]>
+      : GetScalarType<T[P], AggregateCourse[P]>
+  }
+
+
+
+
+  export type CourseGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CourseWhereInput
+    orderBy?: CourseOrderByWithAggregationInput | CourseOrderByWithAggregationInput[]
+    by: CourseScalarFieldEnum[] | CourseScalarFieldEnum
+    having?: CourseScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CourseCountAggregateInputType | true
+    _min?: CourseMinAggregateInputType
+    _max?: CourseMaxAggregateInputType
+  }
+
+  export type CourseGroupByOutputType = {
+    id: string
+    title: string
+    description: string | null
+    level: string
+    createdAt: Date
+    _count: CourseCountAggregateOutputType | null
+    _min: CourseMinAggregateOutputType | null
+    _max: CourseMaxAggregateOutputType | null
+  }
+
+  type GetCourseGroupByPayload<T extends CourseGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CourseGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CourseGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CourseGroupByOutputType[P]>
+            : GetScalarType<T[P], CourseGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CourseSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    level?: boolean
+    createdAt?: boolean
+    modules?: boolean | Course$modulesArgs<ExtArgs>
+    _count?: boolean | CourseCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["course"]>
+
+  export type CourseSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    level?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["course"]>
+
+  export type CourseSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    level?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["course"]>
+
+  export type CourseSelectScalar = {
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    level?: boolean
+    createdAt?: boolean
+  }
+
+  export type CourseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "level" | "createdAt", ExtArgs["result"]["course"]>
+  export type CourseInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    modules?: boolean | Course$modulesArgs<ExtArgs>
+    _count?: boolean | CourseCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CourseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type CourseIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $CoursePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Course"
+    objects: {
+      modules: Prisma.$CourseModulePayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      title: string
+      description: string | null
+      /**
+       * "tertiary" (a qualification) or "highschool" (a grade: Grade 11, Grade 12)
+       */
+      level: string
+      createdAt: Date
+    }, ExtArgs["result"]["course"]>
+    composites: {}
+  }
+
+  type CourseGetPayload<S extends boolean | null | undefined | CourseDefaultArgs> = $Result.GetResult<Prisma.$CoursePayload, S>
+
+  type CourseCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CourseFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CourseCountAggregateInputType | true
+    }
+
+  export interface CourseDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Course'], meta: { name: 'Course' } }
+    /**
+     * Find zero or one Course that matches the filter.
+     * @param {CourseFindUniqueArgs} args - Arguments to find a Course
+     * @example
+     * // Get one Course
+     * const course = await prisma.course.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CourseFindUniqueArgs>(args: SelectSubset<T, CourseFindUniqueArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Course that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CourseFindUniqueOrThrowArgs} args - Arguments to find a Course
+     * @example
+     * // Get one Course
+     * const course = await prisma.course.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CourseFindUniqueOrThrowArgs>(args: SelectSubset<T, CourseFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Course that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseFindFirstArgs} args - Arguments to find a Course
+     * @example
+     * // Get one Course
+     * const course = await prisma.course.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CourseFindFirstArgs>(args?: SelectSubset<T, CourseFindFirstArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Course that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseFindFirstOrThrowArgs} args - Arguments to find a Course
+     * @example
+     * // Get one Course
+     * const course = await prisma.course.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CourseFindFirstOrThrowArgs>(args?: SelectSubset<T, CourseFindFirstOrThrowArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Courses that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Courses
+     * const courses = await prisma.course.findMany()
+     * 
+     * // Get first 10 Courses
+     * const courses = await prisma.course.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const courseWithIdOnly = await prisma.course.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CourseFindManyArgs>(args?: SelectSubset<T, CourseFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Course.
+     * @param {CourseCreateArgs} args - Arguments to create a Course.
+     * @example
+     * // Create one Course
+     * const Course = await prisma.course.create({
+     *   data: {
+     *     // ... data to create a Course
+     *   }
+     * })
+     * 
+     */
+    create<T extends CourseCreateArgs>(args: SelectSubset<T, CourseCreateArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Courses.
+     * @param {CourseCreateManyArgs} args - Arguments to create many Courses.
+     * @example
+     * // Create many Courses
+     * const course = await prisma.course.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CourseCreateManyArgs>(args?: SelectSubset<T, CourseCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Courses and returns the data saved in the database.
+     * @param {CourseCreateManyAndReturnArgs} args - Arguments to create many Courses.
+     * @example
+     * // Create many Courses
+     * const course = await prisma.course.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Courses and only return the `id`
+     * const courseWithIdOnly = await prisma.course.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CourseCreateManyAndReturnArgs>(args?: SelectSubset<T, CourseCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Course.
+     * @param {CourseDeleteArgs} args - Arguments to delete one Course.
+     * @example
+     * // Delete one Course
+     * const Course = await prisma.course.delete({
+     *   where: {
+     *     // ... filter to delete one Course
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CourseDeleteArgs>(args: SelectSubset<T, CourseDeleteArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Course.
+     * @param {CourseUpdateArgs} args - Arguments to update one Course.
+     * @example
+     * // Update one Course
+     * const course = await prisma.course.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CourseUpdateArgs>(args: SelectSubset<T, CourseUpdateArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Courses.
+     * @param {CourseDeleteManyArgs} args - Arguments to filter Courses to delete.
+     * @example
+     * // Delete a few Courses
+     * const { count } = await prisma.course.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CourseDeleteManyArgs>(args?: SelectSubset<T, CourseDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Courses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Courses
+     * const course = await prisma.course.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CourseUpdateManyArgs>(args: SelectSubset<T, CourseUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Courses and returns the data updated in the database.
+     * @param {CourseUpdateManyAndReturnArgs} args - Arguments to update many Courses.
+     * @example
+     * // Update many Courses
+     * const course = await prisma.course.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Courses and only return the `id`
+     * const courseWithIdOnly = await prisma.course.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CourseUpdateManyAndReturnArgs>(args: SelectSubset<T, CourseUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Course.
+     * @param {CourseUpsertArgs} args - Arguments to update or create a Course.
+     * @example
+     * // Update or create a Course
+     * const course = await prisma.course.upsert({
+     *   create: {
+     *     // ... data to create a Course
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Course we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CourseUpsertArgs>(args: SelectSubset<T, CourseUpsertArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Courses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseCountArgs} args - Arguments to filter Courses to count.
+     * @example
+     * // Count the number of Courses
+     * const count = await prisma.course.count({
+     *   where: {
+     *     // ... the filter for the Courses we want to count
+     *   }
+     * })
+    **/
+    count<T extends CourseCountArgs>(
+      args?: Subset<T, CourseCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CourseCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Course.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CourseAggregateArgs>(args: Subset<T, CourseAggregateArgs>): Prisma.PrismaPromise<GetCourseAggregateType<T>>
+
+    /**
+     * Group by Course.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CourseGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CourseGroupByArgs['orderBy'] }
+        : { orderBy?: CourseGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CourseGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCourseGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Course model
+   */
+  readonly fields: CourseFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Course.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CourseClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    modules<T extends Course$modulesArgs<ExtArgs> = {}>(args?: Subset<T, Course$modulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Course model
+   */
+  interface CourseFieldRefs {
+    readonly id: FieldRef<"Course", 'String'>
+    readonly title: FieldRef<"Course", 'String'>
+    readonly description: FieldRef<"Course", 'String'>
+    readonly level: FieldRef<"Course", 'String'>
+    readonly createdAt: FieldRef<"Course", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Course findUnique
+   */
+  export type CourseFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+    /**
+     * Filter, which Course to fetch.
+     */
+    where: CourseWhereUniqueInput
+  }
+
+  /**
+   * Course findUniqueOrThrow
+   */
+  export type CourseFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+    /**
+     * Filter, which Course to fetch.
+     */
+    where: CourseWhereUniqueInput
+  }
+
+  /**
+   * Course findFirst
+   */
+  export type CourseFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+    /**
+     * Filter, which Course to fetch.
+     */
+    where?: CourseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Courses to fetch.
+     */
+    orderBy?: CourseOrderByWithRelationInput | CourseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Courses.
+     */
+    cursor?: CourseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Courses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Courses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Courses.
+     */
+    distinct?: CourseScalarFieldEnum | CourseScalarFieldEnum[]
+  }
+
+  /**
+   * Course findFirstOrThrow
+   */
+  export type CourseFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+    /**
+     * Filter, which Course to fetch.
+     */
+    where?: CourseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Courses to fetch.
+     */
+    orderBy?: CourseOrderByWithRelationInput | CourseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Courses.
+     */
+    cursor?: CourseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Courses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Courses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Courses.
+     */
+    distinct?: CourseScalarFieldEnum | CourseScalarFieldEnum[]
+  }
+
+  /**
+   * Course findMany
+   */
+  export type CourseFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+    /**
+     * Filter, which Courses to fetch.
+     */
+    where?: CourseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Courses to fetch.
+     */
+    orderBy?: CourseOrderByWithRelationInput | CourseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Courses.
+     */
+    cursor?: CourseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Courses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Courses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Courses.
+     */
+    distinct?: CourseScalarFieldEnum | CourseScalarFieldEnum[]
+  }
+
+  /**
+   * Course create
+   */
+  export type CourseCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Course.
+     */
+    data: XOR<CourseCreateInput, CourseUncheckedCreateInput>
+  }
+
+  /**
+   * Course createMany
+   */
+  export type CourseCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Courses.
+     */
+    data: CourseCreateManyInput | CourseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Course createManyAndReturn
+   */
+  export type CourseCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * The data used to create many Courses.
+     */
+    data: CourseCreateManyInput | CourseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Course update
+   */
+  export type CourseUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Course.
+     */
+    data: XOR<CourseUpdateInput, CourseUncheckedUpdateInput>
+    /**
+     * Choose, which Course to update.
+     */
+    where: CourseWhereUniqueInput
+  }
+
+  /**
+   * Course updateMany
+   */
+  export type CourseUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Courses.
+     */
+    data: XOR<CourseUpdateManyMutationInput, CourseUncheckedUpdateManyInput>
+    /**
+     * Filter which Courses to update
+     */
+    where?: CourseWhereInput
+    /**
+     * Limit how many Courses to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Course updateManyAndReturn
+   */
+  export type CourseUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * The data used to update Courses.
+     */
+    data: XOR<CourseUpdateManyMutationInput, CourseUncheckedUpdateManyInput>
+    /**
+     * Filter which Courses to update
+     */
+    where?: CourseWhereInput
+    /**
+     * Limit how many Courses to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Course upsert
+   */
+  export type CourseUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Course to update in case it exists.
+     */
+    where: CourseWhereUniqueInput
+    /**
+     * In case the Course found by the `where` argument doesn't exist, create a new Course with this data.
+     */
+    create: XOR<CourseCreateInput, CourseUncheckedCreateInput>
+    /**
+     * In case the Course was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CourseUpdateInput, CourseUncheckedUpdateInput>
+  }
+
+  /**
+   * Course delete
+   */
+  export type CourseDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+    /**
+     * Filter which Course to delete.
+     */
+    where: CourseWhereUniqueInput
+  }
+
+  /**
+   * Course deleteMany
+   */
+  export type CourseDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Courses to delete
+     */
+    where?: CourseWhereInput
+    /**
+     * Limit how many Courses to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Course.modules
+   */
+  export type Course$modulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    where?: CourseModuleWhereInput
+    orderBy?: CourseModuleOrderByWithRelationInput | CourseModuleOrderByWithRelationInput[]
+    cursor?: CourseModuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CourseModuleScalarFieldEnum | CourseModuleScalarFieldEnum[]
+  }
+
+  /**
+   * Course without action
+   */
+  export type CourseDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Course
+     */
+    select?: CourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Course
+     */
+    omit?: CourseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CourseModule
+   */
+
+  export type AggregateCourseModule = {
+    _count: CourseModuleCountAggregateOutputType | null
+    _avg: CourseModuleAvgAggregateOutputType | null
+    _sum: CourseModuleSumAggregateOutputType | null
+    _min: CourseModuleMinAggregateOutputType | null
+    _max: CourseModuleMaxAggregateOutputType | null
+  }
+
+  export type CourseModuleAvgAggregateOutputType = {
+    position: number | null
+  }
+
+  export type CourseModuleSumAggregateOutputType = {
+    position: number | null
+  }
+
+  export type CourseModuleMinAggregateOutputType = {
+    courseId: string | null
+    moduleId: string | null
+    position: number | null
+  }
+
+  export type CourseModuleMaxAggregateOutputType = {
+    courseId: string | null
+    moduleId: string | null
+    position: number | null
+  }
+
+  export type CourseModuleCountAggregateOutputType = {
+    courseId: number
+    moduleId: number
+    position: number
+    _all: number
+  }
+
+
+  export type CourseModuleAvgAggregateInputType = {
+    position?: true
+  }
+
+  export type CourseModuleSumAggregateInputType = {
+    position?: true
+  }
+
+  export type CourseModuleMinAggregateInputType = {
+    courseId?: true
+    moduleId?: true
+    position?: true
+  }
+
+  export type CourseModuleMaxAggregateInputType = {
+    courseId?: true
+    moduleId?: true
+    position?: true
+  }
+
+  export type CourseModuleCountAggregateInputType = {
+    courseId?: true
+    moduleId?: true
+    position?: true
+    _all?: true
+  }
+
+  export type CourseModuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CourseModule to aggregate.
+     */
+    where?: CourseModuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CourseModules to fetch.
+     */
+    orderBy?: CourseModuleOrderByWithRelationInput | CourseModuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CourseModuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CourseModules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CourseModules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CourseModules
+    **/
+    _count?: true | CourseModuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CourseModuleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CourseModuleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CourseModuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CourseModuleMaxAggregateInputType
+  }
+
+  export type GetCourseModuleAggregateType<T extends CourseModuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateCourseModule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCourseModule[P]>
+      : GetScalarType<T[P], AggregateCourseModule[P]>
+  }
+
+
+
+
+  export type CourseModuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CourseModuleWhereInput
+    orderBy?: CourseModuleOrderByWithAggregationInput | CourseModuleOrderByWithAggregationInput[]
+    by: CourseModuleScalarFieldEnum[] | CourseModuleScalarFieldEnum
+    having?: CourseModuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CourseModuleCountAggregateInputType | true
+    _avg?: CourseModuleAvgAggregateInputType
+    _sum?: CourseModuleSumAggregateInputType
+    _min?: CourseModuleMinAggregateInputType
+    _max?: CourseModuleMaxAggregateInputType
+  }
+
+  export type CourseModuleGroupByOutputType = {
+    courseId: string
+    moduleId: string
+    position: number
+    _count: CourseModuleCountAggregateOutputType | null
+    _avg: CourseModuleAvgAggregateOutputType | null
+    _sum: CourseModuleSumAggregateOutputType | null
+    _min: CourseModuleMinAggregateOutputType | null
+    _max: CourseModuleMaxAggregateOutputType | null
+  }
+
+  type GetCourseModuleGroupByPayload<T extends CourseModuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CourseModuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CourseModuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CourseModuleGroupByOutputType[P]>
+            : GetScalarType<T[P], CourseModuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CourseModuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    courseId?: boolean
+    moduleId?: boolean
+    position?: boolean
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+    module?: boolean | ModuleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["courseModule"]>
+
+  export type CourseModuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    courseId?: boolean
+    moduleId?: boolean
+    position?: boolean
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+    module?: boolean | ModuleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["courseModule"]>
+
+  export type CourseModuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    courseId?: boolean
+    moduleId?: boolean
+    position?: boolean
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+    module?: boolean | ModuleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["courseModule"]>
+
+  export type CourseModuleSelectScalar = {
+    courseId?: boolean
+    moduleId?: boolean
+    position?: boolean
+  }
+
+  export type CourseModuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"courseId" | "moduleId" | "position", ExtArgs["result"]["courseModule"]>
+  export type CourseModuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+    module?: boolean | ModuleDefaultArgs<ExtArgs>
+  }
+  export type CourseModuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+    module?: boolean | ModuleDefaultArgs<ExtArgs>
+  }
+  export type CourseModuleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    course?: boolean | CourseDefaultArgs<ExtArgs>
+    module?: boolean | ModuleDefaultArgs<ExtArgs>
+  }
+
+  export type $CourseModulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CourseModule"
+    objects: {
+      course: Prisma.$CoursePayload<ExtArgs>
+      module: Prisma.$ModulePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      courseId: string
+      moduleId: string
+      position: number
+    }, ExtArgs["result"]["courseModule"]>
+    composites: {}
+  }
+
+  type CourseModuleGetPayload<S extends boolean | null | undefined | CourseModuleDefaultArgs> = $Result.GetResult<Prisma.$CourseModulePayload, S>
+
+  type CourseModuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CourseModuleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CourseModuleCountAggregateInputType | true
+    }
+
+  export interface CourseModuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CourseModule'], meta: { name: 'CourseModule' } }
+    /**
+     * Find zero or one CourseModule that matches the filter.
+     * @param {CourseModuleFindUniqueArgs} args - Arguments to find a CourseModule
+     * @example
+     * // Get one CourseModule
+     * const courseModule = await prisma.courseModule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CourseModuleFindUniqueArgs>(args: SelectSubset<T, CourseModuleFindUniqueArgs<ExtArgs>>): Prisma__CourseModuleClient<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CourseModule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CourseModuleFindUniqueOrThrowArgs} args - Arguments to find a CourseModule
+     * @example
+     * // Get one CourseModule
+     * const courseModule = await prisma.courseModule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CourseModuleFindUniqueOrThrowArgs>(args: SelectSubset<T, CourseModuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CourseModuleClient<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CourseModule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseModuleFindFirstArgs} args - Arguments to find a CourseModule
+     * @example
+     * // Get one CourseModule
+     * const courseModule = await prisma.courseModule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CourseModuleFindFirstArgs>(args?: SelectSubset<T, CourseModuleFindFirstArgs<ExtArgs>>): Prisma__CourseModuleClient<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CourseModule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseModuleFindFirstOrThrowArgs} args - Arguments to find a CourseModule
+     * @example
+     * // Get one CourseModule
+     * const courseModule = await prisma.courseModule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CourseModuleFindFirstOrThrowArgs>(args?: SelectSubset<T, CourseModuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__CourseModuleClient<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CourseModules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseModuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CourseModules
+     * const courseModules = await prisma.courseModule.findMany()
+     * 
+     * // Get first 10 CourseModules
+     * const courseModules = await prisma.courseModule.findMany({ take: 10 })
+     * 
+     * // Only select the `courseId`
+     * const courseModuleWithCourseIdOnly = await prisma.courseModule.findMany({ select: { courseId: true } })
+     * 
+     */
+    findMany<T extends CourseModuleFindManyArgs>(args?: SelectSubset<T, CourseModuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CourseModule.
+     * @param {CourseModuleCreateArgs} args - Arguments to create a CourseModule.
+     * @example
+     * // Create one CourseModule
+     * const CourseModule = await prisma.courseModule.create({
+     *   data: {
+     *     // ... data to create a CourseModule
+     *   }
+     * })
+     * 
+     */
+    create<T extends CourseModuleCreateArgs>(args: SelectSubset<T, CourseModuleCreateArgs<ExtArgs>>): Prisma__CourseModuleClient<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CourseModules.
+     * @param {CourseModuleCreateManyArgs} args - Arguments to create many CourseModules.
+     * @example
+     * // Create many CourseModules
+     * const courseModule = await prisma.courseModule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CourseModuleCreateManyArgs>(args?: SelectSubset<T, CourseModuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CourseModules and returns the data saved in the database.
+     * @param {CourseModuleCreateManyAndReturnArgs} args - Arguments to create many CourseModules.
+     * @example
+     * // Create many CourseModules
+     * const courseModule = await prisma.courseModule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CourseModules and only return the `courseId`
+     * const courseModuleWithCourseIdOnly = await prisma.courseModule.createManyAndReturn({
+     *   select: { courseId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CourseModuleCreateManyAndReturnArgs>(args?: SelectSubset<T, CourseModuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CourseModule.
+     * @param {CourseModuleDeleteArgs} args - Arguments to delete one CourseModule.
+     * @example
+     * // Delete one CourseModule
+     * const CourseModule = await prisma.courseModule.delete({
+     *   where: {
+     *     // ... filter to delete one CourseModule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CourseModuleDeleteArgs>(args: SelectSubset<T, CourseModuleDeleteArgs<ExtArgs>>): Prisma__CourseModuleClient<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CourseModule.
+     * @param {CourseModuleUpdateArgs} args - Arguments to update one CourseModule.
+     * @example
+     * // Update one CourseModule
+     * const courseModule = await prisma.courseModule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CourseModuleUpdateArgs>(args: SelectSubset<T, CourseModuleUpdateArgs<ExtArgs>>): Prisma__CourseModuleClient<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CourseModules.
+     * @param {CourseModuleDeleteManyArgs} args - Arguments to filter CourseModules to delete.
+     * @example
+     * // Delete a few CourseModules
+     * const { count } = await prisma.courseModule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CourseModuleDeleteManyArgs>(args?: SelectSubset<T, CourseModuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CourseModules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseModuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CourseModules
+     * const courseModule = await prisma.courseModule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CourseModuleUpdateManyArgs>(args: SelectSubset<T, CourseModuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CourseModules and returns the data updated in the database.
+     * @param {CourseModuleUpdateManyAndReturnArgs} args - Arguments to update many CourseModules.
+     * @example
+     * // Update many CourseModules
+     * const courseModule = await prisma.courseModule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CourseModules and only return the `courseId`
+     * const courseModuleWithCourseIdOnly = await prisma.courseModule.updateManyAndReturn({
+     *   select: { courseId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CourseModuleUpdateManyAndReturnArgs>(args: SelectSubset<T, CourseModuleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CourseModule.
+     * @param {CourseModuleUpsertArgs} args - Arguments to update or create a CourseModule.
+     * @example
+     * // Update or create a CourseModule
+     * const courseModule = await prisma.courseModule.upsert({
+     *   create: {
+     *     // ... data to create a CourseModule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CourseModule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CourseModuleUpsertArgs>(args: SelectSubset<T, CourseModuleUpsertArgs<ExtArgs>>): Prisma__CourseModuleClient<$Result.GetResult<Prisma.$CourseModulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CourseModules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseModuleCountArgs} args - Arguments to filter CourseModules to count.
+     * @example
+     * // Count the number of CourseModules
+     * const count = await prisma.courseModule.count({
+     *   where: {
+     *     // ... the filter for the CourseModules we want to count
+     *   }
+     * })
+    **/
+    count<T extends CourseModuleCountArgs>(
+      args?: Subset<T, CourseModuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CourseModuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CourseModule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseModuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CourseModuleAggregateArgs>(args: Subset<T, CourseModuleAggregateArgs>): Prisma.PrismaPromise<GetCourseModuleAggregateType<T>>
+
+    /**
+     * Group by CourseModule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CourseModuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CourseModuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CourseModuleGroupByArgs['orderBy'] }
+        : { orderBy?: CourseModuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CourseModuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCourseModuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CourseModule model
+   */
+  readonly fields: CourseModuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CourseModule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CourseModuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    course<T extends CourseDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CourseDefaultArgs<ExtArgs>>): Prisma__CourseClient<$Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    module<T extends ModuleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ModuleDefaultArgs<ExtArgs>>): Prisma__ModuleClient<$Result.GetResult<Prisma.$ModulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CourseModule model
+   */
+  interface CourseModuleFieldRefs {
+    readonly courseId: FieldRef<"CourseModule", 'String'>
+    readonly moduleId: FieldRef<"CourseModule", 'String'>
+    readonly position: FieldRef<"CourseModule", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CourseModule findUnique
+   */
+  export type CourseModuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseModule to fetch.
+     */
+    where: CourseModuleWhereUniqueInput
+  }
+
+  /**
+   * CourseModule findUniqueOrThrow
+   */
+  export type CourseModuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseModule to fetch.
+     */
+    where: CourseModuleWhereUniqueInput
+  }
+
+  /**
+   * CourseModule findFirst
+   */
+  export type CourseModuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseModule to fetch.
+     */
+    where?: CourseModuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CourseModules to fetch.
+     */
+    orderBy?: CourseModuleOrderByWithRelationInput | CourseModuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CourseModules.
+     */
+    cursor?: CourseModuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CourseModules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CourseModules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CourseModules.
+     */
+    distinct?: CourseModuleScalarFieldEnum | CourseModuleScalarFieldEnum[]
+  }
+
+  /**
+   * CourseModule findFirstOrThrow
+   */
+  export type CourseModuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseModule to fetch.
+     */
+    where?: CourseModuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CourseModules to fetch.
+     */
+    orderBy?: CourseModuleOrderByWithRelationInput | CourseModuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CourseModules.
+     */
+    cursor?: CourseModuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CourseModules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CourseModules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CourseModules.
+     */
+    distinct?: CourseModuleScalarFieldEnum | CourseModuleScalarFieldEnum[]
+  }
+
+  /**
+   * CourseModule findMany
+   */
+  export type CourseModuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    /**
+     * Filter, which CourseModules to fetch.
+     */
+    where?: CourseModuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CourseModules to fetch.
+     */
+    orderBy?: CourseModuleOrderByWithRelationInput | CourseModuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CourseModules.
+     */
+    cursor?: CourseModuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CourseModules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CourseModules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CourseModules.
+     */
+    distinct?: CourseModuleScalarFieldEnum | CourseModuleScalarFieldEnum[]
+  }
+
+  /**
+   * CourseModule create
+   */
+  export type CourseModuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CourseModule.
+     */
+    data: XOR<CourseModuleCreateInput, CourseModuleUncheckedCreateInput>
+  }
+
+  /**
+   * CourseModule createMany
+   */
+  export type CourseModuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CourseModules.
+     */
+    data: CourseModuleCreateManyInput | CourseModuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CourseModule createManyAndReturn
+   */
+  export type CourseModuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * The data used to create many CourseModules.
+     */
+    data: CourseModuleCreateManyInput | CourseModuleCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CourseModule update
+   */
+  export type CourseModuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CourseModule.
+     */
+    data: XOR<CourseModuleUpdateInput, CourseModuleUncheckedUpdateInput>
+    /**
+     * Choose, which CourseModule to update.
+     */
+    where: CourseModuleWhereUniqueInput
+  }
+
+  /**
+   * CourseModule updateMany
+   */
+  export type CourseModuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CourseModules.
+     */
+    data: XOR<CourseModuleUpdateManyMutationInput, CourseModuleUncheckedUpdateManyInput>
+    /**
+     * Filter which CourseModules to update
+     */
+    where?: CourseModuleWhereInput
+    /**
+     * Limit how many CourseModules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CourseModule updateManyAndReturn
+   */
+  export type CourseModuleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * The data used to update CourseModules.
+     */
+    data: XOR<CourseModuleUpdateManyMutationInput, CourseModuleUncheckedUpdateManyInput>
+    /**
+     * Filter which CourseModules to update
+     */
+    where?: CourseModuleWhereInput
+    /**
+     * Limit how many CourseModules to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CourseModule upsert
+   */
+  export type CourseModuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CourseModule to update in case it exists.
+     */
+    where: CourseModuleWhereUniqueInput
+    /**
+     * In case the CourseModule found by the `where` argument doesn't exist, create a new CourseModule with this data.
+     */
+    create: XOR<CourseModuleCreateInput, CourseModuleUncheckedCreateInput>
+    /**
+     * In case the CourseModule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CourseModuleUpdateInput, CourseModuleUncheckedUpdateInput>
+  }
+
+  /**
+   * CourseModule delete
+   */
+  export type CourseModuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
+    /**
+     * Filter which CourseModule to delete.
+     */
+    where: CourseModuleWhereUniqueInput
+  }
+
+  /**
+   * CourseModule deleteMany
+   */
+  export type CourseModuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CourseModules to delete
+     */
+    where?: CourseModuleWhereInput
+    /**
+     * Limit how many CourseModules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CourseModule without action
+   */
+  export type CourseModuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CourseModule
+     */
+    select?: CourseModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CourseModule
+     */
+    omit?: CourseModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CourseModuleInclude<ExtArgs> | null
   }
 
 
@@ -13908,6 +17051,8 @@ export namespace Prisma {
     order: number | null
     createdAt: Date | null
     assignment: string | null
+    locked: boolean | null
+    published: boolean | null
   }
 
   export type TopicMaxAggregateOutputType = {
@@ -13918,6 +17063,8 @@ export namespace Prisma {
     order: number | null
     createdAt: Date | null
     assignment: string | null
+    locked: boolean | null
+    published: boolean | null
   }
 
   export type TopicCountAggregateOutputType = {
@@ -13928,6 +17075,8 @@ export namespace Prisma {
     order: number
     createdAt: number
     assignment: number
+    locked: number
+    published: number
     _all: number
   }
 
@@ -13948,6 +17097,8 @@ export namespace Prisma {
     order?: true
     createdAt?: true
     assignment?: true
+    locked?: true
+    published?: true
   }
 
   export type TopicMaxAggregateInputType = {
@@ -13958,6 +17109,8 @@ export namespace Prisma {
     order?: true
     createdAt?: true
     assignment?: true
+    locked?: true
+    published?: true
   }
 
   export type TopicCountAggregateInputType = {
@@ -13968,6 +17121,8 @@ export namespace Prisma {
     order?: true
     createdAt?: true
     assignment?: true
+    locked?: true
+    published?: true
     _all?: true
   }
 
@@ -14065,6 +17220,8 @@ export namespace Prisma {
     order: number
     createdAt: Date
     assignment: string | null
+    locked: boolean
+    published: boolean
     _count: TopicCountAggregateOutputType | null
     _avg: TopicAvgAggregateOutputType | null
     _sum: TopicSumAggregateOutputType | null
@@ -14094,11 +17251,15 @@ export namespace Prisma {
     order?: boolean
     createdAt?: boolean
     assignment?: boolean
+    locked?: boolean
+    published?: boolean
     chapter?: boolean | ChapterDefaultArgs<ExtArgs>
     questions?: boolean | Topic$questionsArgs<ExtArgs>
     flashcards?: boolean | Topic$flashcardsArgs<ExtArgs>
     quizAttempts?: boolean | Topic$quizAttemptsArgs<ExtArgs>
     pdfs?: boolean | Topic$pdfsArgs<ExtArgs>
+    codingProjects?: boolean | Topic$codingProjectsArgs<ExtArgs>
+    exercises?: boolean | Topic$exercisesArgs<ExtArgs>
     _count?: boolean | TopicCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["topic"]>
 
@@ -14110,6 +17271,8 @@ export namespace Prisma {
     order?: boolean
     createdAt?: boolean
     assignment?: boolean
+    locked?: boolean
+    published?: boolean
     chapter?: boolean | ChapterDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["topic"]>
 
@@ -14121,6 +17284,8 @@ export namespace Prisma {
     order?: boolean
     createdAt?: boolean
     assignment?: boolean
+    locked?: boolean
+    published?: boolean
     chapter?: boolean | ChapterDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["topic"]>
 
@@ -14132,15 +17297,19 @@ export namespace Prisma {
     order?: boolean
     createdAt?: boolean
     assignment?: boolean
+    locked?: boolean
+    published?: boolean
   }
 
-  export type TopicOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "chapterId" | "title" | "content" | "order" | "createdAt" | "assignment", ExtArgs["result"]["topic"]>
+  export type TopicOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "chapterId" | "title" | "content" | "order" | "createdAt" | "assignment" | "locked" | "published", ExtArgs["result"]["topic"]>
   export type TopicInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     chapter?: boolean | ChapterDefaultArgs<ExtArgs>
     questions?: boolean | Topic$questionsArgs<ExtArgs>
     flashcards?: boolean | Topic$flashcardsArgs<ExtArgs>
     quizAttempts?: boolean | Topic$quizAttemptsArgs<ExtArgs>
     pdfs?: boolean | Topic$pdfsArgs<ExtArgs>
+    codingProjects?: boolean | Topic$codingProjectsArgs<ExtArgs>
+    exercises?: boolean | Topic$exercisesArgs<ExtArgs>
     _count?: boolean | TopicCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TopicIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14158,6 +17327,8 @@ export namespace Prisma {
       flashcards: Prisma.$FlashcardPayload<ExtArgs>[]
       quizAttempts: Prisma.$QuizAttemptPayload<ExtArgs>[]
       pdfs: Prisma.$TopicPdfPayload<ExtArgs>[]
+      codingProjects: Prisma.$CodingProjectPayload<ExtArgs>[]
+      exercises: Prisma.$TopicExercisePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -14167,6 +17338,14 @@ export namespace Prisma {
       order: number
       createdAt: Date
       assignment: string | null
+      /**
+       * Students must pass the previous topic's quiz before this topic opens
+       */
+      locked: boolean
+      /**
+       * Shown as a public study note at /notes (no sign-in, sitemap, ads)
+       */
+      published: boolean
     }, ExtArgs["result"]["topic"]>
     composites: {}
   }
@@ -14566,6 +17745,8 @@ export namespace Prisma {
     flashcards<T extends Topic$flashcardsArgs<ExtArgs> = {}>(args?: Subset<T, Topic$flashcardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FlashcardPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     quizAttempts<T extends Topic$quizAttemptsArgs<ExtArgs> = {}>(args?: Subset<T, Topic$quizAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$QuizAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     pdfs<T extends Topic$pdfsArgs<ExtArgs> = {}>(args?: Subset<T, Topic$pdfsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicPdfPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    codingProjects<T extends Topic$codingProjectsArgs<ExtArgs> = {}>(args?: Subset<T, Topic$codingProjectsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    exercises<T extends Topic$exercisesArgs<ExtArgs> = {}>(args?: Subset<T, Topic$exercisesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -14602,6 +17783,8 @@ export namespace Prisma {
     readonly order: FieldRef<"Topic", 'Int'>
     readonly createdAt: FieldRef<"Topic", 'DateTime'>
     readonly assignment: FieldRef<"Topic", 'String'>
+    readonly locked: FieldRef<"Topic", 'Boolean'>
+    readonly published: FieldRef<"Topic", 'Boolean'>
   }
     
 
@@ -15096,6 +18279,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TopicPdfScalarFieldEnum | TopicPdfScalarFieldEnum[]
+  }
+
+  /**
+   * Topic.codingProjects
+   */
+  export type Topic$codingProjectsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    where?: CodingProjectWhereInput
+    orderBy?: CodingProjectOrderByWithRelationInput | CodingProjectOrderByWithRelationInput[]
+    cursor?: CodingProjectWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CodingProjectScalarFieldEnum | CodingProjectScalarFieldEnum[]
+  }
+
+  /**
+   * Topic.exercises
+   */
+  export type Topic$exercisesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    where?: TopicExerciseWhereInput
+    orderBy?: TopicExerciseOrderByWithRelationInput | TopicExerciseOrderByWithRelationInput[]
+    cursor?: TopicExerciseWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TopicExerciseScalarFieldEnum | TopicExerciseScalarFieldEnum[]
   }
 
   /**
@@ -17257,6 +20488,10 @@ export namespace Prisma {
     question: string | null
     difficulty: string | null
     createdAt: Date | null
+    studyNote: string | null
+    studyNoteClaimedAt: Date | null
+    paper: string | null
+    kind: string | null
   }
 
   export type QuestionMaxAggregateOutputType = {
@@ -17266,6 +20501,10 @@ export namespace Prisma {
     question: string | null
     difficulty: string | null
     createdAt: Date | null
+    studyNote: string | null
+    studyNoteClaimedAt: Date | null
+    paper: string | null
+    kind: string | null
   }
 
   export type QuestionCountAggregateOutputType = {
@@ -17275,6 +20514,10 @@ export namespace Prisma {
     question: number
     difficulty: number
     createdAt: number
+    studyNote: number
+    studyNoteClaimedAt: number
+    paper: number
+    kind: number
     _all: number
   }
 
@@ -17286,6 +20529,10 @@ export namespace Prisma {
     question?: true
     difficulty?: true
     createdAt?: true
+    studyNote?: true
+    studyNoteClaimedAt?: true
+    paper?: true
+    kind?: true
   }
 
   export type QuestionMaxAggregateInputType = {
@@ -17295,6 +20542,10 @@ export namespace Prisma {
     question?: true
     difficulty?: true
     createdAt?: true
+    studyNote?: true
+    studyNoteClaimedAt?: true
+    paper?: true
+    kind?: true
   }
 
   export type QuestionCountAggregateInputType = {
@@ -17304,6 +20555,10 @@ export namespace Prisma {
     question?: true
     difficulty?: true
     createdAt?: true
+    studyNote?: true
+    studyNoteClaimedAt?: true
+    paper?: true
+    kind?: true
     _all?: true
   }
 
@@ -17386,6 +20641,10 @@ export namespace Prisma {
     question: string
     difficulty: string
     createdAt: Date
+    studyNote: string | null
+    studyNoteClaimedAt: Date | null
+    paper: string | null
+    kind: string
     _count: QuestionCountAggregateOutputType | null
     _min: QuestionMinAggregateOutputType | null
     _max: QuestionMaxAggregateOutputType | null
@@ -17412,6 +20671,10 @@ export namespace Prisma {
     question?: boolean
     difficulty?: boolean
     createdAt?: boolean
+    studyNote?: boolean
+    studyNoteClaimedAt?: boolean
+    paper?: boolean
+    kind?: boolean
     topic?: boolean | Question$topicArgs<ExtArgs>
     chapter?: boolean | Question$chapterArgs<ExtArgs>
     answers?: boolean | Question$answersArgs<ExtArgs>
@@ -17427,6 +20690,10 @@ export namespace Prisma {
     question?: boolean
     difficulty?: boolean
     createdAt?: boolean
+    studyNote?: boolean
+    studyNoteClaimedAt?: boolean
+    paper?: boolean
+    kind?: boolean
     topic?: boolean | Question$topicArgs<ExtArgs>
     chapter?: boolean | Question$chapterArgs<ExtArgs>
   }, ExtArgs["result"]["question"]>
@@ -17438,6 +20705,10 @@ export namespace Prisma {
     question?: boolean
     difficulty?: boolean
     createdAt?: boolean
+    studyNote?: boolean
+    studyNoteClaimedAt?: boolean
+    paper?: boolean
+    kind?: boolean
     topic?: boolean | Question$topicArgs<ExtArgs>
     chapter?: boolean | Question$chapterArgs<ExtArgs>
   }, ExtArgs["result"]["question"]>
@@ -17449,9 +20720,13 @@ export namespace Prisma {
     question?: boolean
     difficulty?: boolean
     createdAt?: boolean
+    studyNote?: boolean
+    studyNoteClaimedAt?: boolean
+    paper?: boolean
+    kind?: boolean
   }
 
-  export type QuestionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "topicId" | "chapterId" | "question" | "difficulty" | "createdAt", ExtArgs["result"]["question"]>
+  export type QuestionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "topicId" | "chapterId" | "question" | "difficulty" | "createdAt" | "studyNote" | "studyNoteClaimedAt" | "paper" | "kind", ExtArgs["result"]["question"]>
   export type QuestionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     topic?: boolean | Question$topicArgs<ExtArgs>
     chapter?: boolean | Question$chapterArgs<ExtArgs>
@@ -17485,6 +20760,19 @@ export namespace Prisma {
       question: string
       difficulty: string
       createdAt: Date
+      /**
+       * AI study note, written once when a student first gets this question wrong
+       */
+      studyNote: string | null
+      studyNoteClaimedAt: Date | null
+      /**
+       * The past exam/assignment paper it came from (mock exams ask these first)
+       */
+      paper: string | null
+      /**
+       * "mcq" (pick an option) or "blank" (type the answer; every answer row is an accepted answer)
+       */
+      kind: string
     }, ExtArgs["result"]["question"]>
     composites: {}
   }
@@ -17919,6 +21207,10 @@ export namespace Prisma {
     readonly question: FieldRef<"Question", 'String'>
     readonly difficulty: FieldRef<"Question", 'String'>
     readonly createdAt: FieldRef<"Question", 'DateTime'>
+    readonly studyNote: FieldRef<"Question", 'String'>
+    readonly studyNoteClaimedAt: FieldRef<"Question", 'DateTime'>
+    readonly paper: FieldRef<"Question", 'String'>
+    readonly kind: FieldRef<"Question", 'String'>
   }
     
 
@@ -19572,6 +22864,7 @@ export namespace Prisma {
     questionId: string | null
     selectedAnswerId: string | null
     isCorrect: boolean | null
+    typedAnswer: string | null
     answeredAt: Date | null
   }
 
@@ -19581,6 +22874,7 @@ export namespace Prisma {
     questionId: string | null
     selectedAnswerId: string | null
     isCorrect: boolean | null
+    typedAnswer: string | null
     answeredAt: Date | null
   }
 
@@ -19590,6 +22884,7 @@ export namespace Prisma {
     questionId: number
     selectedAnswerId: number
     isCorrect: number
+    typedAnswer: number
     answeredAt: number
     _all: number
   }
@@ -19601,6 +22896,7 @@ export namespace Prisma {
     questionId?: true
     selectedAnswerId?: true
     isCorrect?: true
+    typedAnswer?: true
     answeredAt?: true
   }
 
@@ -19610,6 +22906,7 @@ export namespace Prisma {
     questionId?: true
     selectedAnswerId?: true
     isCorrect?: true
+    typedAnswer?: true
     answeredAt?: true
   }
 
@@ -19619,6 +22916,7 @@ export namespace Prisma {
     questionId?: true
     selectedAnswerId?: true
     isCorrect?: true
+    typedAnswer?: true
     answeredAt?: true
     _all?: true
   }
@@ -19701,6 +22999,7 @@ export namespace Prisma {
     questionId: string
     selectedAnswerId: string | null
     isCorrect: boolean
+    typedAnswer: string | null
     answeredAt: Date
     _count: UserAnswerCountAggregateOutputType | null
     _min: UserAnswerMinAggregateOutputType | null
@@ -19727,6 +23026,7 @@ export namespace Prisma {
     questionId?: boolean
     selectedAnswerId?: boolean
     isCorrect?: boolean
+    typedAnswer?: boolean
     answeredAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     question?: boolean | QuestionDefaultArgs<ExtArgs>
@@ -19739,6 +23039,7 @@ export namespace Prisma {
     questionId?: boolean
     selectedAnswerId?: boolean
     isCorrect?: boolean
+    typedAnswer?: boolean
     answeredAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     question?: boolean | QuestionDefaultArgs<ExtArgs>
@@ -19751,6 +23052,7 @@ export namespace Prisma {
     questionId?: boolean
     selectedAnswerId?: boolean
     isCorrect?: boolean
+    typedAnswer?: boolean
     answeredAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     question?: boolean | QuestionDefaultArgs<ExtArgs>
@@ -19763,10 +23065,11 @@ export namespace Prisma {
     questionId?: boolean
     selectedAnswerId?: boolean
     isCorrect?: boolean
+    typedAnswer?: boolean
     answeredAt?: boolean
   }
 
-  export type UserAnswerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "questionId" | "selectedAnswerId" | "isCorrect" | "answeredAt", ExtArgs["result"]["userAnswer"]>
+  export type UserAnswerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "questionId" | "selectedAnswerId" | "isCorrect" | "typedAnswer" | "answeredAt", ExtArgs["result"]["userAnswer"]>
   export type UserAnswerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     question?: boolean | QuestionDefaultArgs<ExtArgs>
@@ -19796,6 +23099,10 @@ export namespace Prisma {
       questionId: string
       selectedAnswerId: string | null
       isCorrect: boolean
+      /**
+       * What the student typed (blank questions)
+       */
+      typedAnswer: string | null
       answeredAt: Date
     }, ExtArgs["result"]["userAnswer"]>
     composites: {}
@@ -20228,6 +23535,7 @@ export namespace Prisma {
     readonly questionId: FieldRef<"UserAnswer", 'String'>
     readonly selectedAnswerId: FieldRef<"UserAnswer", 'String'>
     readonly isCorrect: FieldRef<"UserAnswer", 'Boolean'>
+    readonly typedAnswer: FieldRef<"UserAnswer", 'String'>
     readonly answeredAt: FieldRef<"UserAnswer", 'DateTime'>
   }
     
@@ -22894,6 +26202,1219 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: TimetableInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CalendarEvent
+   */
+
+  export type AggregateCalendarEvent = {
+    _count: CalendarEventCountAggregateOutputType | null
+    _min: CalendarEventMinAggregateOutputType | null
+    _max: CalendarEventMaxAggregateOutputType | null
+  }
+
+  export type CalendarEventMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    moduleId: string | null
+    type: string | null
+    title: string | null
+    notes: string | null
+    startAt: Date | null
+    endAt: Date | null
+    allDay: boolean | null
+    completed: boolean | null
+    remindAt: Date | null
+    remindedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CalendarEventMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    moduleId: string | null
+    type: string | null
+    title: string | null
+    notes: string | null
+    startAt: Date | null
+    endAt: Date | null
+    allDay: boolean | null
+    completed: boolean | null
+    remindAt: Date | null
+    remindedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CalendarEventCountAggregateOutputType = {
+    id: number
+    userId: number
+    moduleId: number
+    type: number
+    title: number
+    notes: number
+    startAt: number
+    endAt: number
+    allDay: number
+    completed: number
+    remindAt: number
+    remindedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CalendarEventMinAggregateInputType = {
+    id?: true
+    userId?: true
+    moduleId?: true
+    type?: true
+    title?: true
+    notes?: true
+    startAt?: true
+    endAt?: true
+    allDay?: true
+    completed?: true
+    remindAt?: true
+    remindedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CalendarEventMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    moduleId?: true
+    type?: true
+    title?: true
+    notes?: true
+    startAt?: true
+    endAt?: true
+    allDay?: true
+    completed?: true
+    remindAt?: true
+    remindedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CalendarEventCountAggregateInputType = {
+    id?: true
+    userId?: true
+    moduleId?: true
+    type?: true
+    title?: true
+    notes?: true
+    startAt?: true
+    endAt?: true
+    allDay?: true
+    completed?: true
+    remindAt?: true
+    remindedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CalendarEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CalendarEvent to aggregate.
+     */
+    where?: CalendarEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CalendarEvents to fetch.
+     */
+    orderBy?: CalendarEventOrderByWithRelationInput | CalendarEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CalendarEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CalendarEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CalendarEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CalendarEvents
+    **/
+    _count?: true | CalendarEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CalendarEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CalendarEventMaxAggregateInputType
+  }
+
+  export type GetCalendarEventAggregateType<T extends CalendarEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateCalendarEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCalendarEvent[P]>
+      : GetScalarType<T[P], AggregateCalendarEvent[P]>
+  }
+
+
+
+
+  export type CalendarEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CalendarEventWhereInput
+    orderBy?: CalendarEventOrderByWithAggregationInput | CalendarEventOrderByWithAggregationInput[]
+    by: CalendarEventScalarFieldEnum[] | CalendarEventScalarFieldEnum
+    having?: CalendarEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CalendarEventCountAggregateInputType | true
+    _min?: CalendarEventMinAggregateInputType
+    _max?: CalendarEventMaxAggregateInputType
+  }
+
+  export type CalendarEventGroupByOutputType = {
+    id: string
+    userId: string
+    moduleId: string | null
+    type: string
+    title: string
+    notes: string | null
+    startAt: Date
+    endAt: Date | null
+    allDay: boolean
+    completed: boolean
+    remindAt: Date | null
+    remindedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: CalendarEventCountAggregateOutputType | null
+    _min: CalendarEventMinAggregateOutputType | null
+    _max: CalendarEventMaxAggregateOutputType | null
+  }
+
+  type GetCalendarEventGroupByPayload<T extends CalendarEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CalendarEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CalendarEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CalendarEventGroupByOutputType[P]>
+            : GetScalarType<T[P], CalendarEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CalendarEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    moduleId?: boolean
+    type?: boolean
+    title?: boolean
+    notes?: boolean
+    startAt?: boolean
+    endAt?: boolean
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: boolean
+    remindedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    module?: boolean | CalendarEvent$moduleArgs<ExtArgs>
+  }, ExtArgs["result"]["calendarEvent"]>
+
+  export type CalendarEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    moduleId?: boolean
+    type?: boolean
+    title?: boolean
+    notes?: boolean
+    startAt?: boolean
+    endAt?: boolean
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: boolean
+    remindedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    module?: boolean | CalendarEvent$moduleArgs<ExtArgs>
+  }, ExtArgs["result"]["calendarEvent"]>
+
+  export type CalendarEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    moduleId?: boolean
+    type?: boolean
+    title?: boolean
+    notes?: boolean
+    startAt?: boolean
+    endAt?: boolean
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: boolean
+    remindedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    module?: boolean | CalendarEvent$moduleArgs<ExtArgs>
+  }, ExtArgs["result"]["calendarEvent"]>
+
+  export type CalendarEventSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    moduleId?: boolean
+    type?: boolean
+    title?: boolean
+    notes?: boolean
+    startAt?: boolean
+    endAt?: boolean
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: boolean
+    remindedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CalendarEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "moduleId" | "type" | "title" | "notes" | "startAt" | "endAt" | "allDay" | "completed" | "remindAt" | "remindedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["calendarEvent"]>
+  export type CalendarEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    module?: boolean | CalendarEvent$moduleArgs<ExtArgs>
+  }
+  export type CalendarEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    module?: boolean | CalendarEvent$moduleArgs<ExtArgs>
+  }
+  export type CalendarEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    module?: boolean | CalendarEvent$moduleArgs<ExtArgs>
+  }
+
+  export type $CalendarEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CalendarEvent"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      module: Prisma.$ModulePayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      moduleId: string | null
+      type: string
+      title: string
+      notes: string | null
+      startAt: Date
+      endAt: Date | null
+      allDay: boolean
+      completed: boolean
+      /**
+       * When to send the reminder notification (null = no reminder)
+       */
+      remindAt: Date | null
+      /**
+       * When the reminder was sent (so it goes out once)
+       */
+      remindedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["calendarEvent"]>
+    composites: {}
+  }
+
+  type CalendarEventGetPayload<S extends boolean | null | undefined | CalendarEventDefaultArgs> = $Result.GetResult<Prisma.$CalendarEventPayload, S>
+
+  type CalendarEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CalendarEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CalendarEventCountAggregateInputType | true
+    }
+
+  export interface CalendarEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CalendarEvent'], meta: { name: 'CalendarEvent' } }
+    /**
+     * Find zero or one CalendarEvent that matches the filter.
+     * @param {CalendarEventFindUniqueArgs} args - Arguments to find a CalendarEvent
+     * @example
+     * // Get one CalendarEvent
+     * const calendarEvent = await prisma.calendarEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CalendarEventFindUniqueArgs>(args: SelectSubset<T, CalendarEventFindUniqueArgs<ExtArgs>>): Prisma__CalendarEventClient<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CalendarEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CalendarEventFindUniqueOrThrowArgs} args - Arguments to find a CalendarEvent
+     * @example
+     * // Get one CalendarEvent
+     * const calendarEvent = await prisma.calendarEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CalendarEventFindUniqueOrThrowArgs>(args: SelectSubset<T, CalendarEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CalendarEventClient<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CalendarEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarEventFindFirstArgs} args - Arguments to find a CalendarEvent
+     * @example
+     * // Get one CalendarEvent
+     * const calendarEvent = await prisma.calendarEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CalendarEventFindFirstArgs>(args?: SelectSubset<T, CalendarEventFindFirstArgs<ExtArgs>>): Prisma__CalendarEventClient<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CalendarEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarEventFindFirstOrThrowArgs} args - Arguments to find a CalendarEvent
+     * @example
+     * // Get one CalendarEvent
+     * const calendarEvent = await prisma.calendarEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CalendarEventFindFirstOrThrowArgs>(args?: SelectSubset<T, CalendarEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__CalendarEventClient<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CalendarEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CalendarEvents
+     * const calendarEvents = await prisma.calendarEvent.findMany()
+     * 
+     * // Get first 10 CalendarEvents
+     * const calendarEvents = await prisma.calendarEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const calendarEventWithIdOnly = await prisma.calendarEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CalendarEventFindManyArgs>(args?: SelectSubset<T, CalendarEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CalendarEvent.
+     * @param {CalendarEventCreateArgs} args - Arguments to create a CalendarEvent.
+     * @example
+     * // Create one CalendarEvent
+     * const CalendarEvent = await prisma.calendarEvent.create({
+     *   data: {
+     *     // ... data to create a CalendarEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends CalendarEventCreateArgs>(args: SelectSubset<T, CalendarEventCreateArgs<ExtArgs>>): Prisma__CalendarEventClient<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CalendarEvents.
+     * @param {CalendarEventCreateManyArgs} args - Arguments to create many CalendarEvents.
+     * @example
+     * // Create many CalendarEvents
+     * const calendarEvent = await prisma.calendarEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CalendarEventCreateManyArgs>(args?: SelectSubset<T, CalendarEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CalendarEvents and returns the data saved in the database.
+     * @param {CalendarEventCreateManyAndReturnArgs} args - Arguments to create many CalendarEvents.
+     * @example
+     * // Create many CalendarEvents
+     * const calendarEvent = await prisma.calendarEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CalendarEvents and only return the `id`
+     * const calendarEventWithIdOnly = await prisma.calendarEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CalendarEventCreateManyAndReturnArgs>(args?: SelectSubset<T, CalendarEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CalendarEvent.
+     * @param {CalendarEventDeleteArgs} args - Arguments to delete one CalendarEvent.
+     * @example
+     * // Delete one CalendarEvent
+     * const CalendarEvent = await prisma.calendarEvent.delete({
+     *   where: {
+     *     // ... filter to delete one CalendarEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CalendarEventDeleteArgs>(args: SelectSubset<T, CalendarEventDeleteArgs<ExtArgs>>): Prisma__CalendarEventClient<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CalendarEvent.
+     * @param {CalendarEventUpdateArgs} args - Arguments to update one CalendarEvent.
+     * @example
+     * // Update one CalendarEvent
+     * const calendarEvent = await prisma.calendarEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CalendarEventUpdateArgs>(args: SelectSubset<T, CalendarEventUpdateArgs<ExtArgs>>): Prisma__CalendarEventClient<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CalendarEvents.
+     * @param {CalendarEventDeleteManyArgs} args - Arguments to filter CalendarEvents to delete.
+     * @example
+     * // Delete a few CalendarEvents
+     * const { count } = await prisma.calendarEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CalendarEventDeleteManyArgs>(args?: SelectSubset<T, CalendarEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CalendarEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CalendarEvents
+     * const calendarEvent = await prisma.calendarEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CalendarEventUpdateManyArgs>(args: SelectSubset<T, CalendarEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CalendarEvents and returns the data updated in the database.
+     * @param {CalendarEventUpdateManyAndReturnArgs} args - Arguments to update many CalendarEvents.
+     * @example
+     * // Update many CalendarEvents
+     * const calendarEvent = await prisma.calendarEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CalendarEvents and only return the `id`
+     * const calendarEventWithIdOnly = await prisma.calendarEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CalendarEventUpdateManyAndReturnArgs>(args: SelectSubset<T, CalendarEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CalendarEvent.
+     * @param {CalendarEventUpsertArgs} args - Arguments to update or create a CalendarEvent.
+     * @example
+     * // Update or create a CalendarEvent
+     * const calendarEvent = await prisma.calendarEvent.upsert({
+     *   create: {
+     *     // ... data to create a CalendarEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CalendarEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CalendarEventUpsertArgs>(args: SelectSubset<T, CalendarEventUpsertArgs<ExtArgs>>): Prisma__CalendarEventClient<$Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CalendarEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarEventCountArgs} args - Arguments to filter CalendarEvents to count.
+     * @example
+     * // Count the number of CalendarEvents
+     * const count = await prisma.calendarEvent.count({
+     *   where: {
+     *     // ... the filter for the CalendarEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends CalendarEventCountArgs>(
+      args?: Subset<T, CalendarEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CalendarEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CalendarEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CalendarEventAggregateArgs>(args: Subset<T, CalendarEventAggregateArgs>): Prisma.PrismaPromise<GetCalendarEventAggregateType<T>>
+
+    /**
+     * Group by CalendarEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CalendarEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CalendarEventGroupByArgs['orderBy'] }
+        : { orderBy?: CalendarEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CalendarEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCalendarEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CalendarEvent model
+   */
+  readonly fields: CalendarEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CalendarEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CalendarEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    module<T extends CalendarEvent$moduleArgs<ExtArgs> = {}>(args?: Subset<T, CalendarEvent$moduleArgs<ExtArgs>>): Prisma__ModuleClient<$Result.GetResult<Prisma.$ModulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CalendarEvent model
+   */
+  interface CalendarEventFieldRefs {
+    readonly id: FieldRef<"CalendarEvent", 'String'>
+    readonly userId: FieldRef<"CalendarEvent", 'String'>
+    readonly moduleId: FieldRef<"CalendarEvent", 'String'>
+    readonly type: FieldRef<"CalendarEvent", 'String'>
+    readonly title: FieldRef<"CalendarEvent", 'String'>
+    readonly notes: FieldRef<"CalendarEvent", 'String'>
+    readonly startAt: FieldRef<"CalendarEvent", 'DateTime'>
+    readonly endAt: FieldRef<"CalendarEvent", 'DateTime'>
+    readonly allDay: FieldRef<"CalendarEvent", 'Boolean'>
+    readonly completed: FieldRef<"CalendarEvent", 'Boolean'>
+    readonly remindAt: FieldRef<"CalendarEvent", 'DateTime'>
+    readonly remindedAt: FieldRef<"CalendarEvent", 'DateTime'>
+    readonly createdAt: FieldRef<"CalendarEvent", 'DateTime'>
+    readonly updatedAt: FieldRef<"CalendarEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CalendarEvent findUnique
+   */
+  export type CalendarEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarEvent to fetch.
+     */
+    where: CalendarEventWhereUniqueInput
+  }
+
+  /**
+   * CalendarEvent findUniqueOrThrow
+   */
+  export type CalendarEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarEvent to fetch.
+     */
+    where: CalendarEventWhereUniqueInput
+  }
+
+  /**
+   * CalendarEvent findFirst
+   */
+  export type CalendarEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarEvent to fetch.
+     */
+    where?: CalendarEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CalendarEvents to fetch.
+     */
+    orderBy?: CalendarEventOrderByWithRelationInput | CalendarEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CalendarEvents.
+     */
+    cursor?: CalendarEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CalendarEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CalendarEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CalendarEvents.
+     */
+    distinct?: CalendarEventScalarFieldEnum | CalendarEventScalarFieldEnum[]
+  }
+
+  /**
+   * CalendarEvent findFirstOrThrow
+   */
+  export type CalendarEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarEvent to fetch.
+     */
+    where?: CalendarEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CalendarEvents to fetch.
+     */
+    orderBy?: CalendarEventOrderByWithRelationInput | CalendarEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CalendarEvents.
+     */
+    cursor?: CalendarEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CalendarEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CalendarEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CalendarEvents.
+     */
+    distinct?: CalendarEventScalarFieldEnum | CalendarEventScalarFieldEnum[]
+  }
+
+  /**
+   * CalendarEvent findMany
+   */
+  export type CalendarEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarEvents to fetch.
+     */
+    where?: CalendarEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CalendarEvents to fetch.
+     */
+    orderBy?: CalendarEventOrderByWithRelationInput | CalendarEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CalendarEvents.
+     */
+    cursor?: CalendarEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CalendarEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CalendarEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CalendarEvents.
+     */
+    distinct?: CalendarEventScalarFieldEnum | CalendarEventScalarFieldEnum[]
+  }
+
+  /**
+   * CalendarEvent create
+   */
+  export type CalendarEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CalendarEvent.
+     */
+    data: XOR<CalendarEventCreateInput, CalendarEventUncheckedCreateInput>
+  }
+
+  /**
+   * CalendarEvent createMany
+   */
+  export type CalendarEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CalendarEvents.
+     */
+    data: CalendarEventCreateManyInput | CalendarEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CalendarEvent createManyAndReturn
+   */
+  export type CalendarEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many CalendarEvents.
+     */
+    data: CalendarEventCreateManyInput | CalendarEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CalendarEvent update
+   */
+  export type CalendarEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CalendarEvent.
+     */
+    data: XOR<CalendarEventUpdateInput, CalendarEventUncheckedUpdateInput>
+    /**
+     * Choose, which CalendarEvent to update.
+     */
+    where: CalendarEventWhereUniqueInput
+  }
+
+  /**
+   * CalendarEvent updateMany
+   */
+  export type CalendarEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CalendarEvents.
+     */
+    data: XOR<CalendarEventUpdateManyMutationInput, CalendarEventUncheckedUpdateManyInput>
+    /**
+     * Filter which CalendarEvents to update
+     */
+    where?: CalendarEventWhereInput
+    /**
+     * Limit how many CalendarEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CalendarEvent updateManyAndReturn
+   */
+  export type CalendarEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * The data used to update CalendarEvents.
+     */
+    data: XOR<CalendarEventUpdateManyMutationInput, CalendarEventUncheckedUpdateManyInput>
+    /**
+     * Filter which CalendarEvents to update
+     */
+    where?: CalendarEventWhereInput
+    /**
+     * Limit how many CalendarEvents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CalendarEvent upsert
+   */
+  export type CalendarEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CalendarEvent to update in case it exists.
+     */
+    where: CalendarEventWhereUniqueInput
+    /**
+     * In case the CalendarEvent found by the `where` argument doesn't exist, create a new CalendarEvent with this data.
+     */
+    create: XOR<CalendarEventCreateInput, CalendarEventUncheckedCreateInput>
+    /**
+     * In case the CalendarEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CalendarEventUpdateInput, CalendarEventUncheckedUpdateInput>
+  }
+
+  /**
+   * CalendarEvent delete
+   */
+  export type CalendarEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
+    /**
+     * Filter which CalendarEvent to delete.
+     */
+    where: CalendarEventWhereUniqueInput
+  }
+
+  /**
+   * CalendarEvent deleteMany
+   */
+  export type CalendarEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CalendarEvents to delete
+     */
+    where?: CalendarEventWhereInput
+    /**
+     * Limit how many CalendarEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CalendarEvent.module
+   */
+  export type CalendarEvent$moduleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Module
+     */
+    select?: ModuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Module
+     */
+    omit?: ModuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ModuleInclude<ExtArgs> | null
+    where?: ModuleWhereInput
+  }
+
+  /**
+   * CalendarEvent without action
+   */
+  export type CalendarEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarEvent
+     */
+    select?: CalendarEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CalendarEvent
+     */
+    omit?: CalendarEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarEventInclude<ExtArgs> | null
   }
 
 
@@ -28386,6 +32907,4728 @@ export namespace Prisma {
 
 
   /**
+   * Model EmailOtp
+   */
+
+  export type AggregateEmailOtp = {
+    _count: EmailOtpCountAggregateOutputType | null
+    _avg: EmailOtpAvgAggregateOutputType | null
+    _sum: EmailOtpSumAggregateOutputType | null
+    _min: EmailOtpMinAggregateOutputType | null
+    _max: EmailOtpMaxAggregateOutputType | null
+  }
+
+  export type EmailOtpAvgAggregateOutputType = {
+    attempts: number | null
+    sends: number | null
+  }
+
+  export type EmailOtpSumAggregateOutputType = {
+    attempts: number | null
+    sends: number | null
+  }
+
+  export type EmailOtpMinAggregateOutputType = {
+    id: string | null
+    purpose: string | null
+    key: string | null
+    email: string | null
+    userId: string | null
+    codeHash: string | null
+    attempts: number | null
+    sends: number | null
+    expiresAt: Date | null
+    lastSentAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type EmailOtpMaxAggregateOutputType = {
+    id: string | null
+    purpose: string | null
+    key: string | null
+    email: string | null
+    userId: string | null
+    codeHash: string | null
+    attempts: number | null
+    sends: number | null
+    expiresAt: Date | null
+    lastSentAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type EmailOtpCountAggregateOutputType = {
+    id: number
+    purpose: number
+    key: number
+    email: number
+    userId: number
+    codeHash: number
+    payload: number
+    attempts: number
+    sends: number
+    expiresAt: number
+    lastSentAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type EmailOtpAvgAggregateInputType = {
+    attempts?: true
+    sends?: true
+  }
+
+  export type EmailOtpSumAggregateInputType = {
+    attempts?: true
+    sends?: true
+  }
+
+  export type EmailOtpMinAggregateInputType = {
+    id?: true
+    purpose?: true
+    key?: true
+    email?: true
+    userId?: true
+    codeHash?: true
+    attempts?: true
+    sends?: true
+    expiresAt?: true
+    lastSentAt?: true
+    createdAt?: true
+  }
+
+  export type EmailOtpMaxAggregateInputType = {
+    id?: true
+    purpose?: true
+    key?: true
+    email?: true
+    userId?: true
+    codeHash?: true
+    attempts?: true
+    sends?: true
+    expiresAt?: true
+    lastSentAt?: true
+    createdAt?: true
+  }
+
+  export type EmailOtpCountAggregateInputType = {
+    id?: true
+    purpose?: true
+    key?: true
+    email?: true
+    userId?: true
+    codeHash?: true
+    payload?: true
+    attempts?: true
+    sends?: true
+    expiresAt?: true
+    lastSentAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type EmailOtpAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmailOtp to aggregate.
+     */
+    where?: EmailOtpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailOtps to fetch.
+     */
+    orderBy?: EmailOtpOrderByWithRelationInput | EmailOtpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EmailOtpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailOtps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailOtps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EmailOtps
+    **/
+    _count?: true | EmailOtpCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EmailOtpAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EmailOtpSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EmailOtpMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EmailOtpMaxAggregateInputType
+  }
+
+  export type GetEmailOtpAggregateType<T extends EmailOtpAggregateArgs> = {
+        [P in keyof T & keyof AggregateEmailOtp]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEmailOtp[P]>
+      : GetScalarType<T[P], AggregateEmailOtp[P]>
+  }
+
+
+
+
+  export type EmailOtpGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EmailOtpWhereInput
+    orderBy?: EmailOtpOrderByWithAggregationInput | EmailOtpOrderByWithAggregationInput[]
+    by: EmailOtpScalarFieldEnum[] | EmailOtpScalarFieldEnum
+    having?: EmailOtpScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EmailOtpCountAggregateInputType | true
+    _avg?: EmailOtpAvgAggregateInputType
+    _sum?: EmailOtpSumAggregateInputType
+    _min?: EmailOtpMinAggregateInputType
+    _max?: EmailOtpMaxAggregateInputType
+  }
+
+  export type EmailOtpGroupByOutputType = {
+    id: string
+    purpose: string
+    key: string
+    email: string
+    userId: string | null
+    codeHash: string
+    payload: JsonValue | null
+    attempts: number
+    sends: number
+    expiresAt: Date
+    lastSentAt: Date
+    createdAt: Date
+    _count: EmailOtpCountAggregateOutputType | null
+    _avg: EmailOtpAvgAggregateOutputType | null
+    _sum: EmailOtpSumAggregateOutputType | null
+    _min: EmailOtpMinAggregateOutputType | null
+    _max: EmailOtpMaxAggregateOutputType | null
+  }
+
+  type GetEmailOtpGroupByPayload<T extends EmailOtpGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EmailOtpGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EmailOtpGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EmailOtpGroupByOutputType[P]>
+            : GetScalarType<T[P], EmailOtpGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EmailOtpSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purpose?: boolean
+    key?: boolean
+    email?: boolean
+    userId?: boolean
+    codeHash?: boolean
+    payload?: boolean
+    attempts?: boolean
+    sends?: boolean
+    expiresAt?: boolean
+    lastSentAt?: boolean
+    createdAt?: boolean
+    user?: boolean | EmailOtp$userArgs<ExtArgs>
+  }, ExtArgs["result"]["emailOtp"]>
+
+  export type EmailOtpSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purpose?: boolean
+    key?: boolean
+    email?: boolean
+    userId?: boolean
+    codeHash?: boolean
+    payload?: boolean
+    attempts?: boolean
+    sends?: boolean
+    expiresAt?: boolean
+    lastSentAt?: boolean
+    createdAt?: boolean
+    user?: boolean | EmailOtp$userArgs<ExtArgs>
+  }, ExtArgs["result"]["emailOtp"]>
+
+  export type EmailOtpSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purpose?: boolean
+    key?: boolean
+    email?: boolean
+    userId?: boolean
+    codeHash?: boolean
+    payload?: boolean
+    attempts?: boolean
+    sends?: boolean
+    expiresAt?: boolean
+    lastSentAt?: boolean
+    createdAt?: boolean
+    user?: boolean | EmailOtp$userArgs<ExtArgs>
+  }, ExtArgs["result"]["emailOtp"]>
+
+  export type EmailOtpSelectScalar = {
+    id?: boolean
+    purpose?: boolean
+    key?: boolean
+    email?: boolean
+    userId?: boolean
+    codeHash?: boolean
+    payload?: boolean
+    attempts?: boolean
+    sends?: boolean
+    expiresAt?: boolean
+    lastSentAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type EmailOtpOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "purpose" | "key" | "email" | "userId" | "codeHash" | "payload" | "attempts" | "sends" | "expiresAt" | "lastSentAt" | "createdAt", ExtArgs["result"]["emailOtp"]>
+  export type EmailOtpInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | EmailOtp$userArgs<ExtArgs>
+  }
+  export type EmailOtpIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | EmailOtp$userArgs<ExtArgs>
+  }
+  export type EmailOtpIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | EmailOtp$userArgs<ExtArgs>
+  }
+
+  export type $EmailOtpPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EmailOtp"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      /**
+       * "register" or "email-change"
+       */
+      purpose: string
+      /**
+       * The email for sign-up, the user id for an email change
+       */
+      key: string
+      email: string
+      userId: string | null
+      codeHash: string
+      /**
+       * Sign-up details kept until the code is confirmed (name, password hash)
+       */
+      payload: Prisma.JsonValue | null
+      attempts: number
+      sends: number
+      expiresAt: Date
+      lastSentAt: Date
+      createdAt: Date
+    }, ExtArgs["result"]["emailOtp"]>
+    composites: {}
+  }
+
+  type EmailOtpGetPayload<S extends boolean | null | undefined | EmailOtpDefaultArgs> = $Result.GetResult<Prisma.$EmailOtpPayload, S>
+
+  type EmailOtpCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EmailOtpFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EmailOtpCountAggregateInputType | true
+    }
+
+  export interface EmailOtpDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EmailOtp'], meta: { name: 'EmailOtp' } }
+    /**
+     * Find zero or one EmailOtp that matches the filter.
+     * @param {EmailOtpFindUniqueArgs} args - Arguments to find a EmailOtp
+     * @example
+     * // Get one EmailOtp
+     * const emailOtp = await prisma.emailOtp.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EmailOtpFindUniqueArgs>(args: SelectSubset<T, EmailOtpFindUniqueArgs<ExtArgs>>): Prisma__EmailOtpClient<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one EmailOtp that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EmailOtpFindUniqueOrThrowArgs} args - Arguments to find a EmailOtp
+     * @example
+     * // Get one EmailOtp
+     * const emailOtp = await prisma.emailOtp.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EmailOtpFindUniqueOrThrowArgs>(args: SelectSubset<T, EmailOtpFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EmailOtpClient<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EmailOtp that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailOtpFindFirstArgs} args - Arguments to find a EmailOtp
+     * @example
+     * // Get one EmailOtp
+     * const emailOtp = await prisma.emailOtp.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EmailOtpFindFirstArgs>(args?: SelectSubset<T, EmailOtpFindFirstArgs<ExtArgs>>): Prisma__EmailOtpClient<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EmailOtp that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailOtpFindFirstOrThrowArgs} args - Arguments to find a EmailOtp
+     * @example
+     * // Get one EmailOtp
+     * const emailOtp = await prisma.emailOtp.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EmailOtpFindFirstOrThrowArgs>(args?: SelectSubset<T, EmailOtpFindFirstOrThrowArgs<ExtArgs>>): Prisma__EmailOtpClient<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more EmailOtps that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailOtpFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EmailOtps
+     * const emailOtps = await prisma.emailOtp.findMany()
+     * 
+     * // Get first 10 EmailOtps
+     * const emailOtps = await prisma.emailOtp.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const emailOtpWithIdOnly = await prisma.emailOtp.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EmailOtpFindManyArgs>(args?: SelectSubset<T, EmailOtpFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a EmailOtp.
+     * @param {EmailOtpCreateArgs} args - Arguments to create a EmailOtp.
+     * @example
+     * // Create one EmailOtp
+     * const EmailOtp = await prisma.emailOtp.create({
+     *   data: {
+     *     // ... data to create a EmailOtp
+     *   }
+     * })
+     * 
+     */
+    create<T extends EmailOtpCreateArgs>(args: SelectSubset<T, EmailOtpCreateArgs<ExtArgs>>): Prisma__EmailOtpClient<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many EmailOtps.
+     * @param {EmailOtpCreateManyArgs} args - Arguments to create many EmailOtps.
+     * @example
+     * // Create many EmailOtps
+     * const emailOtp = await prisma.emailOtp.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EmailOtpCreateManyArgs>(args?: SelectSubset<T, EmailOtpCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EmailOtps and returns the data saved in the database.
+     * @param {EmailOtpCreateManyAndReturnArgs} args - Arguments to create many EmailOtps.
+     * @example
+     * // Create many EmailOtps
+     * const emailOtp = await prisma.emailOtp.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EmailOtps and only return the `id`
+     * const emailOtpWithIdOnly = await prisma.emailOtp.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EmailOtpCreateManyAndReturnArgs>(args?: SelectSubset<T, EmailOtpCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a EmailOtp.
+     * @param {EmailOtpDeleteArgs} args - Arguments to delete one EmailOtp.
+     * @example
+     * // Delete one EmailOtp
+     * const EmailOtp = await prisma.emailOtp.delete({
+     *   where: {
+     *     // ... filter to delete one EmailOtp
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EmailOtpDeleteArgs>(args: SelectSubset<T, EmailOtpDeleteArgs<ExtArgs>>): Prisma__EmailOtpClient<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one EmailOtp.
+     * @param {EmailOtpUpdateArgs} args - Arguments to update one EmailOtp.
+     * @example
+     * // Update one EmailOtp
+     * const emailOtp = await prisma.emailOtp.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EmailOtpUpdateArgs>(args: SelectSubset<T, EmailOtpUpdateArgs<ExtArgs>>): Prisma__EmailOtpClient<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more EmailOtps.
+     * @param {EmailOtpDeleteManyArgs} args - Arguments to filter EmailOtps to delete.
+     * @example
+     * // Delete a few EmailOtps
+     * const { count } = await prisma.emailOtp.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EmailOtpDeleteManyArgs>(args?: SelectSubset<T, EmailOtpDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmailOtps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailOtpUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EmailOtps
+     * const emailOtp = await prisma.emailOtp.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EmailOtpUpdateManyArgs>(args: SelectSubset<T, EmailOtpUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmailOtps and returns the data updated in the database.
+     * @param {EmailOtpUpdateManyAndReturnArgs} args - Arguments to update many EmailOtps.
+     * @example
+     * // Update many EmailOtps
+     * const emailOtp = await prisma.emailOtp.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more EmailOtps and only return the `id`
+     * const emailOtpWithIdOnly = await prisma.emailOtp.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EmailOtpUpdateManyAndReturnArgs>(args: SelectSubset<T, EmailOtpUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one EmailOtp.
+     * @param {EmailOtpUpsertArgs} args - Arguments to update or create a EmailOtp.
+     * @example
+     * // Update or create a EmailOtp
+     * const emailOtp = await prisma.emailOtp.upsert({
+     *   create: {
+     *     // ... data to create a EmailOtp
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EmailOtp we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EmailOtpUpsertArgs>(args: SelectSubset<T, EmailOtpUpsertArgs<ExtArgs>>): Prisma__EmailOtpClient<$Result.GetResult<Prisma.$EmailOtpPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of EmailOtps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailOtpCountArgs} args - Arguments to filter EmailOtps to count.
+     * @example
+     * // Count the number of EmailOtps
+     * const count = await prisma.emailOtp.count({
+     *   where: {
+     *     // ... the filter for the EmailOtps we want to count
+     *   }
+     * })
+    **/
+    count<T extends EmailOtpCountArgs>(
+      args?: Subset<T, EmailOtpCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EmailOtpCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EmailOtp.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailOtpAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EmailOtpAggregateArgs>(args: Subset<T, EmailOtpAggregateArgs>): Prisma.PrismaPromise<GetEmailOtpAggregateType<T>>
+
+    /**
+     * Group by EmailOtp.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailOtpGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EmailOtpGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EmailOtpGroupByArgs['orderBy'] }
+        : { orderBy?: EmailOtpGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EmailOtpGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmailOtpGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EmailOtp model
+   */
+  readonly fields: EmailOtpFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EmailOtp.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EmailOtpClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends EmailOtp$userArgs<ExtArgs> = {}>(args?: Subset<T, EmailOtp$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EmailOtp model
+   */
+  interface EmailOtpFieldRefs {
+    readonly id: FieldRef<"EmailOtp", 'String'>
+    readonly purpose: FieldRef<"EmailOtp", 'String'>
+    readonly key: FieldRef<"EmailOtp", 'String'>
+    readonly email: FieldRef<"EmailOtp", 'String'>
+    readonly userId: FieldRef<"EmailOtp", 'String'>
+    readonly codeHash: FieldRef<"EmailOtp", 'String'>
+    readonly payload: FieldRef<"EmailOtp", 'Json'>
+    readonly attempts: FieldRef<"EmailOtp", 'Int'>
+    readonly sends: FieldRef<"EmailOtp", 'Int'>
+    readonly expiresAt: FieldRef<"EmailOtp", 'DateTime'>
+    readonly lastSentAt: FieldRef<"EmailOtp", 'DateTime'>
+    readonly createdAt: FieldRef<"EmailOtp", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EmailOtp findUnique
+   */
+  export type EmailOtpFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    /**
+     * Filter, which EmailOtp to fetch.
+     */
+    where: EmailOtpWhereUniqueInput
+  }
+
+  /**
+   * EmailOtp findUniqueOrThrow
+   */
+  export type EmailOtpFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    /**
+     * Filter, which EmailOtp to fetch.
+     */
+    where: EmailOtpWhereUniqueInput
+  }
+
+  /**
+   * EmailOtp findFirst
+   */
+  export type EmailOtpFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    /**
+     * Filter, which EmailOtp to fetch.
+     */
+    where?: EmailOtpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailOtps to fetch.
+     */
+    orderBy?: EmailOtpOrderByWithRelationInput | EmailOtpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmailOtps.
+     */
+    cursor?: EmailOtpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailOtps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailOtps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailOtps.
+     */
+    distinct?: EmailOtpScalarFieldEnum | EmailOtpScalarFieldEnum[]
+  }
+
+  /**
+   * EmailOtp findFirstOrThrow
+   */
+  export type EmailOtpFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    /**
+     * Filter, which EmailOtp to fetch.
+     */
+    where?: EmailOtpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailOtps to fetch.
+     */
+    orderBy?: EmailOtpOrderByWithRelationInput | EmailOtpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmailOtps.
+     */
+    cursor?: EmailOtpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailOtps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailOtps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailOtps.
+     */
+    distinct?: EmailOtpScalarFieldEnum | EmailOtpScalarFieldEnum[]
+  }
+
+  /**
+   * EmailOtp findMany
+   */
+  export type EmailOtpFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    /**
+     * Filter, which EmailOtps to fetch.
+     */
+    where?: EmailOtpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailOtps to fetch.
+     */
+    orderBy?: EmailOtpOrderByWithRelationInput | EmailOtpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EmailOtps.
+     */
+    cursor?: EmailOtpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailOtps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailOtps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailOtps.
+     */
+    distinct?: EmailOtpScalarFieldEnum | EmailOtpScalarFieldEnum[]
+  }
+
+  /**
+   * EmailOtp create
+   */
+  export type EmailOtpCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EmailOtp.
+     */
+    data: XOR<EmailOtpCreateInput, EmailOtpUncheckedCreateInput>
+  }
+
+  /**
+   * EmailOtp createMany
+   */
+  export type EmailOtpCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EmailOtps.
+     */
+    data: EmailOtpCreateManyInput | EmailOtpCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EmailOtp createManyAndReturn
+   */
+  export type EmailOtpCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * The data used to create many EmailOtps.
+     */
+    data: EmailOtpCreateManyInput | EmailOtpCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EmailOtp update
+   */
+  export type EmailOtpUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EmailOtp.
+     */
+    data: XOR<EmailOtpUpdateInput, EmailOtpUncheckedUpdateInput>
+    /**
+     * Choose, which EmailOtp to update.
+     */
+    where: EmailOtpWhereUniqueInput
+  }
+
+  /**
+   * EmailOtp updateMany
+   */
+  export type EmailOtpUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EmailOtps.
+     */
+    data: XOR<EmailOtpUpdateManyMutationInput, EmailOtpUncheckedUpdateManyInput>
+    /**
+     * Filter which EmailOtps to update
+     */
+    where?: EmailOtpWhereInput
+    /**
+     * Limit how many EmailOtps to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * EmailOtp updateManyAndReturn
+   */
+  export type EmailOtpUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * The data used to update EmailOtps.
+     */
+    data: XOR<EmailOtpUpdateManyMutationInput, EmailOtpUncheckedUpdateManyInput>
+    /**
+     * Filter which EmailOtps to update
+     */
+    where?: EmailOtpWhereInput
+    /**
+     * Limit how many EmailOtps to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EmailOtp upsert
+   */
+  export type EmailOtpUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EmailOtp to update in case it exists.
+     */
+    where: EmailOtpWhereUniqueInput
+    /**
+     * In case the EmailOtp found by the `where` argument doesn't exist, create a new EmailOtp with this data.
+     */
+    create: XOR<EmailOtpCreateInput, EmailOtpUncheckedCreateInput>
+    /**
+     * In case the EmailOtp was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EmailOtpUpdateInput, EmailOtpUncheckedUpdateInput>
+  }
+
+  /**
+   * EmailOtp delete
+   */
+  export type EmailOtpDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+    /**
+     * Filter which EmailOtp to delete.
+     */
+    where: EmailOtpWhereUniqueInput
+  }
+
+  /**
+   * EmailOtp deleteMany
+   */
+  export type EmailOtpDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmailOtps to delete
+     */
+    where?: EmailOtpWhereInput
+    /**
+     * Limit how many EmailOtps to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * EmailOtp.user
+   */
+  export type EmailOtp$userArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * EmailOtp without action
+   */
+  export type EmailOtpDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailOtp
+     */
+    select?: EmailOtpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailOtp
+     */
+    omit?: EmailOtpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EmailOtpInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CodingProject
+   */
+
+  export type AggregateCodingProject = {
+    _count: CodingProjectCountAggregateOutputType | null
+    _avg: CodingProjectAvgAggregateOutputType | null
+    _sum: CodingProjectSumAggregateOutputType | null
+    _min: CodingProjectMinAggregateOutputType | null
+    _max: CodingProjectMaxAggregateOutputType | null
+  }
+
+  export type CodingProjectAvgAggregateOutputType = {
+    order: number | null
+  }
+
+  export type CodingProjectSumAggregateOutputType = {
+    order: number | null
+  }
+
+  export type CodingProjectMinAggregateOutputType = {
+    id: string | null
+    topicId: string | null
+    title: string | null
+    brief: string | null
+    language: string | null
+    starterCode: string | null
+    rubric: string | null
+    difficulty: string | null
+    order: number | null
+    createdAt: Date | null
+  }
+
+  export type CodingProjectMaxAggregateOutputType = {
+    id: string | null
+    topicId: string | null
+    title: string | null
+    brief: string | null
+    language: string | null
+    starterCode: string | null
+    rubric: string | null
+    difficulty: string | null
+    order: number | null
+    createdAt: Date | null
+  }
+
+  export type CodingProjectCountAggregateOutputType = {
+    id: number
+    topicId: number
+    title: number
+    brief: number
+    language: number
+    starterCode: number
+    rubric: number
+    difficulty: number
+    order: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CodingProjectAvgAggregateInputType = {
+    order?: true
+  }
+
+  export type CodingProjectSumAggregateInputType = {
+    order?: true
+  }
+
+  export type CodingProjectMinAggregateInputType = {
+    id?: true
+    topicId?: true
+    title?: true
+    brief?: true
+    language?: true
+    starterCode?: true
+    rubric?: true
+    difficulty?: true
+    order?: true
+    createdAt?: true
+  }
+
+  export type CodingProjectMaxAggregateInputType = {
+    id?: true
+    topicId?: true
+    title?: true
+    brief?: true
+    language?: true
+    starterCode?: true
+    rubric?: true
+    difficulty?: true
+    order?: true
+    createdAt?: true
+  }
+
+  export type CodingProjectCountAggregateInputType = {
+    id?: true
+    topicId?: true
+    title?: true
+    brief?: true
+    language?: true
+    starterCode?: true
+    rubric?: true
+    difficulty?: true
+    order?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CodingProjectAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CodingProject to aggregate.
+     */
+    where?: CodingProjectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CodingProjects to fetch.
+     */
+    orderBy?: CodingProjectOrderByWithRelationInput | CodingProjectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CodingProjectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CodingProjects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CodingProjects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CodingProjects
+    **/
+    _count?: true | CodingProjectCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CodingProjectAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CodingProjectSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CodingProjectMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CodingProjectMaxAggregateInputType
+  }
+
+  export type GetCodingProjectAggregateType<T extends CodingProjectAggregateArgs> = {
+        [P in keyof T & keyof AggregateCodingProject]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCodingProject[P]>
+      : GetScalarType<T[P], AggregateCodingProject[P]>
+  }
+
+
+
+
+  export type CodingProjectGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CodingProjectWhereInput
+    orderBy?: CodingProjectOrderByWithAggregationInput | CodingProjectOrderByWithAggregationInput[]
+    by: CodingProjectScalarFieldEnum[] | CodingProjectScalarFieldEnum
+    having?: CodingProjectScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CodingProjectCountAggregateInputType | true
+    _avg?: CodingProjectAvgAggregateInputType
+    _sum?: CodingProjectSumAggregateInputType
+    _min?: CodingProjectMinAggregateInputType
+    _max?: CodingProjectMaxAggregateInputType
+  }
+
+  export type CodingProjectGroupByOutputType = {
+    id: string
+    topicId: string
+    title: string
+    brief: string
+    language: string
+    starterCode: string | null
+    rubric: string
+    difficulty: string
+    order: number
+    createdAt: Date
+    _count: CodingProjectCountAggregateOutputType | null
+    _avg: CodingProjectAvgAggregateOutputType | null
+    _sum: CodingProjectSumAggregateOutputType | null
+    _min: CodingProjectMinAggregateOutputType | null
+    _max: CodingProjectMaxAggregateOutputType | null
+  }
+
+  type GetCodingProjectGroupByPayload<T extends CodingProjectGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CodingProjectGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CodingProjectGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CodingProjectGroupByOutputType[P]>
+            : GetScalarType<T[P], CodingProjectGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CodingProjectSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    brief?: boolean
+    language?: boolean
+    starterCode?: boolean
+    rubric?: boolean
+    difficulty?: boolean
+    order?: boolean
+    createdAt?: boolean
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+    submissions?: boolean | CodingProject$submissionsArgs<ExtArgs>
+    _count?: boolean | CodingProjectCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["codingProject"]>
+
+  export type CodingProjectSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    brief?: boolean
+    language?: boolean
+    starterCode?: boolean
+    rubric?: boolean
+    difficulty?: boolean
+    order?: boolean
+    createdAt?: boolean
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["codingProject"]>
+
+  export type CodingProjectSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    brief?: boolean
+    language?: boolean
+    starterCode?: boolean
+    rubric?: boolean
+    difficulty?: boolean
+    order?: boolean
+    createdAt?: boolean
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["codingProject"]>
+
+  export type CodingProjectSelectScalar = {
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    brief?: boolean
+    language?: boolean
+    starterCode?: boolean
+    rubric?: boolean
+    difficulty?: boolean
+    order?: boolean
+    createdAt?: boolean
+  }
+
+  export type CodingProjectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "topicId" | "title" | "brief" | "language" | "starterCode" | "rubric" | "difficulty" | "order" | "createdAt", ExtArgs["result"]["codingProject"]>
+  export type CodingProjectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+    submissions?: boolean | CodingProject$submissionsArgs<ExtArgs>
+    _count?: boolean | CodingProjectCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CodingProjectIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }
+  export type CodingProjectIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }
+
+  export type $CodingProjectPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CodingProject"
+    objects: {
+      topic: Prisma.$TopicPayload<ExtArgs>
+      submissions: Prisma.$ProjectSubmissionPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      topicId: string
+      title: string
+      /**
+       * HTML: the task, requirements, example run
+       */
+      brief: string
+      language: string
+      starterCode: string | null
+      /**
+       * JSON: [{ criterion, points }], points add up to 100
+       */
+      rubric: string
+      difficulty: string
+      order: number
+      createdAt: Date
+    }, ExtArgs["result"]["codingProject"]>
+    composites: {}
+  }
+
+  type CodingProjectGetPayload<S extends boolean | null | undefined | CodingProjectDefaultArgs> = $Result.GetResult<Prisma.$CodingProjectPayload, S>
+
+  type CodingProjectCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CodingProjectFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CodingProjectCountAggregateInputType | true
+    }
+
+  export interface CodingProjectDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CodingProject'], meta: { name: 'CodingProject' } }
+    /**
+     * Find zero or one CodingProject that matches the filter.
+     * @param {CodingProjectFindUniqueArgs} args - Arguments to find a CodingProject
+     * @example
+     * // Get one CodingProject
+     * const codingProject = await prisma.codingProject.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CodingProjectFindUniqueArgs>(args: SelectSubset<T, CodingProjectFindUniqueArgs<ExtArgs>>): Prisma__CodingProjectClient<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CodingProject that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CodingProjectFindUniqueOrThrowArgs} args - Arguments to find a CodingProject
+     * @example
+     * // Get one CodingProject
+     * const codingProject = await prisma.codingProject.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CodingProjectFindUniqueOrThrowArgs>(args: SelectSubset<T, CodingProjectFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CodingProjectClient<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CodingProject that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CodingProjectFindFirstArgs} args - Arguments to find a CodingProject
+     * @example
+     * // Get one CodingProject
+     * const codingProject = await prisma.codingProject.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CodingProjectFindFirstArgs>(args?: SelectSubset<T, CodingProjectFindFirstArgs<ExtArgs>>): Prisma__CodingProjectClient<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CodingProject that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CodingProjectFindFirstOrThrowArgs} args - Arguments to find a CodingProject
+     * @example
+     * // Get one CodingProject
+     * const codingProject = await prisma.codingProject.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CodingProjectFindFirstOrThrowArgs>(args?: SelectSubset<T, CodingProjectFindFirstOrThrowArgs<ExtArgs>>): Prisma__CodingProjectClient<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CodingProjects that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CodingProjectFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CodingProjects
+     * const codingProjects = await prisma.codingProject.findMany()
+     * 
+     * // Get first 10 CodingProjects
+     * const codingProjects = await prisma.codingProject.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const codingProjectWithIdOnly = await prisma.codingProject.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CodingProjectFindManyArgs>(args?: SelectSubset<T, CodingProjectFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CodingProject.
+     * @param {CodingProjectCreateArgs} args - Arguments to create a CodingProject.
+     * @example
+     * // Create one CodingProject
+     * const CodingProject = await prisma.codingProject.create({
+     *   data: {
+     *     // ... data to create a CodingProject
+     *   }
+     * })
+     * 
+     */
+    create<T extends CodingProjectCreateArgs>(args: SelectSubset<T, CodingProjectCreateArgs<ExtArgs>>): Prisma__CodingProjectClient<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CodingProjects.
+     * @param {CodingProjectCreateManyArgs} args - Arguments to create many CodingProjects.
+     * @example
+     * // Create many CodingProjects
+     * const codingProject = await prisma.codingProject.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CodingProjectCreateManyArgs>(args?: SelectSubset<T, CodingProjectCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CodingProjects and returns the data saved in the database.
+     * @param {CodingProjectCreateManyAndReturnArgs} args - Arguments to create many CodingProjects.
+     * @example
+     * // Create many CodingProjects
+     * const codingProject = await prisma.codingProject.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CodingProjects and only return the `id`
+     * const codingProjectWithIdOnly = await prisma.codingProject.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CodingProjectCreateManyAndReturnArgs>(args?: SelectSubset<T, CodingProjectCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CodingProject.
+     * @param {CodingProjectDeleteArgs} args - Arguments to delete one CodingProject.
+     * @example
+     * // Delete one CodingProject
+     * const CodingProject = await prisma.codingProject.delete({
+     *   where: {
+     *     // ... filter to delete one CodingProject
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CodingProjectDeleteArgs>(args: SelectSubset<T, CodingProjectDeleteArgs<ExtArgs>>): Prisma__CodingProjectClient<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CodingProject.
+     * @param {CodingProjectUpdateArgs} args - Arguments to update one CodingProject.
+     * @example
+     * // Update one CodingProject
+     * const codingProject = await prisma.codingProject.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CodingProjectUpdateArgs>(args: SelectSubset<T, CodingProjectUpdateArgs<ExtArgs>>): Prisma__CodingProjectClient<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CodingProjects.
+     * @param {CodingProjectDeleteManyArgs} args - Arguments to filter CodingProjects to delete.
+     * @example
+     * // Delete a few CodingProjects
+     * const { count } = await prisma.codingProject.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CodingProjectDeleteManyArgs>(args?: SelectSubset<T, CodingProjectDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CodingProjects.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CodingProjectUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CodingProjects
+     * const codingProject = await prisma.codingProject.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CodingProjectUpdateManyArgs>(args: SelectSubset<T, CodingProjectUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CodingProjects and returns the data updated in the database.
+     * @param {CodingProjectUpdateManyAndReturnArgs} args - Arguments to update many CodingProjects.
+     * @example
+     * // Update many CodingProjects
+     * const codingProject = await prisma.codingProject.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CodingProjects and only return the `id`
+     * const codingProjectWithIdOnly = await prisma.codingProject.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CodingProjectUpdateManyAndReturnArgs>(args: SelectSubset<T, CodingProjectUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CodingProject.
+     * @param {CodingProjectUpsertArgs} args - Arguments to update or create a CodingProject.
+     * @example
+     * // Update or create a CodingProject
+     * const codingProject = await prisma.codingProject.upsert({
+     *   create: {
+     *     // ... data to create a CodingProject
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CodingProject we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CodingProjectUpsertArgs>(args: SelectSubset<T, CodingProjectUpsertArgs<ExtArgs>>): Prisma__CodingProjectClient<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CodingProjects.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CodingProjectCountArgs} args - Arguments to filter CodingProjects to count.
+     * @example
+     * // Count the number of CodingProjects
+     * const count = await prisma.codingProject.count({
+     *   where: {
+     *     // ... the filter for the CodingProjects we want to count
+     *   }
+     * })
+    **/
+    count<T extends CodingProjectCountArgs>(
+      args?: Subset<T, CodingProjectCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CodingProjectCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CodingProject.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CodingProjectAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CodingProjectAggregateArgs>(args: Subset<T, CodingProjectAggregateArgs>): Prisma.PrismaPromise<GetCodingProjectAggregateType<T>>
+
+    /**
+     * Group by CodingProject.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CodingProjectGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CodingProjectGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CodingProjectGroupByArgs['orderBy'] }
+        : { orderBy?: CodingProjectGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CodingProjectGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCodingProjectGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CodingProject model
+   */
+  readonly fields: CodingProjectFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CodingProject.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CodingProjectClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    topic<T extends TopicDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TopicDefaultArgs<ExtArgs>>): Prisma__TopicClient<$Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    submissions<T extends CodingProject$submissionsArgs<ExtArgs> = {}>(args?: Subset<T, CodingProject$submissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CodingProject model
+   */
+  interface CodingProjectFieldRefs {
+    readonly id: FieldRef<"CodingProject", 'String'>
+    readonly topicId: FieldRef<"CodingProject", 'String'>
+    readonly title: FieldRef<"CodingProject", 'String'>
+    readonly brief: FieldRef<"CodingProject", 'String'>
+    readonly language: FieldRef<"CodingProject", 'String'>
+    readonly starterCode: FieldRef<"CodingProject", 'String'>
+    readonly rubric: FieldRef<"CodingProject", 'String'>
+    readonly difficulty: FieldRef<"CodingProject", 'String'>
+    readonly order: FieldRef<"CodingProject", 'Int'>
+    readonly createdAt: FieldRef<"CodingProject", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CodingProject findUnique
+   */
+  export type CodingProjectFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which CodingProject to fetch.
+     */
+    where: CodingProjectWhereUniqueInput
+  }
+
+  /**
+   * CodingProject findUniqueOrThrow
+   */
+  export type CodingProjectFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which CodingProject to fetch.
+     */
+    where: CodingProjectWhereUniqueInput
+  }
+
+  /**
+   * CodingProject findFirst
+   */
+  export type CodingProjectFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which CodingProject to fetch.
+     */
+    where?: CodingProjectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CodingProjects to fetch.
+     */
+    orderBy?: CodingProjectOrderByWithRelationInput | CodingProjectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CodingProjects.
+     */
+    cursor?: CodingProjectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CodingProjects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CodingProjects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CodingProjects.
+     */
+    distinct?: CodingProjectScalarFieldEnum | CodingProjectScalarFieldEnum[]
+  }
+
+  /**
+   * CodingProject findFirstOrThrow
+   */
+  export type CodingProjectFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which CodingProject to fetch.
+     */
+    where?: CodingProjectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CodingProjects to fetch.
+     */
+    orderBy?: CodingProjectOrderByWithRelationInput | CodingProjectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CodingProjects.
+     */
+    cursor?: CodingProjectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CodingProjects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CodingProjects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CodingProjects.
+     */
+    distinct?: CodingProjectScalarFieldEnum | CodingProjectScalarFieldEnum[]
+  }
+
+  /**
+   * CodingProject findMany
+   */
+  export type CodingProjectFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which CodingProjects to fetch.
+     */
+    where?: CodingProjectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CodingProjects to fetch.
+     */
+    orderBy?: CodingProjectOrderByWithRelationInput | CodingProjectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CodingProjects.
+     */
+    cursor?: CodingProjectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CodingProjects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CodingProjects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CodingProjects.
+     */
+    distinct?: CodingProjectScalarFieldEnum | CodingProjectScalarFieldEnum[]
+  }
+
+  /**
+   * CodingProject create
+   */
+  export type CodingProjectCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CodingProject.
+     */
+    data: XOR<CodingProjectCreateInput, CodingProjectUncheckedCreateInput>
+  }
+
+  /**
+   * CodingProject createMany
+   */
+  export type CodingProjectCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CodingProjects.
+     */
+    data: CodingProjectCreateManyInput | CodingProjectCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CodingProject createManyAndReturn
+   */
+  export type CodingProjectCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * The data used to create many CodingProjects.
+     */
+    data: CodingProjectCreateManyInput | CodingProjectCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CodingProject update
+   */
+  export type CodingProjectUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CodingProject.
+     */
+    data: XOR<CodingProjectUpdateInput, CodingProjectUncheckedUpdateInput>
+    /**
+     * Choose, which CodingProject to update.
+     */
+    where: CodingProjectWhereUniqueInput
+  }
+
+  /**
+   * CodingProject updateMany
+   */
+  export type CodingProjectUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CodingProjects.
+     */
+    data: XOR<CodingProjectUpdateManyMutationInput, CodingProjectUncheckedUpdateManyInput>
+    /**
+     * Filter which CodingProjects to update
+     */
+    where?: CodingProjectWhereInput
+    /**
+     * Limit how many CodingProjects to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CodingProject updateManyAndReturn
+   */
+  export type CodingProjectUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * The data used to update CodingProjects.
+     */
+    data: XOR<CodingProjectUpdateManyMutationInput, CodingProjectUncheckedUpdateManyInput>
+    /**
+     * Filter which CodingProjects to update
+     */
+    where?: CodingProjectWhereInput
+    /**
+     * Limit how many CodingProjects to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CodingProject upsert
+   */
+  export type CodingProjectUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CodingProject to update in case it exists.
+     */
+    where: CodingProjectWhereUniqueInput
+    /**
+     * In case the CodingProject found by the `where` argument doesn't exist, create a new CodingProject with this data.
+     */
+    create: XOR<CodingProjectCreateInput, CodingProjectUncheckedCreateInput>
+    /**
+     * In case the CodingProject was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CodingProjectUpdateInput, CodingProjectUncheckedUpdateInput>
+  }
+
+  /**
+   * CodingProject delete
+   */
+  export type CodingProjectDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+    /**
+     * Filter which CodingProject to delete.
+     */
+    where: CodingProjectWhereUniqueInput
+  }
+
+  /**
+   * CodingProject deleteMany
+   */
+  export type CodingProjectDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CodingProjects to delete
+     */
+    where?: CodingProjectWhereInput
+    /**
+     * Limit how many CodingProjects to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CodingProject.submissions
+   */
+  export type CodingProject$submissionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    where?: ProjectSubmissionWhereInput
+    orderBy?: ProjectSubmissionOrderByWithRelationInput | ProjectSubmissionOrderByWithRelationInput[]
+    cursor?: ProjectSubmissionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProjectSubmissionScalarFieldEnum | ProjectSubmissionScalarFieldEnum[]
+  }
+
+  /**
+   * CodingProject without action
+   */
+  export type CodingProjectDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CodingProject
+     */
+    select?: CodingProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CodingProject
+     */
+    omit?: CodingProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CodingProjectInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ProjectSubmission
+   */
+
+  export type AggregateProjectSubmission = {
+    _count: ProjectSubmissionCountAggregateOutputType | null
+    _avg: ProjectSubmissionAvgAggregateOutputType | null
+    _sum: ProjectSubmissionSumAggregateOutputType | null
+    _min: ProjectSubmissionMinAggregateOutputType | null
+    _max: ProjectSubmissionMaxAggregateOutputType | null
+  }
+
+  export type ProjectSubmissionAvgAggregateOutputType = {
+    score: number | null
+  }
+
+  export type ProjectSubmissionSumAggregateOutputType = {
+    score: number | null
+  }
+
+  export type ProjectSubmissionMinAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    userId: string | null
+    files: string | null
+    score: number | null
+    feedback: string | null
+    createdAt: Date | null
+  }
+
+  export type ProjectSubmissionMaxAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    userId: string | null
+    files: string | null
+    score: number | null
+    feedback: string | null
+    createdAt: Date | null
+  }
+
+  export type ProjectSubmissionCountAggregateOutputType = {
+    id: number
+    projectId: number
+    userId: number
+    files: number
+    score: number
+    feedback: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ProjectSubmissionAvgAggregateInputType = {
+    score?: true
+  }
+
+  export type ProjectSubmissionSumAggregateInputType = {
+    score?: true
+  }
+
+  export type ProjectSubmissionMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    userId?: true
+    files?: true
+    score?: true
+    feedback?: true
+    createdAt?: true
+  }
+
+  export type ProjectSubmissionMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    userId?: true
+    files?: true
+    score?: true
+    feedback?: true
+    createdAt?: true
+  }
+
+  export type ProjectSubmissionCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    userId?: true
+    files?: true
+    score?: true
+    feedback?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ProjectSubmissionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProjectSubmission to aggregate.
+     */
+    where?: ProjectSubmissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProjectSubmissions to fetch.
+     */
+    orderBy?: ProjectSubmissionOrderByWithRelationInput | ProjectSubmissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProjectSubmissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProjectSubmissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProjectSubmissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProjectSubmissions
+    **/
+    _count?: true | ProjectSubmissionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ProjectSubmissionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProjectSubmissionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProjectSubmissionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProjectSubmissionMaxAggregateInputType
+  }
+
+  export type GetProjectSubmissionAggregateType<T extends ProjectSubmissionAggregateArgs> = {
+        [P in keyof T & keyof AggregateProjectSubmission]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProjectSubmission[P]>
+      : GetScalarType<T[P], AggregateProjectSubmission[P]>
+  }
+
+
+
+
+  export type ProjectSubmissionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProjectSubmissionWhereInput
+    orderBy?: ProjectSubmissionOrderByWithAggregationInput | ProjectSubmissionOrderByWithAggregationInput[]
+    by: ProjectSubmissionScalarFieldEnum[] | ProjectSubmissionScalarFieldEnum
+    having?: ProjectSubmissionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProjectSubmissionCountAggregateInputType | true
+    _avg?: ProjectSubmissionAvgAggregateInputType
+    _sum?: ProjectSubmissionSumAggregateInputType
+    _min?: ProjectSubmissionMinAggregateInputType
+    _max?: ProjectSubmissionMaxAggregateInputType
+  }
+
+  export type ProjectSubmissionGroupByOutputType = {
+    id: string
+    projectId: string
+    userId: string
+    files: string
+    score: number
+    feedback: string
+    createdAt: Date
+    _count: ProjectSubmissionCountAggregateOutputType | null
+    _avg: ProjectSubmissionAvgAggregateOutputType | null
+    _sum: ProjectSubmissionSumAggregateOutputType | null
+    _min: ProjectSubmissionMinAggregateOutputType | null
+    _max: ProjectSubmissionMaxAggregateOutputType | null
+  }
+
+  type GetProjectSubmissionGroupByPayload<T extends ProjectSubmissionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProjectSubmissionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProjectSubmissionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProjectSubmissionGroupByOutputType[P]>
+            : GetScalarType<T[P], ProjectSubmissionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProjectSubmissionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    userId?: boolean
+    files?: boolean
+    score?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+    project?: boolean | CodingProjectDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["projectSubmission"]>
+
+  export type ProjectSubmissionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    userId?: boolean
+    files?: boolean
+    score?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+    project?: boolean | CodingProjectDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["projectSubmission"]>
+
+  export type ProjectSubmissionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    userId?: boolean
+    files?: boolean
+    score?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+    project?: boolean | CodingProjectDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["projectSubmission"]>
+
+  export type ProjectSubmissionSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    userId?: boolean
+    files?: boolean
+    score?: boolean
+    feedback?: boolean
+    createdAt?: boolean
+  }
+
+  export type ProjectSubmissionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "userId" | "files" | "score" | "feedback" | "createdAt", ExtArgs["result"]["projectSubmission"]>
+  export type ProjectSubmissionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | CodingProjectDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ProjectSubmissionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | CodingProjectDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ProjectSubmissionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | CodingProjectDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $ProjectSubmissionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProjectSubmission"
+    objects: {
+      project: Prisma.$CodingProjectPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      projectId: string
+      userId: string
+      /**
+       * JSON: [{ name, content }]
+       */
+      files: string
+      score: number
+      /**
+       * JSON: { summary, rubric: [{ criterion, points, max, comment }], strengths, improvements }
+       */
+      feedback: string
+      createdAt: Date
+    }, ExtArgs["result"]["projectSubmission"]>
+    composites: {}
+  }
+
+  type ProjectSubmissionGetPayload<S extends boolean | null | undefined | ProjectSubmissionDefaultArgs> = $Result.GetResult<Prisma.$ProjectSubmissionPayload, S>
+
+  type ProjectSubmissionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ProjectSubmissionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ProjectSubmissionCountAggregateInputType | true
+    }
+
+  export interface ProjectSubmissionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProjectSubmission'], meta: { name: 'ProjectSubmission' } }
+    /**
+     * Find zero or one ProjectSubmission that matches the filter.
+     * @param {ProjectSubmissionFindUniqueArgs} args - Arguments to find a ProjectSubmission
+     * @example
+     * // Get one ProjectSubmission
+     * const projectSubmission = await prisma.projectSubmission.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProjectSubmissionFindUniqueArgs>(args: SelectSubset<T, ProjectSubmissionFindUniqueArgs<ExtArgs>>): Prisma__ProjectSubmissionClient<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ProjectSubmission that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ProjectSubmissionFindUniqueOrThrowArgs} args - Arguments to find a ProjectSubmission
+     * @example
+     * // Get one ProjectSubmission
+     * const projectSubmission = await prisma.projectSubmission.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProjectSubmissionFindUniqueOrThrowArgs>(args: SelectSubset<T, ProjectSubmissionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProjectSubmissionClient<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProjectSubmission that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectSubmissionFindFirstArgs} args - Arguments to find a ProjectSubmission
+     * @example
+     * // Get one ProjectSubmission
+     * const projectSubmission = await prisma.projectSubmission.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProjectSubmissionFindFirstArgs>(args?: SelectSubset<T, ProjectSubmissionFindFirstArgs<ExtArgs>>): Prisma__ProjectSubmissionClient<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProjectSubmission that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectSubmissionFindFirstOrThrowArgs} args - Arguments to find a ProjectSubmission
+     * @example
+     * // Get one ProjectSubmission
+     * const projectSubmission = await prisma.projectSubmission.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProjectSubmissionFindFirstOrThrowArgs>(args?: SelectSubset<T, ProjectSubmissionFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProjectSubmissionClient<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ProjectSubmissions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectSubmissionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProjectSubmissions
+     * const projectSubmissions = await prisma.projectSubmission.findMany()
+     * 
+     * // Get first 10 ProjectSubmissions
+     * const projectSubmissions = await prisma.projectSubmission.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const projectSubmissionWithIdOnly = await prisma.projectSubmission.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProjectSubmissionFindManyArgs>(args?: SelectSubset<T, ProjectSubmissionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ProjectSubmission.
+     * @param {ProjectSubmissionCreateArgs} args - Arguments to create a ProjectSubmission.
+     * @example
+     * // Create one ProjectSubmission
+     * const ProjectSubmission = await prisma.projectSubmission.create({
+     *   data: {
+     *     // ... data to create a ProjectSubmission
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProjectSubmissionCreateArgs>(args: SelectSubset<T, ProjectSubmissionCreateArgs<ExtArgs>>): Prisma__ProjectSubmissionClient<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ProjectSubmissions.
+     * @param {ProjectSubmissionCreateManyArgs} args - Arguments to create many ProjectSubmissions.
+     * @example
+     * // Create many ProjectSubmissions
+     * const projectSubmission = await prisma.projectSubmission.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProjectSubmissionCreateManyArgs>(args?: SelectSubset<T, ProjectSubmissionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProjectSubmissions and returns the data saved in the database.
+     * @param {ProjectSubmissionCreateManyAndReturnArgs} args - Arguments to create many ProjectSubmissions.
+     * @example
+     * // Create many ProjectSubmissions
+     * const projectSubmission = await prisma.projectSubmission.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProjectSubmissions and only return the `id`
+     * const projectSubmissionWithIdOnly = await prisma.projectSubmission.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProjectSubmissionCreateManyAndReturnArgs>(args?: SelectSubset<T, ProjectSubmissionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ProjectSubmission.
+     * @param {ProjectSubmissionDeleteArgs} args - Arguments to delete one ProjectSubmission.
+     * @example
+     * // Delete one ProjectSubmission
+     * const ProjectSubmission = await prisma.projectSubmission.delete({
+     *   where: {
+     *     // ... filter to delete one ProjectSubmission
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProjectSubmissionDeleteArgs>(args: SelectSubset<T, ProjectSubmissionDeleteArgs<ExtArgs>>): Prisma__ProjectSubmissionClient<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ProjectSubmission.
+     * @param {ProjectSubmissionUpdateArgs} args - Arguments to update one ProjectSubmission.
+     * @example
+     * // Update one ProjectSubmission
+     * const projectSubmission = await prisma.projectSubmission.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProjectSubmissionUpdateArgs>(args: SelectSubset<T, ProjectSubmissionUpdateArgs<ExtArgs>>): Prisma__ProjectSubmissionClient<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ProjectSubmissions.
+     * @param {ProjectSubmissionDeleteManyArgs} args - Arguments to filter ProjectSubmissions to delete.
+     * @example
+     * // Delete a few ProjectSubmissions
+     * const { count } = await prisma.projectSubmission.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProjectSubmissionDeleteManyArgs>(args?: SelectSubset<T, ProjectSubmissionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProjectSubmissions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectSubmissionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProjectSubmissions
+     * const projectSubmission = await prisma.projectSubmission.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProjectSubmissionUpdateManyArgs>(args: SelectSubset<T, ProjectSubmissionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProjectSubmissions and returns the data updated in the database.
+     * @param {ProjectSubmissionUpdateManyAndReturnArgs} args - Arguments to update many ProjectSubmissions.
+     * @example
+     * // Update many ProjectSubmissions
+     * const projectSubmission = await prisma.projectSubmission.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ProjectSubmissions and only return the `id`
+     * const projectSubmissionWithIdOnly = await prisma.projectSubmission.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ProjectSubmissionUpdateManyAndReturnArgs>(args: SelectSubset<T, ProjectSubmissionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ProjectSubmission.
+     * @param {ProjectSubmissionUpsertArgs} args - Arguments to update or create a ProjectSubmission.
+     * @example
+     * // Update or create a ProjectSubmission
+     * const projectSubmission = await prisma.projectSubmission.upsert({
+     *   create: {
+     *     // ... data to create a ProjectSubmission
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProjectSubmission we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProjectSubmissionUpsertArgs>(args: SelectSubset<T, ProjectSubmissionUpsertArgs<ExtArgs>>): Prisma__ProjectSubmissionClient<$Result.GetResult<Prisma.$ProjectSubmissionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ProjectSubmissions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectSubmissionCountArgs} args - Arguments to filter ProjectSubmissions to count.
+     * @example
+     * // Count the number of ProjectSubmissions
+     * const count = await prisma.projectSubmission.count({
+     *   where: {
+     *     // ... the filter for the ProjectSubmissions we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProjectSubmissionCountArgs>(
+      args?: Subset<T, ProjectSubmissionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProjectSubmissionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProjectSubmission.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectSubmissionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProjectSubmissionAggregateArgs>(args: Subset<T, ProjectSubmissionAggregateArgs>): Prisma.PrismaPromise<GetProjectSubmissionAggregateType<T>>
+
+    /**
+     * Group by ProjectSubmission.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProjectSubmissionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProjectSubmissionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProjectSubmissionGroupByArgs['orderBy'] }
+        : { orderBy?: ProjectSubmissionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProjectSubmissionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProjectSubmissionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProjectSubmission model
+   */
+  readonly fields: ProjectSubmissionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProjectSubmission.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProjectSubmissionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends CodingProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CodingProjectDefaultArgs<ExtArgs>>): Prisma__CodingProjectClient<$Result.GetResult<Prisma.$CodingProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProjectSubmission model
+   */
+  interface ProjectSubmissionFieldRefs {
+    readonly id: FieldRef<"ProjectSubmission", 'String'>
+    readonly projectId: FieldRef<"ProjectSubmission", 'String'>
+    readonly userId: FieldRef<"ProjectSubmission", 'String'>
+    readonly files: FieldRef<"ProjectSubmission", 'String'>
+    readonly score: FieldRef<"ProjectSubmission", 'Int'>
+    readonly feedback: FieldRef<"ProjectSubmission", 'String'>
+    readonly createdAt: FieldRef<"ProjectSubmission", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProjectSubmission findUnique
+   */
+  export type ProjectSubmissionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectSubmission to fetch.
+     */
+    where: ProjectSubmissionWhereUniqueInput
+  }
+
+  /**
+   * ProjectSubmission findUniqueOrThrow
+   */
+  export type ProjectSubmissionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectSubmission to fetch.
+     */
+    where: ProjectSubmissionWhereUniqueInput
+  }
+
+  /**
+   * ProjectSubmission findFirst
+   */
+  export type ProjectSubmissionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectSubmission to fetch.
+     */
+    where?: ProjectSubmissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProjectSubmissions to fetch.
+     */
+    orderBy?: ProjectSubmissionOrderByWithRelationInput | ProjectSubmissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProjectSubmissions.
+     */
+    cursor?: ProjectSubmissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProjectSubmissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProjectSubmissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProjectSubmissions.
+     */
+    distinct?: ProjectSubmissionScalarFieldEnum | ProjectSubmissionScalarFieldEnum[]
+  }
+
+  /**
+   * ProjectSubmission findFirstOrThrow
+   */
+  export type ProjectSubmissionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectSubmission to fetch.
+     */
+    where?: ProjectSubmissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProjectSubmissions to fetch.
+     */
+    orderBy?: ProjectSubmissionOrderByWithRelationInput | ProjectSubmissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProjectSubmissions.
+     */
+    cursor?: ProjectSubmissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProjectSubmissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProjectSubmissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProjectSubmissions.
+     */
+    distinct?: ProjectSubmissionScalarFieldEnum | ProjectSubmissionScalarFieldEnum[]
+  }
+
+  /**
+   * ProjectSubmission findMany
+   */
+  export type ProjectSubmissionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    /**
+     * Filter, which ProjectSubmissions to fetch.
+     */
+    where?: ProjectSubmissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProjectSubmissions to fetch.
+     */
+    orderBy?: ProjectSubmissionOrderByWithRelationInput | ProjectSubmissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProjectSubmissions.
+     */
+    cursor?: ProjectSubmissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProjectSubmissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProjectSubmissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProjectSubmissions.
+     */
+    distinct?: ProjectSubmissionScalarFieldEnum | ProjectSubmissionScalarFieldEnum[]
+  }
+
+  /**
+   * ProjectSubmission create
+   */
+  export type ProjectSubmissionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProjectSubmission.
+     */
+    data: XOR<ProjectSubmissionCreateInput, ProjectSubmissionUncheckedCreateInput>
+  }
+
+  /**
+   * ProjectSubmission createMany
+   */
+  export type ProjectSubmissionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProjectSubmissions.
+     */
+    data: ProjectSubmissionCreateManyInput | ProjectSubmissionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProjectSubmission createManyAndReturn
+   */
+  export type ProjectSubmissionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * The data used to create many ProjectSubmissions.
+     */
+    data: ProjectSubmissionCreateManyInput | ProjectSubmissionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProjectSubmission update
+   */
+  export type ProjectSubmissionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProjectSubmission.
+     */
+    data: XOR<ProjectSubmissionUpdateInput, ProjectSubmissionUncheckedUpdateInput>
+    /**
+     * Choose, which ProjectSubmission to update.
+     */
+    where: ProjectSubmissionWhereUniqueInput
+  }
+
+  /**
+   * ProjectSubmission updateMany
+   */
+  export type ProjectSubmissionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProjectSubmissions.
+     */
+    data: XOR<ProjectSubmissionUpdateManyMutationInput, ProjectSubmissionUncheckedUpdateManyInput>
+    /**
+     * Filter which ProjectSubmissions to update
+     */
+    where?: ProjectSubmissionWhereInput
+    /**
+     * Limit how many ProjectSubmissions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProjectSubmission updateManyAndReturn
+   */
+  export type ProjectSubmissionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * The data used to update ProjectSubmissions.
+     */
+    data: XOR<ProjectSubmissionUpdateManyMutationInput, ProjectSubmissionUncheckedUpdateManyInput>
+    /**
+     * Filter which ProjectSubmissions to update
+     */
+    where?: ProjectSubmissionWhereInput
+    /**
+     * Limit how many ProjectSubmissions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProjectSubmission upsert
+   */
+  export type ProjectSubmissionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProjectSubmission to update in case it exists.
+     */
+    where: ProjectSubmissionWhereUniqueInput
+    /**
+     * In case the ProjectSubmission found by the `where` argument doesn't exist, create a new ProjectSubmission with this data.
+     */
+    create: XOR<ProjectSubmissionCreateInput, ProjectSubmissionUncheckedCreateInput>
+    /**
+     * In case the ProjectSubmission was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProjectSubmissionUpdateInput, ProjectSubmissionUncheckedUpdateInput>
+  }
+
+  /**
+   * ProjectSubmission delete
+   */
+  export type ProjectSubmissionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+    /**
+     * Filter which ProjectSubmission to delete.
+     */
+    where: ProjectSubmissionWhereUniqueInput
+  }
+
+  /**
+   * ProjectSubmission deleteMany
+   */
+  export type ProjectSubmissionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProjectSubmissions to delete
+     */
+    where?: ProjectSubmissionWhereInput
+    /**
+     * Limit how many ProjectSubmissions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProjectSubmission without action
+   */
+  export type ProjectSubmissionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProjectSubmission
+     */
+    select?: ProjectSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProjectSubmission
+     */
+    omit?: ProjectSubmissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProjectSubmissionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model TopicExercise
+   */
+
+  export type AggregateTopicExercise = {
+    _count: TopicExerciseCountAggregateOutputType | null
+    _avg: TopicExerciseAvgAggregateOutputType | null
+    _sum: TopicExerciseSumAggregateOutputType | null
+    _min: TopicExerciseMinAggregateOutputType | null
+    _max: TopicExerciseMaxAggregateOutputType | null
+  }
+
+  export type TopicExerciseAvgAggregateOutputType = {
+    order: number | null
+  }
+
+  export type TopicExerciseSumAggregateOutputType = {
+    order: number | null
+  }
+
+  export type TopicExerciseMinAggregateOutputType = {
+    id: string | null
+    topicId: string | null
+    title: string | null
+    instructions: string | null
+    code: string | null
+    blanks: string | null
+    explanation: string | null
+    language: string | null
+    order: number | null
+    createdAt: Date | null
+  }
+
+  export type TopicExerciseMaxAggregateOutputType = {
+    id: string | null
+    topicId: string | null
+    title: string | null
+    instructions: string | null
+    code: string | null
+    blanks: string | null
+    explanation: string | null
+    language: string | null
+    order: number | null
+    createdAt: Date | null
+  }
+
+  export type TopicExerciseCountAggregateOutputType = {
+    id: number
+    topicId: number
+    title: number
+    instructions: number
+    code: number
+    blanks: number
+    explanation: number
+    language: number
+    order: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type TopicExerciseAvgAggregateInputType = {
+    order?: true
+  }
+
+  export type TopicExerciseSumAggregateInputType = {
+    order?: true
+  }
+
+  export type TopicExerciseMinAggregateInputType = {
+    id?: true
+    topicId?: true
+    title?: true
+    instructions?: true
+    code?: true
+    blanks?: true
+    explanation?: true
+    language?: true
+    order?: true
+    createdAt?: true
+  }
+
+  export type TopicExerciseMaxAggregateInputType = {
+    id?: true
+    topicId?: true
+    title?: true
+    instructions?: true
+    code?: true
+    blanks?: true
+    explanation?: true
+    language?: true
+    order?: true
+    createdAt?: true
+  }
+
+  export type TopicExerciseCountAggregateInputType = {
+    id?: true
+    topicId?: true
+    title?: true
+    instructions?: true
+    code?: true
+    blanks?: true
+    explanation?: true
+    language?: true
+    order?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type TopicExerciseAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TopicExercise to aggregate.
+     */
+    where?: TopicExerciseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TopicExercises to fetch.
+     */
+    orderBy?: TopicExerciseOrderByWithRelationInput | TopicExerciseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TopicExerciseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TopicExercises from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TopicExercises.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned TopicExercises
+    **/
+    _count?: true | TopicExerciseCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TopicExerciseAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TopicExerciseSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TopicExerciseMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TopicExerciseMaxAggregateInputType
+  }
+
+  export type GetTopicExerciseAggregateType<T extends TopicExerciseAggregateArgs> = {
+        [P in keyof T & keyof AggregateTopicExercise]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTopicExercise[P]>
+      : GetScalarType<T[P], AggregateTopicExercise[P]>
+  }
+
+
+
+
+  export type TopicExerciseGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TopicExerciseWhereInput
+    orderBy?: TopicExerciseOrderByWithAggregationInput | TopicExerciseOrderByWithAggregationInput[]
+    by: TopicExerciseScalarFieldEnum[] | TopicExerciseScalarFieldEnum
+    having?: TopicExerciseScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TopicExerciseCountAggregateInputType | true
+    _avg?: TopicExerciseAvgAggregateInputType
+    _sum?: TopicExerciseSumAggregateInputType
+    _min?: TopicExerciseMinAggregateInputType
+    _max?: TopicExerciseMaxAggregateInputType
+  }
+
+  export type TopicExerciseGroupByOutputType = {
+    id: string
+    topicId: string
+    title: string
+    instructions: string
+    code: string
+    blanks: string
+    explanation: string | null
+    language: string
+    order: number
+    createdAt: Date
+    _count: TopicExerciseCountAggregateOutputType | null
+    _avg: TopicExerciseAvgAggregateOutputType | null
+    _sum: TopicExerciseSumAggregateOutputType | null
+    _min: TopicExerciseMinAggregateOutputType | null
+    _max: TopicExerciseMaxAggregateOutputType | null
+  }
+
+  type GetTopicExerciseGroupByPayload<T extends TopicExerciseGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TopicExerciseGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TopicExerciseGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TopicExerciseGroupByOutputType[P]>
+            : GetScalarType<T[P], TopicExerciseGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TopicExerciseSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    instructions?: boolean
+    code?: boolean
+    blanks?: boolean
+    explanation?: boolean
+    language?: boolean
+    order?: boolean
+    createdAt?: boolean
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["topicExercise"]>
+
+  export type TopicExerciseSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    instructions?: boolean
+    code?: boolean
+    blanks?: boolean
+    explanation?: boolean
+    language?: boolean
+    order?: boolean
+    createdAt?: boolean
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["topicExercise"]>
+
+  export type TopicExerciseSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    instructions?: boolean
+    code?: boolean
+    blanks?: boolean
+    explanation?: boolean
+    language?: boolean
+    order?: boolean
+    createdAt?: boolean
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["topicExercise"]>
+
+  export type TopicExerciseSelectScalar = {
+    id?: boolean
+    topicId?: boolean
+    title?: boolean
+    instructions?: boolean
+    code?: boolean
+    blanks?: boolean
+    explanation?: boolean
+    language?: boolean
+    order?: boolean
+    createdAt?: boolean
+  }
+
+  export type TopicExerciseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "topicId" | "title" | "instructions" | "code" | "blanks" | "explanation" | "language" | "order" | "createdAt", ExtArgs["result"]["topicExercise"]>
+  export type TopicExerciseInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }
+  export type TopicExerciseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }
+  export type TopicExerciseIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    topic?: boolean | TopicDefaultArgs<ExtArgs>
+  }
+
+  export type $TopicExercisePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "TopicExercise"
+    objects: {
+      topic: Prisma.$TopicPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      topicId: string
+      title: string
+      /**
+       * What to do (plain text)
+       */
+      instructions: string
+      /**
+       * The code, with a ____ where each blank goes
+       */
+      code: string
+      /**
+       * JSON: [{ answers: ["x > 5", "5 < x"] }], one per blank, in order
+       */
+      blanks: string
+      explanation: string | null
+      language: string
+      order: number
+      createdAt: Date
+    }, ExtArgs["result"]["topicExercise"]>
+    composites: {}
+  }
+
+  type TopicExerciseGetPayload<S extends boolean | null | undefined | TopicExerciseDefaultArgs> = $Result.GetResult<Prisma.$TopicExercisePayload, S>
+
+  type TopicExerciseCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<TopicExerciseFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TopicExerciseCountAggregateInputType | true
+    }
+
+  export interface TopicExerciseDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['TopicExercise'], meta: { name: 'TopicExercise' } }
+    /**
+     * Find zero or one TopicExercise that matches the filter.
+     * @param {TopicExerciseFindUniqueArgs} args - Arguments to find a TopicExercise
+     * @example
+     * // Get one TopicExercise
+     * const topicExercise = await prisma.topicExercise.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TopicExerciseFindUniqueArgs>(args: SelectSubset<T, TopicExerciseFindUniqueArgs<ExtArgs>>): Prisma__TopicExerciseClient<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one TopicExercise that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TopicExerciseFindUniqueOrThrowArgs} args - Arguments to find a TopicExercise
+     * @example
+     * // Get one TopicExercise
+     * const topicExercise = await prisma.topicExercise.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TopicExerciseFindUniqueOrThrowArgs>(args: SelectSubset<T, TopicExerciseFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TopicExerciseClient<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TopicExercise that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicExerciseFindFirstArgs} args - Arguments to find a TopicExercise
+     * @example
+     * // Get one TopicExercise
+     * const topicExercise = await prisma.topicExercise.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TopicExerciseFindFirstArgs>(args?: SelectSubset<T, TopicExerciseFindFirstArgs<ExtArgs>>): Prisma__TopicExerciseClient<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TopicExercise that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicExerciseFindFirstOrThrowArgs} args - Arguments to find a TopicExercise
+     * @example
+     * // Get one TopicExercise
+     * const topicExercise = await prisma.topicExercise.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TopicExerciseFindFirstOrThrowArgs>(args?: SelectSubset<T, TopicExerciseFindFirstOrThrowArgs<ExtArgs>>): Prisma__TopicExerciseClient<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more TopicExercises that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicExerciseFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TopicExercises
+     * const topicExercises = await prisma.topicExercise.findMany()
+     * 
+     * // Get first 10 TopicExercises
+     * const topicExercises = await prisma.topicExercise.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const topicExerciseWithIdOnly = await prisma.topicExercise.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TopicExerciseFindManyArgs>(args?: SelectSubset<T, TopicExerciseFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a TopicExercise.
+     * @param {TopicExerciseCreateArgs} args - Arguments to create a TopicExercise.
+     * @example
+     * // Create one TopicExercise
+     * const TopicExercise = await prisma.topicExercise.create({
+     *   data: {
+     *     // ... data to create a TopicExercise
+     *   }
+     * })
+     * 
+     */
+    create<T extends TopicExerciseCreateArgs>(args: SelectSubset<T, TopicExerciseCreateArgs<ExtArgs>>): Prisma__TopicExerciseClient<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many TopicExercises.
+     * @param {TopicExerciseCreateManyArgs} args - Arguments to create many TopicExercises.
+     * @example
+     * // Create many TopicExercises
+     * const topicExercise = await prisma.topicExercise.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TopicExerciseCreateManyArgs>(args?: SelectSubset<T, TopicExerciseCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many TopicExercises and returns the data saved in the database.
+     * @param {TopicExerciseCreateManyAndReturnArgs} args - Arguments to create many TopicExercises.
+     * @example
+     * // Create many TopicExercises
+     * const topicExercise = await prisma.topicExercise.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many TopicExercises and only return the `id`
+     * const topicExerciseWithIdOnly = await prisma.topicExercise.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TopicExerciseCreateManyAndReturnArgs>(args?: SelectSubset<T, TopicExerciseCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a TopicExercise.
+     * @param {TopicExerciseDeleteArgs} args - Arguments to delete one TopicExercise.
+     * @example
+     * // Delete one TopicExercise
+     * const TopicExercise = await prisma.topicExercise.delete({
+     *   where: {
+     *     // ... filter to delete one TopicExercise
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TopicExerciseDeleteArgs>(args: SelectSubset<T, TopicExerciseDeleteArgs<ExtArgs>>): Prisma__TopicExerciseClient<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one TopicExercise.
+     * @param {TopicExerciseUpdateArgs} args - Arguments to update one TopicExercise.
+     * @example
+     * // Update one TopicExercise
+     * const topicExercise = await prisma.topicExercise.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TopicExerciseUpdateArgs>(args: SelectSubset<T, TopicExerciseUpdateArgs<ExtArgs>>): Prisma__TopicExerciseClient<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more TopicExercises.
+     * @param {TopicExerciseDeleteManyArgs} args - Arguments to filter TopicExercises to delete.
+     * @example
+     * // Delete a few TopicExercises
+     * const { count } = await prisma.topicExercise.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TopicExerciseDeleteManyArgs>(args?: SelectSubset<T, TopicExerciseDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TopicExercises.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicExerciseUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TopicExercises
+     * const topicExercise = await prisma.topicExercise.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TopicExerciseUpdateManyArgs>(args: SelectSubset<T, TopicExerciseUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TopicExercises and returns the data updated in the database.
+     * @param {TopicExerciseUpdateManyAndReturnArgs} args - Arguments to update many TopicExercises.
+     * @example
+     * // Update many TopicExercises
+     * const topicExercise = await prisma.topicExercise.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more TopicExercises and only return the `id`
+     * const topicExerciseWithIdOnly = await prisma.topicExercise.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends TopicExerciseUpdateManyAndReturnArgs>(args: SelectSubset<T, TopicExerciseUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one TopicExercise.
+     * @param {TopicExerciseUpsertArgs} args - Arguments to update or create a TopicExercise.
+     * @example
+     * // Update or create a TopicExercise
+     * const topicExercise = await prisma.topicExercise.upsert({
+     *   create: {
+     *     // ... data to create a TopicExercise
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TopicExercise we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TopicExerciseUpsertArgs>(args: SelectSubset<T, TopicExerciseUpsertArgs<ExtArgs>>): Prisma__TopicExerciseClient<$Result.GetResult<Prisma.$TopicExercisePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of TopicExercises.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicExerciseCountArgs} args - Arguments to filter TopicExercises to count.
+     * @example
+     * // Count the number of TopicExercises
+     * const count = await prisma.topicExercise.count({
+     *   where: {
+     *     // ... the filter for the TopicExercises we want to count
+     *   }
+     * })
+    **/
+    count<T extends TopicExerciseCountArgs>(
+      args?: Subset<T, TopicExerciseCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TopicExerciseCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a TopicExercise.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicExerciseAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TopicExerciseAggregateArgs>(args: Subset<T, TopicExerciseAggregateArgs>): Prisma.PrismaPromise<GetTopicExerciseAggregateType<T>>
+
+    /**
+     * Group by TopicExercise.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TopicExerciseGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TopicExerciseGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TopicExerciseGroupByArgs['orderBy'] }
+        : { orderBy?: TopicExerciseGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TopicExerciseGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTopicExerciseGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the TopicExercise model
+   */
+  readonly fields: TopicExerciseFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TopicExercise.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TopicExerciseClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    topic<T extends TopicDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TopicDefaultArgs<ExtArgs>>): Prisma__TopicClient<$Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the TopicExercise model
+   */
+  interface TopicExerciseFieldRefs {
+    readonly id: FieldRef<"TopicExercise", 'String'>
+    readonly topicId: FieldRef<"TopicExercise", 'String'>
+    readonly title: FieldRef<"TopicExercise", 'String'>
+    readonly instructions: FieldRef<"TopicExercise", 'String'>
+    readonly code: FieldRef<"TopicExercise", 'String'>
+    readonly blanks: FieldRef<"TopicExercise", 'String'>
+    readonly explanation: FieldRef<"TopicExercise", 'String'>
+    readonly language: FieldRef<"TopicExercise", 'String'>
+    readonly order: FieldRef<"TopicExercise", 'Int'>
+    readonly createdAt: FieldRef<"TopicExercise", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * TopicExercise findUnique
+   */
+  export type TopicExerciseFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicExercise to fetch.
+     */
+    where: TopicExerciseWhereUniqueInput
+  }
+
+  /**
+   * TopicExercise findUniqueOrThrow
+   */
+  export type TopicExerciseFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicExercise to fetch.
+     */
+    where: TopicExerciseWhereUniqueInput
+  }
+
+  /**
+   * TopicExercise findFirst
+   */
+  export type TopicExerciseFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicExercise to fetch.
+     */
+    where?: TopicExerciseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TopicExercises to fetch.
+     */
+    orderBy?: TopicExerciseOrderByWithRelationInput | TopicExerciseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TopicExercises.
+     */
+    cursor?: TopicExerciseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TopicExercises from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TopicExercises.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TopicExercises.
+     */
+    distinct?: TopicExerciseScalarFieldEnum | TopicExerciseScalarFieldEnum[]
+  }
+
+  /**
+   * TopicExercise findFirstOrThrow
+   */
+  export type TopicExerciseFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicExercise to fetch.
+     */
+    where?: TopicExerciseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TopicExercises to fetch.
+     */
+    orderBy?: TopicExerciseOrderByWithRelationInput | TopicExerciseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TopicExercises.
+     */
+    cursor?: TopicExerciseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TopicExercises from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TopicExercises.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TopicExercises.
+     */
+    distinct?: TopicExerciseScalarFieldEnum | TopicExerciseScalarFieldEnum[]
+  }
+
+  /**
+   * TopicExercise findMany
+   */
+  export type TopicExerciseFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    /**
+     * Filter, which TopicExercises to fetch.
+     */
+    where?: TopicExerciseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TopicExercises to fetch.
+     */
+    orderBy?: TopicExerciseOrderByWithRelationInput | TopicExerciseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing TopicExercises.
+     */
+    cursor?: TopicExerciseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TopicExercises from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TopicExercises.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TopicExercises.
+     */
+    distinct?: TopicExerciseScalarFieldEnum | TopicExerciseScalarFieldEnum[]
+  }
+
+  /**
+   * TopicExercise create
+   */
+  export type TopicExerciseCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    /**
+     * The data needed to create a TopicExercise.
+     */
+    data: XOR<TopicExerciseCreateInput, TopicExerciseUncheckedCreateInput>
+  }
+
+  /**
+   * TopicExercise createMany
+   */
+  export type TopicExerciseCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many TopicExercises.
+     */
+    data: TopicExerciseCreateManyInput | TopicExerciseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * TopicExercise createManyAndReturn
+   */
+  export type TopicExerciseCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * The data used to create many TopicExercises.
+     */
+    data: TopicExerciseCreateManyInput | TopicExerciseCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TopicExercise update
+   */
+  export type TopicExerciseUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    /**
+     * The data needed to update a TopicExercise.
+     */
+    data: XOR<TopicExerciseUpdateInput, TopicExerciseUncheckedUpdateInput>
+    /**
+     * Choose, which TopicExercise to update.
+     */
+    where: TopicExerciseWhereUniqueInput
+  }
+
+  /**
+   * TopicExercise updateMany
+   */
+  export type TopicExerciseUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update TopicExercises.
+     */
+    data: XOR<TopicExerciseUpdateManyMutationInput, TopicExerciseUncheckedUpdateManyInput>
+    /**
+     * Filter which TopicExercises to update
+     */
+    where?: TopicExerciseWhereInput
+    /**
+     * Limit how many TopicExercises to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * TopicExercise updateManyAndReturn
+   */
+  export type TopicExerciseUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * The data used to update TopicExercises.
+     */
+    data: XOR<TopicExerciseUpdateManyMutationInput, TopicExerciseUncheckedUpdateManyInput>
+    /**
+     * Filter which TopicExercises to update
+     */
+    where?: TopicExerciseWhereInput
+    /**
+     * Limit how many TopicExercises to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TopicExercise upsert
+   */
+  export type TopicExerciseUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    /**
+     * The filter to search for the TopicExercise to update in case it exists.
+     */
+    where: TopicExerciseWhereUniqueInput
+    /**
+     * In case the TopicExercise found by the `where` argument doesn't exist, create a new TopicExercise with this data.
+     */
+    create: XOR<TopicExerciseCreateInput, TopicExerciseUncheckedCreateInput>
+    /**
+     * In case the TopicExercise was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TopicExerciseUpdateInput, TopicExerciseUncheckedUpdateInput>
+  }
+
+  /**
+   * TopicExercise delete
+   */
+  export type TopicExerciseDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+    /**
+     * Filter which TopicExercise to delete.
+     */
+    where: TopicExerciseWhereUniqueInput
+  }
+
+  /**
+   * TopicExercise deleteMany
+   */
+  export type TopicExerciseDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TopicExercises to delete
+     */
+    where?: TopicExerciseWhereInput
+    /**
+     * Limit how many TopicExercises to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * TopicExercise without action
+   */
+  export type TopicExerciseDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TopicExercise
+     */
+    select?: TopicExerciseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TopicExercise
+     */
+    omit?: TopicExerciseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TopicExerciseInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -28426,6 +37669,7 @@ export namespace Prisma {
     isCorrect: 'isCorrect',
     order: 'order',
     status: 'status',
+    typedAnswer: 'typedAnswer',
     answeredAt: 'answeredAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -28442,6 +37686,8 @@ export namespace Prisma {
     image: 'image',
     password: 'password',
     role: 'role',
+    isSuperuser: 'isSuperuser',
+    level: 'level',
     streakDays: 'streakDays',
     lastVisitDate: 'lastVisitDate',
     createdAt: 'createdAt',
@@ -28493,10 +37739,32 @@ export namespace Prisma {
     id: 'id',
     title: 'title',
     description: 'description',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    codingLanguage: 'codingLanguage',
+    level: 'level'
   };
 
   export type ModuleScalarFieldEnum = (typeof ModuleScalarFieldEnum)[keyof typeof ModuleScalarFieldEnum]
+
+
+  export const CourseScalarFieldEnum: {
+    id: 'id',
+    title: 'title',
+    description: 'description',
+    level: 'level',
+    createdAt: 'createdAt'
+  };
+
+  export type CourseScalarFieldEnum = (typeof CourseScalarFieldEnum)[keyof typeof CourseScalarFieldEnum]
+
+
+  export const CourseModuleScalarFieldEnum: {
+    courseId: 'courseId',
+    moduleId: 'moduleId',
+    position: 'position'
+  };
+
+  export type CourseModuleScalarFieldEnum = (typeof CourseModuleScalarFieldEnum)[keyof typeof CourseModuleScalarFieldEnum]
 
 
   export const ModuleEnrollmentScalarFieldEnum: {
@@ -28527,7 +37795,9 @@ export namespace Prisma {
     content: 'content',
     order: 'order',
     createdAt: 'createdAt',
-    assignment: 'assignment'
+    assignment: 'assignment',
+    locked: 'locked',
+    published: 'published'
   };
 
   export type TopicScalarFieldEnum = (typeof TopicScalarFieldEnum)[keyof typeof TopicScalarFieldEnum]
@@ -28563,7 +37833,11 @@ export namespace Prisma {
     chapterId: 'chapterId',
     question: 'question',
     difficulty: 'difficulty',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    studyNote: 'studyNote',
+    studyNoteClaimedAt: 'studyNoteClaimedAt',
+    paper: 'paper',
+    kind: 'kind'
   };
 
   export type QuestionScalarFieldEnum = (typeof QuestionScalarFieldEnum)[keyof typeof QuestionScalarFieldEnum]
@@ -28585,6 +37859,7 @@ export namespace Prisma {
     questionId: 'questionId',
     selectedAnswerId: 'selectedAnswerId',
     isCorrect: 'isCorrect',
+    typedAnswer: 'typedAnswer',
     answeredAt: 'answeredAt'
   };
 
@@ -28614,6 +37889,26 @@ export namespace Prisma {
   };
 
   export type TimetableScalarFieldEnum = (typeof TimetableScalarFieldEnum)[keyof typeof TimetableScalarFieldEnum]
+
+
+  export const CalendarEventScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    moduleId: 'moduleId',
+    type: 'type',
+    title: 'title',
+    notes: 'notes',
+    startAt: 'startAt',
+    endAt: 'endAt',
+    allDay: 'allDay',
+    completed: 'completed',
+    remindAt: 'remindAt',
+    remindedAt: 'remindedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CalendarEventScalarFieldEnum = (typeof CalendarEventScalarFieldEnum)[keyof typeof CalendarEventScalarFieldEnum]
 
 
   export const NotificationScalarFieldEnum: {
@@ -28678,12 +37973,83 @@ export namespace Prisma {
   export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
 
 
+  export const EmailOtpScalarFieldEnum: {
+    id: 'id',
+    purpose: 'purpose',
+    key: 'key',
+    email: 'email',
+    userId: 'userId',
+    codeHash: 'codeHash',
+    payload: 'payload',
+    attempts: 'attempts',
+    sends: 'sends',
+    expiresAt: 'expiresAt',
+    lastSentAt: 'lastSentAt',
+    createdAt: 'createdAt'
+  };
+
+  export type EmailOtpScalarFieldEnum = (typeof EmailOtpScalarFieldEnum)[keyof typeof EmailOtpScalarFieldEnum]
+
+
+  export const CodingProjectScalarFieldEnum: {
+    id: 'id',
+    topicId: 'topicId',
+    title: 'title',
+    brief: 'brief',
+    language: 'language',
+    starterCode: 'starterCode',
+    rubric: 'rubric',
+    difficulty: 'difficulty',
+    order: 'order',
+    createdAt: 'createdAt'
+  };
+
+  export type CodingProjectScalarFieldEnum = (typeof CodingProjectScalarFieldEnum)[keyof typeof CodingProjectScalarFieldEnum]
+
+
+  export const ProjectSubmissionScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    userId: 'userId',
+    files: 'files',
+    score: 'score',
+    feedback: 'feedback',
+    createdAt: 'createdAt'
+  };
+
+  export type ProjectSubmissionScalarFieldEnum = (typeof ProjectSubmissionScalarFieldEnum)[keyof typeof ProjectSubmissionScalarFieldEnum]
+
+
+  export const TopicExerciseScalarFieldEnum: {
+    id: 'id',
+    topicId: 'topicId',
+    title: 'title',
+    instructions: 'instructions',
+    code: 'code',
+    blanks: 'blanks',
+    explanation: 'explanation',
+    language: 'language',
+    order: 'order',
+    createdAt: 'createdAt'
+  };
+
+  export type TopicExerciseScalarFieldEnum = (typeof TopicExerciseScalarFieldEnum)[keyof typeof TopicExerciseScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -28700,6 +38066,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -28823,6 +38198,20 @@ export namespace Prisma {
    * Reference to a field of type 'MessageType[]'
    */
   export type ListEnumMessageTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -28960,6 +38349,7 @@ export namespace Prisma {
     isCorrect?: BoolNullableFilter<"QuestionAttempt"> | boolean | null
     order?: IntFilter<"QuestionAttempt"> | number
     status?: EnumAnswerStatusFilter<"QuestionAttempt"> | $Enums.AnswerStatus
+    typedAnswer?: StringNullableFilter<"QuestionAttempt"> | string | null
     answeredAt?: DateTimeNullableFilter<"QuestionAttempt"> | Date | string | null
     createdAt?: DateTimeFilter<"QuestionAttempt"> | Date | string
     updatedAt?: DateTimeFilter<"QuestionAttempt"> | Date | string
@@ -28976,6 +38366,7 @@ export namespace Prisma {
     isCorrect?: SortOrderInput | SortOrder
     order?: SortOrder
     status?: SortOrder
+    typedAnswer?: SortOrderInput | SortOrder
     answeredAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -28996,6 +38387,7 @@ export namespace Prisma {
     isCorrect?: BoolNullableFilter<"QuestionAttempt"> | boolean | null
     order?: IntFilter<"QuestionAttempt"> | number
     status?: EnumAnswerStatusFilter<"QuestionAttempt"> | $Enums.AnswerStatus
+    typedAnswer?: StringNullableFilter<"QuestionAttempt"> | string | null
     answeredAt?: DateTimeNullableFilter<"QuestionAttempt"> | Date | string | null
     createdAt?: DateTimeFilter<"QuestionAttempt"> | Date | string
     updatedAt?: DateTimeFilter<"QuestionAttempt"> | Date | string
@@ -29012,6 +38404,7 @@ export namespace Prisma {
     isCorrect?: SortOrderInput | SortOrder
     order?: SortOrder
     status?: SortOrder
+    typedAnswer?: SortOrderInput | SortOrder
     answeredAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -29033,6 +38426,7 @@ export namespace Prisma {
     isCorrect?: BoolNullableWithAggregatesFilter<"QuestionAttempt"> | boolean | null
     order?: IntWithAggregatesFilter<"QuestionAttempt"> | number
     status?: EnumAnswerStatusWithAggregatesFilter<"QuestionAttempt"> | $Enums.AnswerStatus
+    typedAnswer?: StringNullableWithAggregatesFilter<"QuestionAttempt"> | string | null
     answeredAt?: DateTimeNullableWithAggregatesFilter<"QuestionAttempt"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"QuestionAttempt"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"QuestionAttempt"> | Date | string
@@ -29049,6 +38443,8 @@ export namespace Prisma {
     image?: StringNullableFilter<"User"> | string | null
     password?: StringNullableFilter<"User"> | string | null
     role?: EnumRoleFilter<"User"> | $Enums.Role
+    isSuperuser?: BoolFilter<"User"> | boolean
+    level?: StringFilter<"User"> | string
     streakDays?: IntFilter<"User"> | number
     lastVisitDate?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
@@ -29066,6 +38462,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationListRelationFilter
     conversationsAsUser2?: ConversationListRelationFilter
     sentMessages?: MessageListRelationFilter
+    calendarEvents?: CalendarEventListRelationFilter
+    emailOtps?: EmailOtpListRelationFilter
+    projectSubmissions?: ProjectSubmissionListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -29076,6 +38475,8 @@ export namespace Prisma {
     image?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     role?: SortOrder
+    isSuperuser?: SortOrder
+    level?: SortOrder
     streakDays?: SortOrder
     lastVisitDate?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -29093,6 +38494,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationOrderByRelationAggregateInput
     conversationsAsUser2?: ConversationOrderByRelationAggregateInput
     sentMessages?: MessageOrderByRelationAggregateInput
+    calendarEvents?: CalendarEventOrderByRelationAggregateInput
+    emailOtps?: EmailOtpOrderByRelationAggregateInput
+    projectSubmissions?: ProjectSubmissionOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -29106,6 +38510,8 @@ export namespace Prisma {
     image?: StringNullableFilter<"User"> | string | null
     password?: StringNullableFilter<"User"> | string | null
     role?: EnumRoleFilter<"User"> | $Enums.Role
+    isSuperuser?: BoolFilter<"User"> | boolean
+    level?: StringFilter<"User"> | string
     streakDays?: IntFilter<"User"> | number
     lastVisitDate?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
@@ -29123,6 +38529,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationListRelationFilter
     conversationsAsUser2?: ConversationListRelationFilter
     sentMessages?: MessageListRelationFilter
+    calendarEvents?: CalendarEventListRelationFilter
+    emailOtps?: EmailOtpListRelationFilter
+    projectSubmissions?: ProjectSubmissionListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -29133,6 +38542,8 @@ export namespace Prisma {
     image?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     role?: SortOrder
+    isSuperuser?: SortOrder
+    level?: SortOrder
     streakDays?: SortOrder
     lastVisitDate?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -29156,6 +38567,8 @@ export namespace Prisma {
     image?: StringNullableWithAggregatesFilter<"User"> | string | null
     password?: StringNullableWithAggregatesFilter<"User"> | string | null
     role?: EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
+    isSuperuser?: BoolWithAggregatesFilter<"User"> | boolean
+    level?: StringWithAggregatesFilter<"User"> | string
     streakDays?: IntWithAggregatesFilter<"User"> | number
     lastVisitDate?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -29357,10 +38770,14 @@ export namespace Prisma {
     title?: StringFilter<"Module"> | string
     description?: StringNullableFilter<"Module"> | string | null
     createdAt?: DateTimeFilter<"Module"> | Date | string
+    codingLanguage?: StringNullableFilter<"Module"> | string | null
+    level?: StringFilter<"Module"> | string
     chapters?: ChapterListRelationFilter
     timetables?: TimetableListRelationFilter
     enrollments?: ModuleEnrollmentListRelationFilter
     quizAttempts?: QuizAttemptListRelationFilter
+    calendarEvents?: CalendarEventListRelationFilter
+    courses?: CourseModuleListRelationFilter
   }
 
   export type ModuleOrderByWithRelationInput = {
@@ -29368,10 +38785,14 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    codingLanguage?: SortOrderInput | SortOrder
+    level?: SortOrder
     chapters?: ChapterOrderByRelationAggregateInput
     timetables?: TimetableOrderByRelationAggregateInput
     enrollments?: ModuleEnrollmentOrderByRelationAggregateInput
     quizAttempts?: QuizAttemptOrderByRelationAggregateInput
+    calendarEvents?: CalendarEventOrderByRelationAggregateInput
+    courses?: CourseModuleOrderByRelationAggregateInput
   }
 
   export type ModuleWhereUniqueInput = Prisma.AtLeast<{
@@ -29382,10 +38803,14 @@ export namespace Prisma {
     title?: StringFilter<"Module"> | string
     description?: StringNullableFilter<"Module"> | string | null
     createdAt?: DateTimeFilter<"Module"> | Date | string
+    codingLanguage?: StringNullableFilter<"Module"> | string | null
+    level?: StringFilter<"Module"> | string
     chapters?: ChapterListRelationFilter
     timetables?: TimetableListRelationFilter
     enrollments?: ModuleEnrollmentListRelationFilter
     quizAttempts?: QuizAttemptListRelationFilter
+    calendarEvents?: CalendarEventListRelationFilter
+    courses?: CourseModuleListRelationFilter
   }, "id">
 
   export type ModuleOrderByWithAggregationInput = {
@@ -29393,6 +38818,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    codingLanguage?: SortOrderInput | SortOrder
+    level?: SortOrder
     _count?: ModuleCountOrderByAggregateInput
     _max?: ModuleMaxOrderByAggregateInput
     _min?: ModuleMinOrderByAggregateInput
@@ -29406,6 +38833,114 @@ export namespace Prisma {
     title?: StringWithAggregatesFilter<"Module"> | string
     description?: StringNullableWithAggregatesFilter<"Module"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Module"> | Date | string
+    codingLanguage?: StringNullableWithAggregatesFilter<"Module"> | string | null
+    level?: StringWithAggregatesFilter<"Module"> | string
+  }
+
+  export type CourseWhereInput = {
+    AND?: CourseWhereInput | CourseWhereInput[]
+    OR?: CourseWhereInput[]
+    NOT?: CourseWhereInput | CourseWhereInput[]
+    id?: StringFilter<"Course"> | string
+    title?: StringFilter<"Course"> | string
+    description?: StringNullableFilter<"Course"> | string | null
+    level?: StringFilter<"Course"> | string
+    createdAt?: DateTimeFilter<"Course"> | Date | string
+    modules?: CourseModuleListRelationFilter
+  }
+
+  export type CourseOrderByWithRelationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    level?: SortOrder
+    createdAt?: SortOrder
+    modules?: CourseModuleOrderByRelationAggregateInput
+  }
+
+  export type CourseWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CourseWhereInput | CourseWhereInput[]
+    OR?: CourseWhereInput[]
+    NOT?: CourseWhereInput | CourseWhereInput[]
+    title?: StringFilter<"Course"> | string
+    description?: StringNullableFilter<"Course"> | string | null
+    level?: StringFilter<"Course"> | string
+    createdAt?: DateTimeFilter<"Course"> | Date | string
+    modules?: CourseModuleListRelationFilter
+  }, "id">
+
+  export type CourseOrderByWithAggregationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    level?: SortOrder
+    createdAt?: SortOrder
+    _count?: CourseCountOrderByAggregateInput
+    _max?: CourseMaxOrderByAggregateInput
+    _min?: CourseMinOrderByAggregateInput
+  }
+
+  export type CourseScalarWhereWithAggregatesInput = {
+    AND?: CourseScalarWhereWithAggregatesInput | CourseScalarWhereWithAggregatesInput[]
+    OR?: CourseScalarWhereWithAggregatesInput[]
+    NOT?: CourseScalarWhereWithAggregatesInput | CourseScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Course"> | string
+    title?: StringWithAggregatesFilter<"Course"> | string
+    description?: StringNullableWithAggregatesFilter<"Course"> | string | null
+    level?: StringWithAggregatesFilter<"Course"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Course"> | Date | string
+  }
+
+  export type CourseModuleWhereInput = {
+    AND?: CourseModuleWhereInput | CourseModuleWhereInput[]
+    OR?: CourseModuleWhereInput[]
+    NOT?: CourseModuleWhereInput | CourseModuleWhereInput[]
+    courseId?: StringFilter<"CourseModule"> | string
+    moduleId?: StringFilter<"CourseModule"> | string
+    position?: IntFilter<"CourseModule"> | number
+    course?: XOR<CourseScalarRelationFilter, CourseWhereInput>
+    module?: XOR<ModuleScalarRelationFilter, ModuleWhereInput>
+  }
+
+  export type CourseModuleOrderByWithRelationInput = {
+    courseId?: SortOrder
+    moduleId?: SortOrder
+    position?: SortOrder
+    course?: CourseOrderByWithRelationInput
+    module?: ModuleOrderByWithRelationInput
+  }
+
+  export type CourseModuleWhereUniqueInput = Prisma.AtLeast<{
+    courseId_moduleId?: CourseModuleCourseIdModuleIdCompoundUniqueInput
+    AND?: CourseModuleWhereInput | CourseModuleWhereInput[]
+    OR?: CourseModuleWhereInput[]
+    NOT?: CourseModuleWhereInput | CourseModuleWhereInput[]
+    courseId?: StringFilter<"CourseModule"> | string
+    moduleId?: StringFilter<"CourseModule"> | string
+    position?: IntFilter<"CourseModule"> | number
+    course?: XOR<CourseScalarRelationFilter, CourseWhereInput>
+    module?: XOR<ModuleScalarRelationFilter, ModuleWhereInput>
+  }, "courseId_moduleId">
+
+  export type CourseModuleOrderByWithAggregationInput = {
+    courseId?: SortOrder
+    moduleId?: SortOrder
+    position?: SortOrder
+    _count?: CourseModuleCountOrderByAggregateInput
+    _avg?: CourseModuleAvgOrderByAggregateInput
+    _max?: CourseModuleMaxOrderByAggregateInput
+    _min?: CourseModuleMinOrderByAggregateInput
+    _sum?: CourseModuleSumOrderByAggregateInput
+  }
+
+  export type CourseModuleScalarWhereWithAggregatesInput = {
+    AND?: CourseModuleScalarWhereWithAggregatesInput | CourseModuleScalarWhereWithAggregatesInput[]
+    OR?: CourseModuleScalarWhereWithAggregatesInput[]
+    NOT?: CourseModuleScalarWhereWithAggregatesInput | CourseModuleScalarWhereWithAggregatesInput[]
+    courseId?: StringWithAggregatesFilter<"CourseModule"> | string
+    moduleId?: StringWithAggregatesFilter<"CourseModule"> | string
+    position?: IntWithAggregatesFilter<"CourseModule"> | number
   }
 
   export type ModuleEnrollmentWhereInput = {
@@ -29536,11 +39071,15 @@ export namespace Prisma {
     order?: IntFilter<"Topic"> | number
     createdAt?: DateTimeFilter<"Topic"> | Date | string
     assignment?: StringNullableFilter<"Topic"> | string | null
+    locked?: BoolFilter<"Topic"> | boolean
+    published?: BoolFilter<"Topic"> | boolean
     chapter?: XOR<ChapterScalarRelationFilter, ChapterWhereInput>
     questions?: QuestionListRelationFilter
     flashcards?: FlashcardListRelationFilter
     quizAttempts?: QuizAttemptListRelationFilter
     pdfs?: TopicPdfListRelationFilter
+    codingProjects?: CodingProjectListRelationFilter
+    exercises?: TopicExerciseListRelationFilter
   }
 
   export type TopicOrderByWithRelationInput = {
@@ -29551,11 +39090,15 @@ export namespace Prisma {
     order?: SortOrder
     createdAt?: SortOrder
     assignment?: SortOrderInput | SortOrder
+    locked?: SortOrder
+    published?: SortOrder
     chapter?: ChapterOrderByWithRelationInput
     questions?: QuestionOrderByRelationAggregateInput
     flashcards?: FlashcardOrderByRelationAggregateInput
     quizAttempts?: QuizAttemptOrderByRelationAggregateInput
     pdfs?: TopicPdfOrderByRelationAggregateInput
+    codingProjects?: CodingProjectOrderByRelationAggregateInput
+    exercises?: TopicExerciseOrderByRelationAggregateInput
   }
 
   export type TopicWhereUniqueInput = Prisma.AtLeast<{
@@ -29569,11 +39112,15 @@ export namespace Prisma {
     order?: IntFilter<"Topic"> | number
     createdAt?: DateTimeFilter<"Topic"> | Date | string
     assignment?: StringNullableFilter<"Topic"> | string | null
+    locked?: BoolFilter<"Topic"> | boolean
+    published?: BoolFilter<"Topic"> | boolean
     chapter?: XOR<ChapterScalarRelationFilter, ChapterWhereInput>
     questions?: QuestionListRelationFilter
     flashcards?: FlashcardListRelationFilter
     quizAttempts?: QuizAttemptListRelationFilter
     pdfs?: TopicPdfListRelationFilter
+    codingProjects?: CodingProjectListRelationFilter
+    exercises?: TopicExerciseListRelationFilter
   }, "id">
 
   export type TopicOrderByWithAggregationInput = {
@@ -29584,6 +39131,8 @@ export namespace Prisma {
     order?: SortOrder
     createdAt?: SortOrder
     assignment?: SortOrderInput | SortOrder
+    locked?: SortOrder
+    published?: SortOrder
     _count?: TopicCountOrderByAggregateInput
     _avg?: TopicAvgOrderByAggregateInput
     _max?: TopicMaxOrderByAggregateInput
@@ -29602,6 +39151,8 @@ export namespace Prisma {
     order?: IntWithAggregatesFilter<"Topic"> | number
     createdAt?: DateTimeWithAggregatesFilter<"Topic"> | Date | string
     assignment?: StringNullableWithAggregatesFilter<"Topic"> | string | null
+    locked?: BoolWithAggregatesFilter<"Topic"> | boolean
+    published?: BoolWithAggregatesFilter<"Topic"> | boolean
   }
 
   export type TopicPdfWhereInput = {
@@ -29733,6 +39284,10 @@ export namespace Prisma {
     question?: StringFilter<"Question"> | string
     difficulty?: StringFilter<"Question"> | string
     createdAt?: DateTimeFilter<"Question"> | Date | string
+    studyNote?: StringNullableFilter<"Question"> | string | null
+    studyNoteClaimedAt?: DateTimeNullableFilter<"Question"> | Date | string | null
+    paper?: StringNullableFilter<"Question"> | string | null
+    kind?: StringFilter<"Question"> | string
     topic?: XOR<TopicNullableScalarRelationFilter, TopicWhereInput> | null
     chapter?: XOR<ChapterNullableScalarRelationFilter, ChapterWhereInput> | null
     answers?: AnswerListRelationFilter
@@ -29747,6 +39302,10 @@ export namespace Prisma {
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
+    studyNote?: SortOrderInput | SortOrder
+    studyNoteClaimedAt?: SortOrderInput | SortOrder
+    paper?: SortOrderInput | SortOrder
+    kind?: SortOrder
     topic?: TopicOrderByWithRelationInput
     chapter?: ChapterOrderByWithRelationInput
     answers?: AnswerOrderByRelationAggregateInput
@@ -29764,6 +39323,10 @@ export namespace Prisma {
     question?: StringFilter<"Question"> | string
     difficulty?: StringFilter<"Question"> | string
     createdAt?: DateTimeFilter<"Question"> | Date | string
+    studyNote?: StringNullableFilter<"Question"> | string | null
+    studyNoteClaimedAt?: DateTimeNullableFilter<"Question"> | Date | string | null
+    paper?: StringNullableFilter<"Question"> | string | null
+    kind?: StringFilter<"Question"> | string
     topic?: XOR<TopicNullableScalarRelationFilter, TopicWhereInput> | null
     chapter?: XOR<ChapterNullableScalarRelationFilter, ChapterWhereInput> | null
     answers?: AnswerListRelationFilter
@@ -29778,6 +39341,10 @@ export namespace Prisma {
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
+    studyNote?: SortOrderInput | SortOrder
+    studyNoteClaimedAt?: SortOrderInput | SortOrder
+    paper?: SortOrderInput | SortOrder
+    kind?: SortOrder
     _count?: QuestionCountOrderByAggregateInput
     _max?: QuestionMaxOrderByAggregateInput
     _min?: QuestionMinOrderByAggregateInput
@@ -29793,6 +39360,10 @@ export namespace Prisma {
     question?: StringWithAggregatesFilter<"Question"> | string
     difficulty?: StringWithAggregatesFilter<"Question"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Question"> | Date | string
+    studyNote?: StringNullableWithAggregatesFilter<"Question"> | string | null
+    studyNoteClaimedAt?: DateTimeNullableWithAggregatesFilter<"Question"> | Date | string | null
+    paper?: StringNullableWithAggregatesFilter<"Question"> | string | null
+    kind?: StringWithAggregatesFilter<"Question"> | string
   }
 
   export type AnswerWhereInput = {
@@ -29860,6 +39431,7 @@ export namespace Prisma {
     questionId?: StringFilter<"UserAnswer"> | string
     selectedAnswerId?: StringNullableFilter<"UserAnswer"> | string | null
     isCorrect?: BoolFilter<"UserAnswer"> | boolean
+    typedAnswer?: StringNullableFilter<"UserAnswer"> | string | null
     answeredAt?: DateTimeFilter<"UserAnswer"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     question?: XOR<QuestionScalarRelationFilter, QuestionWhereInput>
@@ -29872,6 +39444,7 @@ export namespace Prisma {
     questionId?: SortOrder
     selectedAnswerId?: SortOrderInput | SortOrder
     isCorrect?: SortOrder
+    typedAnswer?: SortOrderInput | SortOrder
     answeredAt?: SortOrder
     user?: UserOrderByWithRelationInput
     question?: QuestionOrderByWithRelationInput
@@ -29887,6 +39460,7 @@ export namespace Prisma {
     questionId?: StringFilter<"UserAnswer"> | string
     selectedAnswerId?: StringNullableFilter<"UserAnswer"> | string | null
     isCorrect?: BoolFilter<"UserAnswer"> | boolean
+    typedAnswer?: StringNullableFilter<"UserAnswer"> | string | null
     answeredAt?: DateTimeFilter<"UserAnswer"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     question?: XOR<QuestionScalarRelationFilter, QuestionWhereInput>
@@ -29899,6 +39473,7 @@ export namespace Prisma {
     questionId?: SortOrder
     selectedAnswerId?: SortOrderInput | SortOrder
     isCorrect?: SortOrder
+    typedAnswer?: SortOrderInput | SortOrder
     answeredAt?: SortOrder
     _count?: UserAnswerCountOrderByAggregateInput
     _max?: UserAnswerMaxOrderByAggregateInput
@@ -29914,6 +39489,7 @@ export namespace Prisma {
     questionId?: StringWithAggregatesFilter<"UserAnswer"> | string
     selectedAnswerId?: StringNullableWithAggregatesFilter<"UserAnswer"> | string | null
     isCorrect?: BoolWithAggregatesFilter<"UserAnswer"> | boolean
+    typedAnswer?: StringNullableWithAggregatesFilter<"UserAnswer"> | string | null
     answeredAt?: DateTimeWithAggregatesFilter<"UserAnswer"> | Date | string
   }
 
@@ -30045,6 +39621,109 @@ export namespace Prisma {
     dueDate?: DateTimeWithAggregatesFilter<"Timetable"> | Date | string
     chaptersPlanned?: IntWithAggregatesFilter<"Timetable"> | number
     chaptersCompleted?: IntWithAggregatesFilter<"Timetable"> | number
+  }
+
+  export type CalendarEventWhereInput = {
+    AND?: CalendarEventWhereInput | CalendarEventWhereInput[]
+    OR?: CalendarEventWhereInput[]
+    NOT?: CalendarEventWhereInput | CalendarEventWhereInput[]
+    id?: StringFilter<"CalendarEvent"> | string
+    userId?: StringFilter<"CalendarEvent"> | string
+    moduleId?: StringNullableFilter<"CalendarEvent"> | string | null
+    type?: StringFilter<"CalendarEvent"> | string
+    title?: StringFilter<"CalendarEvent"> | string
+    notes?: StringNullableFilter<"CalendarEvent"> | string | null
+    startAt?: DateTimeFilter<"CalendarEvent"> | Date | string
+    endAt?: DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
+    allDay?: BoolFilter<"CalendarEvent"> | boolean
+    completed?: BoolFilter<"CalendarEvent"> | boolean
+    remindAt?: DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
+    remindedAt?: DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
+    createdAt?: DateTimeFilter<"CalendarEvent"> | Date | string
+    updatedAt?: DateTimeFilter<"CalendarEvent"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    module?: XOR<ModuleNullableScalarRelationFilter, ModuleWhereInput> | null
+  }
+
+  export type CalendarEventOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleId?: SortOrderInput | SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    startAt?: SortOrder
+    endAt?: SortOrderInput | SortOrder
+    allDay?: SortOrder
+    completed?: SortOrder
+    remindAt?: SortOrderInput | SortOrder
+    remindedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    module?: ModuleOrderByWithRelationInput
+  }
+
+  export type CalendarEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CalendarEventWhereInput | CalendarEventWhereInput[]
+    OR?: CalendarEventWhereInput[]
+    NOT?: CalendarEventWhereInput | CalendarEventWhereInput[]
+    userId?: StringFilter<"CalendarEvent"> | string
+    moduleId?: StringNullableFilter<"CalendarEvent"> | string | null
+    type?: StringFilter<"CalendarEvent"> | string
+    title?: StringFilter<"CalendarEvent"> | string
+    notes?: StringNullableFilter<"CalendarEvent"> | string | null
+    startAt?: DateTimeFilter<"CalendarEvent"> | Date | string
+    endAt?: DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
+    allDay?: BoolFilter<"CalendarEvent"> | boolean
+    completed?: BoolFilter<"CalendarEvent"> | boolean
+    remindAt?: DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
+    remindedAt?: DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
+    createdAt?: DateTimeFilter<"CalendarEvent"> | Date | string
+    updatedAt?: DateTimeFilter<"CalendarEvent"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    module?: XOR<ModuleNullableScalarRelationFilter, ModuleWhereInput> | null
+  }, "id">
+
+  export type CalendarEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleId?: SortOrderInput | SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    startAt?: SortOrder
+    endAt?: SortOrderInput | SortOrder
+    allDay?: SortOrder
+    completed?: SortOrder
+    remindAt?: SortOrderInput | SortOrder
+    remindedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CalendarEventCountOrderByAggregateInput
+    _max?: CalendarEventMaxOrderByAggregateInput
+    _min?: CalendarEventMinOrderByAggregateInput
+  }
+
+  export type CalendarEventScalarWhereWithAggregatesInput = {
+    AND?: CalendarEventScalarWhereWithAggregatesInput | CalendarEventScalarWhereWithAggregatesInput[]
+    OR?: CalendarEventScalarWhereWithAggregatesInput[]
+    NOT?: CalendarEventScalarWhereWithAggregatesInput | CalendarEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CalendarEvent"> | string
+    userId?: StringWithAggregatesFilter<"CalendarEvent"> | string
+    moduleId?: StringNullableWithAggregatesFilter<"CalendarEvent"> | string | null
+    type?: StringWithAggregatesFilter<"CalendarEvent"> | string
+    title?: StringWithAggregatesFilter<"CalendarEvent"> | string
+    notes?: StringNullableWithAggregatesFilter<"CalendarEvent"> | string | null
+    startAt?: DateTimeWithAggregatesFilter<"CalendarEvent"> | Date | string
+    endAt?: DateTimeNullableWithAggregatesFilter<"CalendarEvent"> | Date | string | null
+    allDay?: BoolWithAggregatesFilter<"CalendarEvent"> | boolean
+    completed?: BoolWithAggregatesFilter<"CalendarEvent"> | boolean
+    remindAt?: DateTimeNullableWithAggregatesFilter<"CalendarEvent"> | Date | string | null
+    remindedAt?: DateTimeNullableWithAggregatesFilter<"CalendarEvent"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CalendarEvent"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CalendarEvent"> | Date | string
   }
 
   export type NotificationWhereInput = {
@@ -30376,6 +40055,336 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"PushSubscription"> | Date | string
   }
 
+  export type EmailOtpWhereInput = {
+    AND?: EmailOtpWhereInput | EmailOtpWhereInput[]
+    OR?: EmailOtpWhereInput[]
+    NOT?: EmailOtpWhereInput | EmailOtpWhereInput[]
+    id?: StringFilter<"EmailOtp"> | string
+    purpose?: StringFilter<"EmailOtp"> | string
+    key?: StringFilter<"EmailOtp"> | string
+    email?: StringFilter<"EmailOtp"> | string
+    userId?: StringNullableFilter<"EmailOtp"> | string | null
+    codeHash?: StringFilter<"EmailOtp"> | string
+    payload?: JsonNullableFilter<"EmailOtp">
+    attempts?: IntFilter<"EmailOtp"> | number
+    sends?: IntFilter<"EmailOtp"> | number
+    expiresAt?: DateTimeFilter<"EmailOtp"> | Date | string
+    lastSentAt?: DateTimeFilter<"EmailOtp"> | Date | string
+    createdAt?: DateTimeFilter<"EmailOtp"> | Date | string
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+  }
+
+  export type EmailOtpOrderByWithRelationInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    key?: SortOrder
+    email?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    codeHash?: SortOrder
+    payload?: SortOrderInput | SortOrder
+    attempts?: SortOrder
+    sends?: SortOrder
+    expiresAt?: SortOrder
+    lastSentAt?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type EmailOtpWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    purpose_key?: EmailOtpPurposeKeyCompoundUniqueInput
+    AND?: EmailOtpWhereInput | EmailOtpWhereInput[]
+    OR?: EmailOtpWhereInput[]
+    NOT?: EmailOtpWhereInput | EmailOtpWhereInput[]
+    purpose?: StringFilter<"EmailOtp"> | string
+    key?: StringFilter<"EmailOtp"> | string
+    email?: StringFilter<"EmailOtp"> | string
+    userId?: StringNullableFilter<"EmailOtp"> | string | null
+    codeHash?: StringFilter<"EmailOtp"> | string
+    payload?: JsonNullableFilter<"EmailOtp">
+    attempts?: IntFilter<"EmailOtp"> | number
+    sends?: IntFilter<"EmailOtp"> | number
+    expiresAt?: DateTimeFilter<"EmailOtp"> | Date | string
+    lastSentAt?: DateTimeFilter<"EmailOtp"> | Date | string
+    createdAt?: DateTimeFilter<"EmailOtp"> | Date | string
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+  }, "id" | "purpose_key">
+
+  export type EmailOtpOrderByWithAggregationInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    key?: SortOrder
+    email?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    codeHash?: SortOrder
+    payload?: SortOrderInput | SortOrder
+    attempts?: SortOrder
+    sends?: SortOrder
+    expiresAt?: SortOrder
+    lastSentAt?: SortOrder
+    createdAt?: SortOrder
+    _count?: EmailOtpCountOrderByAggregateInput
+    _avg?: EmailOtpAvgOrderByAggregateInput
+    _max?: EmailOtpMaxOrderByAggregateInput
+    _min?: EmailOtpMinOrderByAggregateInput
+    _sum?: EmailOtpSumOrderByAggregateInput
+  }
+
+  export type EmailOtpScalarWhereWithAggregatesInput = {
+    AND?: EmailOtpScalarWhereWithAggregatesInput | EmailOtpScalarWhereWithAggregatesInput[]
+    OR?: EmailOtpScalarWhereWithAggregatesInput[]
+    NOT?: EmailOtpScalarWhereWithAggregatesInput | EmailOtpScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EmailOtp"> | string
+    purpose?: StringWithAggregatesFilter<"EmailOtp"> | string
+    key?: StringWithAggregatesFilter<"EmailOtp"> | string
+    email?: StringWithAggregatesFilter<"EmailOtp"> | string
+    userId?: StringNullableWithAggregatesFilter<"EmailOtp"> | string | null
+    codeHash?: StringWithAggregatesFilter<"EmailOtp"> | string
+    payload?: JsonNullableWithAggregatesFilter<"EmailOtp">
+    attempts?: IntWithAggregatesFilter<"EmailOtp"> | number
+    sends?: IntWithAggregatesFilter<"EmailOtp"> | number
+    expiresAt?: DateTimeWithAggregatesFilter<"EmailOtp"> | Date | string
+    lastSentAt?: DateTimeWithAggregatesFilter<"EmailOtp"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"EmailOtp"> | Date | string
+  }
+
+  export type CodingProjectWhereInput = {
+    AND?: CodingProjectWhereInput | CodingProjectWhereInput[]
+    OR?: CodingProjectWhereInput[]
+    NOT?: CodingProjectWhereInput | CodingProjectWhereInput[]
+    id?: StringFilter<"CodingProject"> | string
+    topicId?: StringFilter<"CodingProject"> | string
+    title?: StringFilter<"CodingProject"> | string
+    brief?: StringFilter<"CodingProject"> | string
+    language?: StringFilter<"CodingProject"> | string
+    starterCode?: StringNullableFilter<"CodingProject"> | string | null
+    rubric?: StringFilter<"CodingProject"> | string
+    difficulty?: StringFilter<"CodingProject"> | string
+    order?: IntFilter<"CodingProject"> | number
+    createdAt?: DateTimeFilter<"CodingProject"> | Date | string
+    topic?: XOR<TopicScalarRelationFilter, TopicWhereInput>
+    submissions?: ProjectSubmissionListRelationFilter
+  }
+
+  export type CodingProjectOrderByWithRelationInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    brief?: SortOrder
+    language?: SortOrder
+    starterCode?: SortOrderInput | SortOrder
+    rubric?: SortOrder
+    difficulty?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    topic?: TopicOrderByWithRelationInput
+    submissions?: ProjectSubmissionOrderByRelationAggregateInput
+  }
+
+  export type CodingProjectWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CodingProjectWhereInput | CodingProjectWhereInput[]
+    OR?: CodingProjectWhereInput[]
+    NOT?: CodingProjectWhereInput | CodingProjectWhereInput[]
+    topicId?: StringFilter<"CodingProject"> | string
+    title?: StringFilter<"CodingProject"> | string
+    brief?: StringFilter<"CodingProject"> | string
+    language?: StringFilter<"CodingProject"> | string
+    starterCode?: StringNullableFilter<"CodingProject"> | string | null
+    rubric?: StringFilter<"CodingProject"> | string
+    difficulty?: StringFilter<"CodingProject"> | string
+    order?: IntFilter<"CodingProject"> | number
+    createdAt?: DateTimeFilter<"CodingProject"> | Date | string
+    topic?: XOR<TopicScalarRelationFilter, TopicWhereInput>
+    submissions?: ProjectSubmissionListRelationFilter
+  }, "id">
+
+  export type CodingProjectOrderByWithAggregationInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    brief?: SortOrder
+    language?: SortOrder
+    starterCode?: SortOrderInput | SortOrder
+    rubric?: SortOrder
+    difficulty?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    _count?: CodingProjectCountOrderByAggregateInput
+    _avg?: CodingProjectAvgOrderByAggregateInput
+    _max?: CodingProjectMaxOrderByAggregateInput
+    _min?: CodingProjectMinOrderByAggregateInput
+    _sum?: CodingProjectSumOrderByAggregateInput
+  }
+
+  export type CodingProjectScalarWhereWithAggregatesInput = {
+    AND?: CodingProjectScalarWhereWithAggregatesInput | CodingProjectScalarWhereWithAggregatesInput[]
+    OR?: CodingProjectScalarWhereWithAggregatesInput[]
+    NOT?: CodingProjectScalarWhereWithAggregatesInput | CodingProjectScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CodingProject"> | string
+    topicId?: StringWithAggregatesFilter<"CodingProject"> | string
+    title?: StringWithAggregatesFilter<"CodingProject"> | string
+    brief?: StringWithAggregatesFilter<"CodingProject"> | string
+    language?: StringWithAggregatesFilter<"CodingProject"> | string
+    starterCode?: StringNullableWithAggregatesFilter<"CodingProject"> | string | null
+    rubric?: StringWithAggregatesFilter<"CodingProject"> | string
+    difficulty?: StringWithAggregatesFilter<"CodingProject"> | string
+    order?: IntWithAggregatesFilter<"CodingProject"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"CodingProject"> | Date | string
+  }
+
+  export type ProjectSubmissionWhereInput = {
+    AND?: ProjectSubmissionWhereInput | ProjectSubmissionWhereInput[]
+    OR?: ProjectSubmissionWhereInput[]
+    NOT?: ProjectSubmissionWhereInput | ProjectSubmissionWhereInput[]
+    id?: StringFilter<"ProjectSubmission"> | string
+    projectId?: StringFilter<"ProjectSubmission"> | string
+    userId?: StringFilter<"ProjectSubmission"> | string
+    files?: StringFilter<"ProjectSubmission"> | string
+    score?: IntFilter<"ProjectSubmission"> | number
+    feedback?: StringFilter<"ProjectSubmission"> | string
+    createdAt?: DateTimeFilter<"ProjectSubmission"> | Date | string
+    project?: XOR<CodingProjectScalarRelationFilter, CodingProjectWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type ProjectSubmissionOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    files?: SortOrder
+    score?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+    project?: CodingProjectOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type ProjectSubmissionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ProjectSubmissionWhereInput | ProjectSubmissionWhereInput[]
+    OR?: ProjectSubmissionWhereInput[]
+    NOT?: ProjectSubmissionWhereInput | ProjectSubmissionWhereInput[]
+    projectId?: StringFilter<"ProjectSubmission"> | string
+    userId?: StringFilter<"ProjectSubmission"> | string
+    files?: StringFilter<"ProjectSubmission"> | string
+    score?: IntFilter<"ProjectSubmission"> | number
+    feedback?: StringFilter<"ProjectSubmission"> | string
+    createdAt?: DateTimeFilter<"ProjectSubmission"> | Date | string
+    project?: XOR<CodingProjectScalarRelationFilter, CodingProjectWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type ProjectSubmissionOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    files?: SortOrder
+    score?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+    _count?: ProjectSubmissionCountOrderByAggregateInput
+    _avg?: ProjectSubmissionAvgOrderByAggregateInput
+    _max?: ProjectSubmissionMaxOrderByAggregateInput
+    _min?: ProjectSubmissionMinOrderByAggregateInput
+    _sum?: ProjectSubmissionSumOrderByAggregateInput
+  }
+
+  export type ProjectSubmissionScalarWhereWithAggregatesInput = {
+    AND?: ProjectSubmissionScalarWhereWithAggregatesInput | ProjectSubmissionScalarWhereWithAggregatesInput[]
+    OR?: ProjectSubmissionScalarWhereWithAggregatesInput[]
+    NOT?: ProjectSubmissionScalarWhereWithAggregatesInput | ProjectSubmissionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ProjectSubmission"> | string
+    projectId?: StringWithAggregatesFilter<"ProjectSubmission"> | string
+    userId?: StringWithAggregatesFilter<"ProjectSubmission"> | string
+    files?: StringWithAggregatesFilter<"ProjectSubmission"> | string
+    score?: IntWithAggregatesFilter<"ProjectSubmission"> | number
+    feedback?: StringWithAggregatesFilter<"ProjectSubmission"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"ProjectSubmission"> | Date | string
+  }
+
+  export type TopicExerciseWhereInput = {
+    AND?: TopicExerciseWhereInput | TopicExerciseWhereInput[]
+    OR?: TopicExerciseWhereInput[]
+    NOT?: TopicExerciseWhereInput | TopicExerciseWhereInput[]
+    id?: StringFilter<"TopicExercise"> | string
+    topicId?: StringFilter<"TopicExercise"> | string
+    title?: StringFilter<"TopicExercise"> | string
+    instructions?: StringFilter<"TopicExercise"> | string
+    code?: StringFilter<"TopicExercise"> | string
+    blanks?: StringFilter<"TopicExercise"> | string
+    explanation?: StringNullableFilter<"TopicExercise"> | string | null
+    language?: StringFilter<"TopicExercise"> | string
+    order?: IntFilter<"TopicExercise"> | number
+    createdAt?: DateTimeFilter<"TopicExercise"> | Date | string
+    topic?: XOR<TopicScalarRelationFilter, TopicWhereInput>
+  }
+
+  export type TopicExerciseOrderByWithRelationInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    instructions?: SortOrder
+    code?: SortOrder
+    blanks?: SortOrder
+    explanation?: SortOrderInput | SortOrder
+    language?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    topic?: TopicOrderByWithRelationInput
+  }
+
+  export type TopicExerciseWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: TopicExerciseWhereInput | TopicExerciseWhereInput[]
+    OR?: TopicExerciseWhereInput[]
+    NOT?: TopicExerciseWhereInput | TopicExerciseWhereInput[]
+    topicId?: StringFilter<"TopicExercise"> | string
+    title?: StringFilter<"TopicExercise"> | string
+    instructions?: StringFilter<"TopicExercise"> | string
+    code?: StringFilter<"TopicExercise"> | string
+    blanks?: StringFilter<"TopicExercise"> | string
+    explanation?: StringNullableFilter<"TopicExercise"> | string | null
+    language?: StringFilter<"TopicExercise"> | string
+    order?: IntFilter<"TopicExercise"> | number
+    createdAt?: DateTimeFilter<"TopicExercise"> | Date | string
+    topic?: XOR<TopicScalarRelationFilter, TopicWhereInput>
+  }, "id">
+
+  export type TopicExerciseOrderByWithAggregationInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    instructions?: SortOrder
+    code?: SortOrder
+    blanks?: SortOrder
+    explanation?: SortOrderInput | SortOrder
+    language?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    _count?: TopicExerciseCountOrderByAggregateInput
+    _avg?: TopicExerciseAvgOrderByAggregateInput
+    _max?: TopicExerciseMaxOrderByAggregateInput
+    _min?: TopicExerciseMinOrderByAggregateInput
+    _sum?: TopicExerciseSumOrderByAggregateInput
+  }
+
+  export type TopicExerciseScalarWhereWithAggregatesInput = {
+    AND?: TopicExerciseScalarWhereWithAggregatesInput | TopicExerciseScalarWhereWithAggregatesInput[]
+    OR?: TopicExerciseScalarWhereWithAggregatesInput[]
+    NOT?: TopicExerciseScalarWhereWithAggregatesInput | TopicExerciseScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"TopicExercise"> | string
+    topicId?: StringWithAggregatesFilter<"TopicExercise"> | string
+    title?: StringWithAggregatesFilter<"TopicExercise"> | string
+    instructions?: StringWithAggregatesFilter<"TopicExercise"> | string
+    code?: StringWithAggregatesFilter<"TopicExercise"> | string
+    blanks?: StringWithAggregatesFilter<"TopicExercise"> | string
+    explanation?: StringNullableWithAggregatesFilter<"TopicExercise"> | string | null
+    language?: StringWithAggregatesFilter<"TopicExercise"> | string
+    order?: IntWithAggregatesFilter<"TopicExercise"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"TopicExercise"> | Date | string
+  }
+
   export type QuizAttemptCreateInput = {
     id?: string
     totalQuestions: number
@@ -30494,6 +40503,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -30510,6 +40520,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -30520,6 +40531,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30536,6 +40548,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30549,6 +40562,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -30559,6 +40573,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30572,6 +40587,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30585,6 +40601,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -30602,6 +40620,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -30612,6 +40633,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -30629,6 +40652,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -30639,6 +40665,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30656,6 +40684,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -30666,6 +40697,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30683,6 +40716,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -30693,6 +40729,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -30708,6 +40746,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30723,6 +40763,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30929,10 +40971,14 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     chapters?: ChapterCreateNestedManyWithoutModuleInput
     timetables?: TimetableCreateNestedManyWithoutModuleInput
     enrollments?: ModuleEnrollmentCreateNestedManyWithoutModuleInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleUncheckedCreateInput = {
@@ -30940,10 +40986,14 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     chapters?: ChapterUncheckedCreateNestedManyWithoutModuleInput
     timetables?: TimetableUncheckedCreateNestedManyWithoutModuleInput
     enrollments?: ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleUncheckedCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleUpdateInput = {
@@ -30951,10 +41001,14 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     chapters?: ChapterUpdateManyWithoutModuleNestedInput
     timetables?: TimetableUpdateManyWithoutModuleNestedInput
     enrollments?: ModuleEnrollmentUpdateManyWithoutModuleNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUpdateManyWithoutModuleNestedInput
   }
 
   export type ModuleUncheckedUpdateInput = {
@@ -30962,10 +41016,14 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     chapters?: ChapterUncheckedUpdateManyWithoutModuleNestedInput
     timetables?: TimetableUncheckedUpdateManyWithoutModuleNestedInput
     enrollments?: ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUncheckedUpdateManyWithoutModuleNestedInput
   }
 
   export type ModuleCreateManyInput = {
@@ -30973,6 +41031,8 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
   }
 
   export type ModuleUpdateManyMutationInput = {
@@ -30980,6 +41040,8 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
   }
 
   export type ModuleUncheckedUpdateManyInput = {
@@ -30987,6 +41049,108 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type CourseCreateInput = {
+    id?: string
+    title: string
+    description?: string | null
+    level?: string
+    createdAt?: Date | string
+    modules?: CourseModuleCreateNestedManyWithoutCourseInput
+  }
+
+  export type CourseUncheckedCreateInput = {
+    id?: string
+    title: string
+    description?: string | null
+    level?: string
+    createdAt?: Date | string
+    modules?: CourseModuleUncheckedCreateNestedManyWithoutCourseInput
+  }
+
+  export type CourseUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    modules?: CourseModuleUpdateManyWithoutCourseNestedInput
+  }
+
+  export type CourseUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    modules?: CourseModuleUncheckedUpdateManyWithoutCourseNestedInput
+  }
+
+  export type CourseCreateManyInput = {
+    id?: string
+    title: string
+    description?: string | null
+    level?: string
+    createdAt?: Date | string
+  }
+
+  export type CourseUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CourseUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CourseModuleCreateInput = {
+    position?: number
+    course: CourseCreateNestedOneWithoutModulesInput
+    module: ModuleCreateNestedOneWithoutCoursesInput
+  }
+
+  export type CourseModuleUncheckedCreateInput = {
+    courseId: string
+    moduleId: string
+    position?: number
+  }
+
+  export type CourseModuleUpdateInput = {
+    position?: IntFieldUpdateOperationsInput | number
+    course?: CourseUpdateOneRequiredWithoutModulesNestedInput
+    module?: ModuleUpdateOneRequiredWithoutCoursesNestedInput
+  }
+
+  export type CourseModuleUncheckedUpdateInput = {
+    courseId?: StringFieldUpdateOperationsInput | string
+    moduleId?: StringFieldUpdateOperationsInput | string
+    position?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type CourseModuleCreateManyInput = {
+    courseId: string
+    moduleId: string
+    position?: number
+  }
+
+  export type CourseModuleUpdateManyMutationInput = {
+    position?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type CourseModuleUncheckedUpdateManyInput = {
+    courseId?: StringFieldUpdateOperationsInput | string
+    moduleId?: StringFieldUpdateOperationsInput | string
+    position?: IntFieldUpdateOperationsInput | number
   }
 
   export type ModuleEnrollmentCreateInput = {
@@ -31106,11 +41270,15 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     chapter: ChapterCreateNestedOneWithoutTopicsInput
     questions?: QuestionCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateInput = {
@@ -31121,10 +41289,14 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectUncheckedCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUpdateInput = {
@@ -31134,11 +41306,15 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
     questions?: QuestionUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateInput = {
@@ -31149,10 +41325,14 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUncheckedUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicCreateManyInput = {
@@ -31163,6 +41343,8 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
   }
 
   export type TopicUpdateManyMutationInput = {
@@ -31172,6 +41354,8 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type TopicUncheckedUpdateManyInput = {
@@ -31182,6 +41366,8 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type TopicPdfCreateInput = {
@@ -31314,6 +41500,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     topic?: TopicCreateNestedOneWithoutQuestionsInput
     chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     answers?: AnswerCreateNestedManyWithoutQuestionInput
@@ -31328,6 +41518,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     answers?: AnswerUncheckedCreateNestedManyWithoutQuestionInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutQuestionInput
     questionAttempts?: QuestionAttemptUncheckedCreateNestedManyWithoutQuestionInput
@@ -31338,6 +41532,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     topic?: TopicUpdateOneWithoutQuestionsNestedInput
     chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     answers?: AnswerUpdateManyWithoutQuestionNestedInput
@@ -31352,6 +41550,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     answers?: AnswerUncheckedUpdateManyWithoutQuestionNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutQuestionNestedInput
     questionAttempts?: QuestionAttemptUncheckedUpdateManyWithoutQuestionNestedInput
@@ -31364,6 +41566,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
   }
 
   export type QuestionUpdateManyMutationInput = {
@@ -31371,6 +41577,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
   }
 
   export type QuestionUncheckedUpdateManyInput = {
@@ -31380,6 +41590,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
   }
 
   export type AnswerCreateInput = {
@@ -31441,6 +41655,7 @@ export namespace Prisma {
   export type UserAnswerCreateInput = {
     id?: string
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
     user: UserCreateNestedOneWithoutUserAnswersInput
     question: QuestionCreateNestedOneWithoutUserAnswersInput
@@ -31453,12 +41668,14 @@ export namespace Prisma {
     questionId: string
     selectedAnswerId?: string | null
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
   }
 
   export type UserAnswerUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutUserAnswersNestedInput
     question?: QuestionUpdateOneRequiredWithoutUserAnswersNestedInput
@@ -31471,6 +41688,7 @@ export namespace Prisma {
     questionId?: StringFieldUpdateOperationsInput | string
     selectedAnswerId?: NullableStringFieldUpdateOperationsInput | string | null
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31480,12 +41698,14 @@ export namespace Prisma {
     questionId: string
     selectedAnswerId?: string | null
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
   }
 
   export type UserAnswerUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31495,6 +41715,7 @@ export namespace Prisma {
     questionId?: StringFieldUpdateOperationsInput | string
     selectedAnswerId?: NullableStringFieldUpdateOperationsInput | string | null
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -31626,6 +41847,123 @@ export namespace Prisma {
     dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     chaptersPlanned?: IntFieldUpdateOperationsInput | number
     chaptersCompleted?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type CalendarEventCreateInput = {
+    id?: string
+    type?: string
+    title: string
+    notes?: string | null
+    startAt: Date | string
+    endAt?: Date | string | null
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: Date | string | null
+    remindedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCalendarEventsInput
+    module?: ModuleCreateNestedOneWithoutCalendarEventsInput
+  }
+
+  export type CalendarEventUncheckedCreateInput = {
+    id?: string
+    userId: string
+    moduleId?: string | null
+    type?: string
+    title: string
+    notes?: string | null
+    startAt: Date | string
+    endAt?: Date | string | null
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: Date | string | null
+    remindedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CalendarEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCalendarEventsNestedInput
+    module?: ModuleUpdateOneWithoutCalendarEventsNestedInput
+  }
+
+  export type CalendarEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    moduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CalendarEventCreateManyInput = {
+    id?: string
+    userId: string
+    moduleId?: string | null
+    type?: string
+    title: string
+    notes?: string | null
+    startAt: Date | string
+    endAt?: Date | string | null
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: Date | string | null
+    remindedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CalendarEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CalendarEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    moduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type NotificationCreateInput = {
@@ -31957,6 +42295,362 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type EmailOtpCreateInput = {
+    id?: string
+    purpose: string
+    key: string
+    email: string
+    codeHash: string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: number
+    sends?: number
+    expiresAt: Date | string
+    lastSentAt?: Date | string
+    createdAt?: Date | string
+    user?: UserCreateNestedOneWithoutEmailOtpsInput
+  }
+
+  export type EmailOtpUncheckedCreateInput = {
+    id?: string
+    purpose: string
+    key: string
+    email: string
+    userId?: string | null
+    codeHash: string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: number
+    sends?: number
+    expiresAt: Date | string
+    lastSentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type EmailOtpUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    sends?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutEmailOtpsNestedInput
+  }
+
+  export type EmailOtpUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    codeHash?: StringFieldUpdateOperationsInput | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    sends?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailOtpCreateManyInput = {
+    id?: string
+    purpose: string
+    key: string
+    email: string
+    userId?: string | null
+    codeHash: string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: number
+    sends?: number
+    expiresAt: Date | string
+    lastSentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type EmailOtpUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    sends?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailOtpUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    codeHash?: StringFieldUpdateOperationsInput | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    sends?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CodingProjectCreateInput = {
+    id?: string
+    title: string
+    brief: string
+    language: string
+    starterCode?: string | null
+    rubric: string
+    difficulty?: string
+    order?: number
+    createdAt?: Date | string
+    topic: TopicCreateNestedOneWithoutCodingProjectsInput
+    submissions?: ProjectSubmissionCreateNestedManyWithoutProjectInput
+  }
+
+  export type CodingProjectUncheckedCreateInput = {
+    id?: string
+    topicId: string
+    title: string
+    brief: string
+    language: string
+    starterCode?: string | null
+    rubric: string
+    difficulty?: string
+    order?: number
+    createdAt?: Date | string
+    submissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type CodingProjectUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    starterCode?: NullableStringFieldUpdateOperationsInput | string | null
+    rubric?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    topic?: TopicUpdateOneRequiredWithoutCodingProjectsNestedInput
+    submissions?: ProjectSubmissionUpdateManyWithoutProjectNestedInput
+  }
+
+  export type CodingProjectUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    topicId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    starterCode?: NullableStringFieldUpdateOperationsInput | string | null
+    rubric?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    submissions?: ProjectSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
+  export type CodingProjectCreateManyInput = {
+    id?: string
+    topicId: string
+    title: string
+    brief: string
+    language: string
+    starterCode?: string | null
+    rubric: string
+    difficulty?: string
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type CodingProjectUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    starterCode?: NullableStringFieldUpdateOperationsInput | string | null
+    rubric?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CodingProjectUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    topicId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    starterCode?: NullableStringFieldUpdateOperationsInput | string | null
+    rubric?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectSubmissionCreateInput = {
+    id?: string
+    files: string
+    score: number
+    feedback: string
+    createdAt?: Date | string
+    project: CodingProjectCreateNestedOneWithoutSubmissionsInput
+    user: UserCreateNestedOneWithoutProjectSubmissionsInput
+  }
+
+  export type ProjectSubmissionUncheckedCreateInput = {
+    id?: string
+    projectId: string
+    userId: string
+    files: string
+    score: number
+    feedback: string
+    createdAt?: Date | string
+  }
+
+  export type ProjectSubmissionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: CodingProjectUpdateOneRequiredWithoutSubmissionsNestedInput
+    user?: UserUpdateOneRequiredWithoutProjectSubmissionsNestedInput
+  }
+
+  export type ProjectSubmissionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectSubmissionCreateManyInput = {
+    id?: string
+    projectId: string
+    userId: string
+    files: string
+    score: number
+    feedback: string
+    createdAt?: Date | string
+  }
+
+  export type ProjectSubmissionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectSubmissionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicExerciseCreateInput = {
+    id?: string
+    title: string
+    instructions: string
+    code: string
+    blanks: string
+    explanation?: string | null
+    language: string
+    order?: number
+    createdAt?: Date | string
+    topic: TopicCreateNestedOneWithoutExercisesInput
+  }
+
+  export type TopicExerciseUncheckedCreateInput = {
+    id?: string
+    topicId: string
+    title: string
+    instructions: string
+    code: string
+    blanks: string
+    explanation?: string | null
+    language: string
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type TopicExerciseUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    instructions?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    blanks?: StringFieldUpdateOperationsInput | string
+    explanation?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    topic?: TopicUpdateOneRequiredWithoutExercisesNestedInput
+  }
+
+  export type TopicExerciseUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    topicId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    instructions?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    blanks?: StringFieldUpdateOperationsInput | string
+    explanation?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicExerciseCreateManyInput = {
+    id?: string
+    topicId: string
+    title: string
+    instructions: string
+    code: string
+    blanks: string
+    explanation?: string | null
+    language: string
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type TopicExerciseUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    instructions?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    blanks?: StringFieldUpdateOperationsInput | string
+    explanation?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicExerciseUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    topicId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    instructions?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    blanks?: StringFieldUpdateOperationsInput | string
+    explanation?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -32272,6 +42966,7 @@ export namespace Prisma {
     isCorrect?: SortOrder
     order?: SortOrder
     status?: SortOrder
+    typedAnswer?: SortOrder
     answeredAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -32289,6 +42984,7 @@ export namespace Prisma {
     isCorrect?: SortOrder
     order?: SortOrder
     status?: SortOrder
+    typedAnswer?: SortOrder
     answeredAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -32302,6 +42998,7 @@ export namespace Prisma {
     isCorrect?: SortOrder
     order?: SortOrder
     status?: SortOrder
+    typedAnswer?: SortOrder
     answeredAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -32334,6 +43031,11 @@ export namespace Prisma {
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
     notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
     not?: NestedEnumRoleFilter<$PrismaModel> | $Enums.Role
+  }
+
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type AccountListRelationFilter = {
@@ -32396,6 +43098,24 @@ export namespace Prisma {
     none?: MessageWhereInput
   }
 
+  export type CalendarEventListRelationFilter = {
+    every?: CalendarEventWhereInput
+    some?: CalendarEventWhereInput
+    none?: CalendarEventWhereInput
+  }
+
+  export type EmailOtpListRelationFilter = {
+    every?: EmailOtpWhereInput
+    some?: EmailOtpWhereInput
+    none?: EmailOtpWhereInput
+  }
+
+  export type ProjectSubmissionListRelationFilter = {
+    every?: ProjectSubmissionWhereInput
+    some?: ProjectSubmissionWhereInput
+    none?: ProjectSubmissionWhereInput
+  }
+
   export type AccountOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -32436,6 +43156,18 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type CalendarEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EmailOtpOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ProjectSubmissionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -32444,6 +43176,8 @@ export namespace Prisma {
     image?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    isSuperuser?: SortOrder
+    level?: SortOrder
     streakDays?: SortOrder
     lastVisitDate?: SortOrder
     createdAt?: SortOrder
@@ -32463,6 +43197,8 @@ export namespace Prisma {
     image?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    isSuperuser?: SortOrder
+    level?: SortOrder
     streakDays?: SortOrder
     lastVisitDate?: SortOrder
     createdAt?: SortOrder
@@ -32478,6 +43214,8 @@ export namespace Prisma {
     image?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    isSuperuser?: SortOrder
+    level?: SortOrder
     streakDays?: SortOrder
     lastVisitDate?: SortOrder
     createdAt?: SortOrder
@@ -32497,6 +43235,14 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRoleFilter<$PrismaModel>
     _max?: NestedEnumRoleFilter<$PrismaModel>
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type AccountProviderProviderAccountIdCompoundUniqueInput = {
@@ -32607,7 +43353,17 @@ export namespace Prisma {
     none?: ChapterWhereInput
   }
 
+  export type CourseModuleListRelationFilter = {
+    every?: CourseModuleWhereInput
+    some?: CourseModuleWhereInput
+    none?: CourseModuleWhereInput
+  }
+
   export type ChapterOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CourseModuleOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -32616,6 +43372,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     createdAt?: SortOrder
+    codingLanguage?: SortOrder
+    level?: SortOrder
   }
 
   export type ModuleMaxOrderByAggregateInput = {
@@ -32623,6 +43381,8 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     createdAt?: SortOrder
+    codingLanguage?: SortOrder
+    level?: SortOrder
   }
 
   export type ModuleMinOrderByAggregateInput = {
@@ -32630,11 +43390,73 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     createdAt?: SortOrder
+    codingLanguage?: SortOrder
+    level?: SortOrder
+  }
+
+  export type CourseCountOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    level?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CourseMaxOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    level?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CourseMinOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    level?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CourseScalarRelationFilter = {
+    is?: CourseWhereInput
+    isNot?: CourseWhereInput
   }
 
   export type ModuleScalarRelationFilter = {
     is?: ModuleWhereInput
     isNot?: ModuleWhereInput
+  }
+
+  export type CourseModuleCourseIdModuleIdCompoundUniqueInput = {
+    courseId: string
+    moduleId: string
+  }
+
+  export type CourseModuleCountOrderByAggregateInput = {
+    courseId?: SortOrder
+    moduleId?: SortOrder
+    position?: SortOrder
+  }
+
+  export type CourseModuleAvgOrderByAggregateInput = {
+    position?: SortOrder
+  }
+
+  export type CourseModuleMaxOrderByAggregateInput = {
+    courseId?: SortOrder
+    moduleId?: SortOrder
+    position?: SortOrder
+  }
+
+  export type CourseModuleMinOrderByAggregateInput = {
+    courseId?: SortOrder
+    moduleId?: SortOrder
+    position?: SortOrder
+  }
+
+  export type CourseModuleSumOrderByAggregateInput = {
+    position?: SortOrder
   }
 
   export type ModuleEnrollmentUserIdModuleIdCompoundUniqueInput = {
@@ -32732,11 +43554,31 @@ export namespace Prisma {
     none?: TopicPdfWhereInput
   }
 
+  export type CodingProjectListRelationFilter = {
+    every?: CodingProjectWhereInput
+    some?: CodingProjectWhereInput
+    none?: CodingProjectWhereInput
+  }
+
+  export type TopicExerciseListRelationFilter = {
+    every?: TopicExerciseWhereInput
+    some?: TopicExerciseWhereInput
+    none?: TopicExerciseWhereInput
+  }
+
   export type FlashcardOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type TopicPdfOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CodingProjectOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type TopicExerciseOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -32748,6 +43590,8 @@ export namespace Prisma {
     order?: SortOrder
     createdAt?: SortOrder
     assignment?: SortOrder
+    locked?: SortOrder
+    published?: SortOrder
   }
 
   export type TopicAvgOrderByAggregateInput = {
@@ -32762,6 +43606,8 @@ export namespace Prisma {
     order?: SortOrder
     createdAt?: SortOrder
     assignment?: SortOrder
+    locked?: SortOrder
+    published?: SortOrder
   }
 
   export type TopicMinOrderByAggregateInput = {
@@ -32772,6 +43618,8 @@ export namespace Prisma {
     order?: SortOrder
     createdAt?: SortOrder
     assignment?: SortOrder
+    locked?: SortOrder
+    published?: SortOrder
   }
 
   export type TopicSumOrderByAggregateInput = {
@@ -32810,11 +43658,6 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
-  export type BoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
   export type Assignment_AttemptCountOrderByAggregateInput = {
     id?: SortOrder
     topicId?: SortOrder
@@ -32850,14 +43693,6 @@ export namespace Prisma {
     percentage?: SortOrder
   }
 
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
-  }
-
   export type ChapterNullableScalarRelationFilter = {
     is?: ChapterWhereInput | null
     isNot?: ChapterWhereInput | null
@@ -32880,6 +43715,10 @@ export namespace Prisma {
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
+    studyNote?: SortOrder
+    studyNoteClaimedAt?: SortOrder
+    paper?: SortOrder
+    kind?: SortOrder
   }
 
   export type QuestionMaxOrderByAggregateInput = {
@@ -32889,6 +43728,10 @@ export namespace Prisma {
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
+    studyNote?: SortOrder
+    studyNoteClaimedAt?: SortOrder
+    paper?: SortOrder
+    kind?: SortOrder
   }
 
   export type QuestionMinOrderByAggregateInput = {
@@ -32898,6 +43741,10 @@ export namespace Prisma {
     question?: SortOrder
     difficulty?: SortOrder
     createdAt?: SortOrder
+    studyNote?: SortOrder
+    studyNoteClaimedAt?: SortOrder
+    paper?: SortOrder
+    kind?: SortOrder
   }
 
   export type AnswerCountOrderByAggregateInput = {
@@ -32927,6 +43774,7 @@ export namespace Prisma {
     questionId?: SortOrder
     selectedAnswerId?: SortOrder
     isCorrect?: SortOrder
+    typedAnswer?: SortOrder
     answeredAt?: SortOrder
   }
 
@@ -32936,6 +43784,7 @@ export namespace Prisma {
     questionId?: SortOrder
     selectedAnswerId?: SortOrder
     isCorrect?: SortOrder
+    typedAnswer?: SortOrder
     answeredAt?: SortOrder
   }
 
@@ -32945,6 +43794,7 @@ export namespace Prisma {
     questionId?: SortOrder
     selectedAnswerId?: SortOrder
     isCorrect?: SortOrder
+    typedAnswer?: SortOrder
     answeredAt?: SortOrder
   }
 
@@ -33013,6 +43863,57 @@ export namespace Prisma {
   export type TimetableSumOrderByAggregateInput = {
     chaptersPlanned?: SortOrder
     chaptersCompleted?: SortOrder
+  }
+
+  export type CalendarEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleId?: SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    notes?: SortOrder
+    startAt?: SortOrder
+    endAt?: SortOrder
+    allDay?: SortOrder
+    completed?: SortOrder
+    remindAt?: SortOrder
+    remindedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CalendarEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleId?: SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    notes?: SortOrder
+    startAt?: SortOrder
+    endAt?: SortOrder
+    allDay?: SortOrder
+    completed?: SortOrder
+    remindAt?: SortOrder
+    remindedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CalendarEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleId?: SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    notes?: SortOrder
+    startAt?: SortOrder
+    endAt?: SortOrder
+    allDay?: SortOrder
+    completed?: SortOrder
+    remindAt?: SortOrder
+    remindedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type NotificationCountOrderByAggregateInput = {
@@ -33216,6 +44117,255 @@ export namespace Prisma {
     p256dh?: SortOrder
     auth?: SortOrder
     createdAt?: SortOrder
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type UserNullableScalarRelationFilter = {
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
+  }
+
+  export type EmailOtpPurposeKeyCompoundUniqueInput = {
+    purpose: string
+    key: string
+  }
+
+  export type EmailOtpCountOrderByAggregateInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    key?: SortOrder
+    email?: SortOrder
+    userId?: SortOrder
+    codeHash?: SortOrder
+    payload?: SortOrder
+    attempts?: SortOrder
+    sends?: SortOrder
+    expiresAt?: SortOrder
+    lastSentAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EmailOtpAvgOrderByAggregateInput = {
+    attempts?: SortOrder
+    sends?: SortOrder
+  }
+
+  export type EmailOtpMaxOrderByAggregateInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    key?: SortOrder
+    email?: SortOrder
+    userId?: SortOrder
+    codeHash?: SortOrder
+    attempts?: SortOrder
+    sends?: SortOrder
+    expiresAt?: SortOrder
+    lastSentAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EmailOtpMinOrderByAggregateInput = {
+    id?: SortOrder
+    purpose?: SortOrder
+    key?: SortOrder
+    email?: SortOrder
+    userId?: SortOrder
+    codeHash?: SortOrder
+    attempts?: SortOrder
+    sends?: SortOrder
+    expiresAt?: SortOrder
+    lastSentAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EmailOtpSumOrderByAggregateInput = {
+    attempts?: SortOrder
+    sends?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
+  export type CodingProjectCountOrderByAggregateInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    brief?: SortOrder
+    language?: SortOrder
+    starterCode?: SortOrder
+    rubric?: SortOrder
+    difficulty?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CodingProjectAvgOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type CodingProjectMaxOrderByAggregateInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    brief?: SortOrder
+    language?: SortOrder
+    starterCode?: SortOrder
+    rubric?: SortOrder
+    difficulty?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CodingProjectMinOrderByAggregateInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    brief?: SortOrder
+    language?: SortOrder
+    starterCode?: SortOrder
+    rubric?: SortOrder
+    difficulty?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CodingProjectSumOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type CodingProjectScalarRelationFilter = {
+    is?: CodingProjectWhereInput
+    isNot?: CodingProjectWhereInput
+  }
+
+  export type ProjectSubmissionCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    files?: SortOrder
+    score?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProjectSubmissionAvgOrderByAggregateInput = {
+    score?: SortOrder
+  }
+
+  export type ProjectSubmissionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    files?: SortOrder
+    score?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProjectSubmissionMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    files?: SortOrder
+    score?: SortOrder
+    feedback?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProjectSubmissionSumOrderByAggregateInput = {
+    score?: SortOrder
+  }
+
+  export type TopicExerciseCountOrderByAggregateInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    instructions?: SortOrder
+    code?: SortOrder
+    blanks?: SortOrder
+    explanation?: SortOrder
+    language?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type TopicExerciseAvgOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type TopicExerciseMaxOrderByAggregateInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    instructions?: SortOrder
+    code?: SortOrder
+    blanks?: SortOrder
+    explanation?: SortOrder
+    language?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type TopicExerciseMinOrderByAggregateInput = {
+    id?: SortOrder
+    topicId?: SortOrder
+    title?: SortOrder
+    instructions?: SortOrder
+    code?: SortOrder
+    blanks?: SortOrder
+    explanation?: SortOrder
+    language?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type TopicExerciseSumOrderByAggregateInput = {
+    order?: SortOrder
   }
 
   export type UserCreateNestedOneWithoutQuizAttemptsInput = {
@@ -33478,6 +44628,27 @@ export namespace Prisma {
     connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
   }
 
+  export type CalendarEventCreateNestedManyWithoutUserInput = {
+    create?: XOR<CalendarEventCreateWithoutUserInput, CalendarEventUncheckedCreateWithoutUserInput> | CalendarEventCreateWithoutUserInput[] | CalendarEventUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CalendarEventCreateOrConnectWithoutUserInput | CalendarEventCreateOrConnectWithoutUserInput[]
+    createMany?: CalendarEventCreateManyUserInputEnvelope
+    connect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+  }
+
+  export type EmailOtpCreateNestedManyWithoutUserInput = {
+    create?: XOR<EmailOtpCreateWithoutUserInput, EmailOtpUncheckedCreateWithoutUserInput> | EmailOtpCreateWithoutUserInput[] | EmailOtpUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EmailOtpCreateOrConnectWithoutUserInput | EmailOtpCreateOrConnectWithoutUserInput[]
+    createMany?: EmailOtpCreateManyUserInputEnvelope
+    connect?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+  }
+
+  export type ProjectSubmissionCreateNestedManyWithoutUserInput = {
+    create?: XOR<ProjectSubmissionCreateWithoutUserInput, ProjectSubmissionUncheckedCreateWithoutUserInput> | ProjectSubmissionCreateWithoutUserInput[] | ProjectSubmissionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ProjectSubmissionCreateOrConnectWithoutUserInput | ProjectSubmissionCreateOrConnectWithoutUserInput[]
+    createMany?: ProjectSubmissionCreateManyUserInputEnvelope
+    connect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -33562,8 +44733,33 @@ export namespace Prisma {
     connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
   }
 
+  export type CalendarEventUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<CalendarEventCreateWithoutUserInput, CalendarEventUncheckedCreateWithoutUserInput> | CalendarEventCreateWithoutUserInput[] | CalendarEventUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CalendarEventCreateOrConnectWithoutUserInput | CalendarEventCreateOrConnectWithoutUserInput[]
+    createMany?: CalendarEventCreateManyUserInputEnvelope
+    connect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+  }
+
+  export type EmailOtpUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<EmailOtpCreateWithoutUserInput, EmailOtpUncheckedCreateWithoutUserInput> | EmailOtpCreateWithoutUserInput[] | EmailOtpUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EmailOtpCreateOrConnectWithoutUserInput | EmailOtpCreateOrConnectWithoutUserInput[]
+    createMany?: EmailOtpCreateManyUserInputEnvelope
+    connect?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+  }
+
+  export type ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<ProjectSubmissionCreateWithoutUserInput, ProjectSubmissionUncheckedCreateWithoutUserInput> | ProjectSubmissionCreateWithoutUserInput[] | ProjectSubmissionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ProjectSubmissionCreateOrConnectWithoutUserInput | ProjectSubmissionCreateOrConnectWithoutUserInput[]
+    createMany?: ProjectSubmissionCreateManyUserInputEnvelope
+    connect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+  }
+
   export type EnumRoleFieldUpdateOperationsInput = {
     set?: $Enums.Role
+  }
+
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
   }
 
   export type AccountUpdateManyWithoutUserNestedInput = {
@@ -33734,6 +44930,48 @@ export namespace Prisma {
     deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
   }
 
+  export type CalendarEventUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CalendarEventCreateWithoutUserInput, CalendarEventUncheckedCreateWithoutUserInput> | CalendarEventCreateWithoutUserInput[] | CalendarEventUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CalendarEventCreateOrConnectWithoutUserInput | CalendarEventCreateOrConnectWithoutUserInput[]
+    upsert?: CalendarEventUpsertWithWhereUniqueWithoutUserInput | CalendarEventUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CalendarEventCreateManyUserInputEnvelope
+    set?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    disconnect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    delete?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    connect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    update?: CalendarEventUpdateWithWhereUniqueWithoutUserInput | CalendarEventUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CalendarEventUpdateManyWithWhereWithoutUserInput | CalendarEventUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CalendarEventScalarWhereInput | CalendarEventScalarWhereInput[]
+  }
+
+  export type EmailOtpUpdateManyWithoutUserNestedInput = {
+    create?: XOR<EmailOtpCreateWithoutUserInput, EmailOtpUncheckedCreateWithoutUserInput> | EmailOtpCreateWithoutUserInput[] | EmailOtpUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EmailOtpCreateOrConnectWithoutUserInput | EmailOtpCreateOrConnectWithoutUserInput[]
+    upsert?: EmailOtpUpsertWithWhereUniqueWithoutUserInput | EmailOtpUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: EmailOtpCreateManyUserInputEnvelope
+    set?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+    disconnect?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+    delete?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+    connect?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+    update?: EmailOtpUpdateWithWhereUniqueWithoutUserInput | EmailOtpUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: EmailOtpUpdateManyWithWhereWithoutUserInput | EmailOtpUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: EmailOtpScalarWhereInput | EmailOtpScalarWhereInput[]
+  }
+
+  export type ProjectSubmissionUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ProjectSubmissionCreateWithoutUserInput, ProjectSubmissionUncheckedCreateWithoutUserInput> | ProjectSubmissionCreateWithoutUserInput[] | ProjectSubmissionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ProjectSubmissionCreateOrConnectWithoutUserInput | ProjectSubmissionCreateOrConnectWithoutUserInput[]
+    upsert?: ProjectSubmissionUpsertWithWhereUniqueWithoutUserInput | ProjectSubmissionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ProjectSubmissionCreateManyUserInputEnvelope
+    set?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    disconnect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    delete?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    connect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    update?: ProjectSubmissionUpdateWithWhereUniqueWithoutUserInput | ProjectSubmissionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ProjectSubmissionUpdateManyWithWhereWithoutUserInput | ProjectSubmissionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ProjectSubmissionScalarWhereInput | ProjectSubmissionScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -33902,6 +45140,48 @@ export namespace Prisma {
     deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
   }
 
+  export type CalendarEventUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CalendarEventCreateWithoutUserInput, CalendarEventUncheckedCreateWithoutUserInput> | CalendarEventCreateWithoutUserInput[] | CalendarEventUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CalendarEventCreateOrConnectWithoutUserInput | CalendarEventCreateOrConnectWithoutUserInput[]
+    upsert?: CalendarEventUpsertWithWhereUniqueWithoutUserInput | CalendarEventUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CalendarEventCreateManyUserInputEnvelope
+    set?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    disconnect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    delete?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    connect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    update?: CalendarEventUpdateWithWhereUniqueWithoutUserInput | CalendarEventUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CalendarEventUpdateManyWithWhereWithoutUserInput | CalendarEventUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CalendarEventScalarWhereInput | CalendarEventScalarWhereInput[]
+  }
+
+  export type EmailOtpUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<EmailOtpCreateWithoutUserInput, EmailOtpUncheckedCreateWithoutUserInput> | EmailOtpCreateWithoutUserInput[] | EmailOtpUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EmailOtpCreateOrConnectWithoutUserInput | EmailOtpCreateOrConnectWithoutUserInput[]
+    upsert?: EmailOtpUpsertWithWhereUniqueWithoutUserInput | EmailOtpUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: EmailOtpCreateManyUserInputEnvelope
+    set?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+    disconnect?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+    delete?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+    connect?: EmailOtpWhereUniqueInput | EmailOtpWhereUniqueInput[]
+    update?: EmailOtpUpdateWithWhereUniqueWithoutUserInput | EmailOtpUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: EmailOtpUpdateManyWithWhereWithoutUserInput | EmailOtpUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: EmailOtpScalarWhereInput | EmailOtpScalarWhereInput[]
+  }
+
+  export type ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ProjectSubmissionCreateWithoutUserInput, ProjectSubmissionUncheckedCreateWithoutUserInput> | ProjectSubmissionCreateWithoutUserInput[] | ProjectSubmissionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ProjectSubmissionCreateOrConnectWithoutUserInput | ProjectSubmissionCreateOrConnectWithoutUserInput[]
+    upsert?: ProjectSubmissionUpsertWithWhereUniqueWithoutUserInput | ProjectSubmissionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ProjectSubmissionCreateManyUserInputEnvelope
+    set?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    disconnect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    delete?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    connect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    update?: ProjectSubmissionUpdateWithWhereUniqueWithoutUserInput | ProjectSubmissionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ProjectSubmissionUpdateManyWithWhereWithoutUserInput | ProjectSubmissionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ProjectSubmissionScalarWhereInput | ProjectSubmissionScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutAccountsInput = {
     create?: XOR<UserCreateWithoutAccountsInput, UserUncheckedCreateWithoutAccountsInput>
     connectOrCreate?: UserCreateOrConnectWithoutAccountsInput
@@ -33958,6 +45238,20 @@ export namespace Prisma {
     connect?: QuizAttemptWhereUniqueInput | QuizAttemptWhereUniqueInput[]
   }
 
+  export type CalendarEventCreateNestedManyWithoutModuleInput = {
+    create?: XOR<CalendarEventCreateWithoutModuleInput, CalendarEventUncheckedCreateWithoutModuleInput> | CalendarEventCreateWithoutModuleInput[] | CalendarEventUncheckedCreateWithoutModuleInput[]
+    connectOrCreate?: CalendarEventCreateOrConnectWithoutModuleInput | CalendarEventCreateOrConnectWithoutModuleInput[]
+    createMany?: CalendarEventCreateManyModuleInputEnvelope
+    connect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+  }
+
+  export type CourseModuleCreateNestedManyWithoutModuleInput = {
+    create?: XOR<CourseModuleCreateWithoutModuleInput, CourseModuleUncheckedCreateWithoutModuleInput> | CourseModuleCreateWithoutModuleInput[] | CourseModuleUncheckedCreateWithoutModuleInput[]
+    connectOrCreate?: CourseModuleCreateOrConnectWithoutModuleInput | CourseModuleCreateOrConnectWithoutModuleInput[]
+    createMany?: CourseModuleCreateManyModuleInputEnvelope
+    connect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+  }
+
   export type ChapterUncheckedCreateNestedManyWithoutModuleInput = {
     create?: XOR<ChapterCreateWithoutModuleInput, ChapterUncheckedCreateWithoutModuleInput> | ChapterCreateWithoutModuleInput[] | ChapterUncheckedCreateWithoutModuleInput[]
     connectOrCreate?: ChapterCreateOrConnectWithoutModuleInput | ChapterCreateOrConnectWithoutModuleInput[]
@@ -33984,6 +45278,20 @@ export namespace Prisma {
     connectOrCreate?: QuizAttemptCreateOrConnectWithoutModuleInput | QuizAttemptCreateOrConnectWithoutModuleInput[]
     createMany?: QuizAttemptCreateManyModuleInputEnvelope
     connect?: QuizAttemptWhereUniqueInput | QuizAttemptWhereUniqueInput[]
+  }
+
+  export type CalendarEventUncheckedCreateNestedManyWithoutModuleInput = {
+    create?: XOR<CalendarEventCreateWithoutModuleInput, CalendarEventUncheckedCreateWithoutModuleInput> | CalendarEventCreateWithoutModuleInput[] | CalendarEventUncheckedCreateWithoutModuleInput[]
+    connectOrCreate?: CalendarEventCreateOrConnectWithoutModuleInput | CalendarEventCreateOrConnectWithoutModuleInput[]
+    createMany?: CalendarEventCreateManyModuleInputEnvelope
+    connect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+  }
+
+  export type CourseModuleUncheckedCreateNestedManyWithoutModuleInput = {
+    create?: XOR<CourseModuleCreateWithoutModuleInput, CourseModuleUncheckedCreateWithoutModuleInput> | CourseModuleCreateWithoutModuleInput[] | CourseModuleUncheckedCreateWithoutModuleInput[]
+    connectOrCreate?: CourseModuleCreateOrConnectWithoutModuleInput | CourseModuleCreateOrConnectWithoutModuleInput[]
+    createMany?: CourseModuleCreateManyModuleInputEnvelope
+    connect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
   }
 
   export type ChapterUpdateManyWithoutModuleNestedInput = {
@@ -34042,6 +45350,34 @@ export namespace Prisma {
     deleteMany?: QuizAttemptScalarWhereInput | QuizAttemptScalarWhereInput[]
   }
 
+  export type CalendarEventUpdateManyWithoutModuleNestedInput = {
+    create?: XOR<CalendarEventCreateWithoutModuleInput, CalendarEventUncheckedCreateWithoutModuleInput> | CalendarEventCreateWithoutModuleInput[] | CalendarEventUncheckedCreateWithoutModuleInput[]
+    connectOrCreate?: CalendarEventCreateOrConnectWithoutModuleInput | CalendarEventCreateOrConnectWithoutModuleInput[]
+    upsert?: CalendarEventUpsertWithWhereUniqueWithoutModuleInput | CalendarEventUpsertWithWhereUniqueWithoutModuleInput[]
+    createMany?: CalendarEventCreateManyModuleInputEnvelope
+    set?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    disconnect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    delete?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    connect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    update?: CalendarEventUpdateWithWhereUniqueWithoutModuleInput | CalendarEventUpdateWithWhereUniqueWithoutModuleInput[]
+    updateMany?: CalendarEventUpdateManyWithWhereWithoutModuleInput | CalendarEventUpdateManyWithWhereWithoutModuleInput[]
+    deleteMany?: CalendarEventScalarWhereInput | CalendarEventScalarWhereInput[]
+  }
+
+  export type CourseModuleUpdateManyWithoutModuleNestedInput = {
+    create?: XOR<CourseModuleCreateWithoutModuleInput, CourseModuleUncheckedCreateWithoutModuleInput> | CourseModuleCreateWithoutModuleInput[] | CourseModuleUncheckedCreateWithoutModuleInput[]
+    connectOrCreate?: CourseModuleCreateOrConnectWithoutModuleInput | CourseModuleCreateOrConnectWithoutModuleInput[]
+    upsert?: CourseModuleUpsertWithWhereUniqueWithoutModuleInput | CourseModuleUpsertWithWhereUniqueWithoutModuleInput[]
+    createMany?: CourseModuleCreateManyModuleInputEnvelope
+    set?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    disconnect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    delete?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    connect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    update?: CourseModuleUpdateWithWhereUniqueWithoutModuleInput | CourseModuleUpdateWithWhereUniqueWithoutModuleInput[]
+    updateMany?: CourseModuleUpdateManyWithWhereWithoutModuleInput | CourseModuleUpdateManyWithWhereWithoutModuleInput[]
+    deleteMany?: CourseModuleScalarWhereInput | CourseModuleScalarWhereInput[]
+  }
+
   export type ChapterUncheckedUpdateManyWithoutModuleNestedInput = {
     create?: XOR<ChapterCreateWithoutModuleInput, ChapterUncheckedCreateWithoutModuleInput> | ChapterCreateWithoutModuleInput[] | ChapterUncheckedCreateWithoutModuleInput[]
     connectOrCreate?: ChapterCreateOrConnectWithoutModuleInput | ChapterCreateOrConnectWithoutModuleInput[]
@@ -34096,6 +45432,104 @@ export namespace Prisma {
     update?: QuizAttemptUpdateWithWhereUniqueWithoutModuleInput | QuizAttemptUpdateWithWhereUniqueWithoutModuleInput[]
     updateMany?: QuizAttemptUpdateManyWithWhereWithoutModuleInput | QuizAttemptUpdateManyWithWhereWithoutModuleInput[]
     deleteMany?: QuizAttemptScalarWhereInput | QuizAttemptScalarWhereInput[]
+  }
+
+  export type CalendarEventUncheckedUpdateManyWithoutModuleNestedInput = {
+    create?: XOR<CalendarEventCreateWithoutModuleInput, CalendarEventUncheckedCreateWithoutModuleInput> | CalendarEventCreateWithoutModuleInput[] | CalendarEventUncheckedCreateWithoutModuleInput[]
+    connectOrCreate?: CalendarEventCreateOrConnectWithoutModuleInput | CalendarEventCreateOrConnectWithoutModuleInput[]
+    upsert?: CalendarEventUpsertWithWhereUniqueWithoutModuleInput | CalendarEventUpsertWithWhereUniqueWithoutModuleInput[]
+    createMany?: CalendarEventCreateManyModuleInputEnvelope
+    set?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    disconnect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    delete?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    connect?: CalendarEventWhereUniqueInput | CalendarEventWhereUniqueInput[]
+    update?: CalendarEventUpdateWithWhereUniqueWithoutModuleInput | CalendarEventUpdateWithWhereUniqueWithoutModuleInput[]
+    updateMany?: CalendarEventUpdateManyWithWhereWithoutModuleInput | CalendarEventUpdateManyWithWhereWithoutModuleInput[]
+    deleteMany?: CalendarEventScalarWhereInput | CalendarEventScalarWhereInput[]
+  }
+
+  export type CourseModuleUncheckedUpdateManyWithoutModuleNestedInput = {
+    create?: XOR<CourseModuleCreateWithoutModuleInput, CourseModuleUncheckedCreateWithoutModuleInput> | CourseModuleCreateWithoutModuleInput[] | CourseModuleUncheckedCreateWithoutModuleInput[]
+    connectOrCreate?: CourseModuleCreateOrConnectWithoutModuleInput | CourseModuleCreateOrConnectWithoutModuleInput[]
+    upsert?: CourseModuleUpsertWithWhereUniqueWithoutModuleInput | CourseModuleUpsertWithWhereUniqueWithoutModuleInput[]
+    createMany?: CourseModuleCreateManyModuleInputEnvelope
+    set?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    disconnect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    delete?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    connect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    update?: CourseModuleUpdateWithWhereUniqueWithoutModuleInput | CourseModuleUpdateWithWhereUniqueWithoutModuleInput[]
+    updateMany?: CourseModuleUpdateManyWithWhereWithoutModuleInput | CourseModuleUpdateManyWithWhereWithoutModuleInput[]
+    deleteMany?: CourseModuleScalarWhereInput | CourseModuleScalarWhereInput[]
+  }
+
+  export type CourseModuleCreateNestedManyWithoutCourseInput = {
+    create?: XOR<CourseModuleCreateWithoutCourseInput, CourseModuleUncheckedCreateWithoutCourseInput> | CourseModuleCreateWithoutCourseInput[] | CourseModuleUncheckedCreateWithoutCourseInput[]
+    connectOrCreate?: CourseModuleCreateOrConnectWithoutCourseInput | CourseModuleCreateOrConnectWithoutCourseInput[]
+    createMany?: CourseModuleCreateManyCourseInputEnvelope
+    connect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+  }
+
+  export type CourseModuleUncheckedCreateNestedManyWithoutCourseInput = {
+    create?: XOR<CourseModuleCreateWithoutCourseInput, CourseModuleUncheckedCreateWithoutCourseInput> | CourseModuleCreateWithoutCourseInput[] | CourseModuleUncheckedCreateWithoutCourseInput[]
+    connectOrCreate?: CourseModuleCreateOrConnectWithoutCourseInput | CourseModuleCreateOrConnectWithoutCourseInput[]
+    createMany?: CourseModuleCreateManyCourseInputEnvelope
+    connect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+  }
+
+  export type CourseModuleUpdateManyWithoutCourseNestedInput = {
+    create?: XOR<CourseModuleCreateWithoutCourseInput, CourseModuleUncheckedCreateWithoutCourseInput> | CourseModuleCreateWithoutCourseInput[] | CourseModuleUncheckedCreateWithoutCourseInput[]
+    connectOrCreate?: CourseModuleCreateOrConnectWithoutCourseInput | CourseModuleCreateOrConnectWithoutCourseInput[]
+    upsert?: CourseModuleUpsertWithWhereUniqueWithoutCourseInput | CourseModuleUpsertWithWhereUniqueWithoutCourseInput[]
+    createMany?: CourseModuleCreateManyCourseInputEnvelope
+    set?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    disconnect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    delete?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    connect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    update?: CourseModuleUpdateWithWhereUniqueWithoutCourseInput | CourseModuleUpdateWithWhereUniqueWithoutCourseInput[]
+    updateMany?: CourseModuleUpdateManyWithWhereWithoutCourseInput | CourseModuleUpdateManyWithWhereWithoutCourseInput[]
+    deleteMany?: CourseModuleScalarWhereInput | CourseModuleScalarWhereInput[]
+  }
+
+  export type CourseModuleUncheckedUpdateManyWithoutCourseNestedInput = {
+    create?: XOR<CourseModuleCreateWithoutCourseInput, CourseModuleUncheckedCreateWithoutCourseInput> | CourseModuleCreateWithoutCourseInput[] | CourseModuleUncheckedCreateWithoutCourseInput[]
+    connectOrCreate?: CourseModuleCreateOrConnectWithoutCourseInput | CourseModuleCreateOrConnectWithoutCourseInput[]
+    upsert?: CourseModuleUpsertWithWhereUniqueWithoutCourseInput | CourseModuleUpsertWithWhereUniqueWithoutCourseInput[]
+    createMany?: CourseModuleCreateManyCourseInputEnvelope
+    set?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    disconnect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    delete?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    connect?: CourseModuleWhereUniqueInput | CourseModuleWhereUniqueInput[]
+    update?: CourseModuleUpdateWithWhereUniqueWithoutCourseInput | CourseModuleUpdateWithWhereUniqueWithoutCourseInput[]
+    updateMany?: CourseModuleUpdateManyWithWhereWithoutCourseInput | CourseModuleUpdateManyWithWhereWithoutCourseInput[]
+    deleteMany?: CourseModuleScalarWhereInput | CourseModuleScalarWhereInput[]
+  }
+
+  export type CourseCreateNestedOneWithoutModulesInput = {
+    create?: XOR<CourseCreateWithoutModulesInput, CourseUncheckedCreateWithoutModulesInput>
+    connectOrCreate?: CourseCreateOrConnectWithoutModulesInput
+    connect?: CourseWhereUniqueInput
+  }
+
+  export type ModuleCreateNestedOneWithoutCoursesInput = {
+    create?: XOR<ModuleCreateWithoutCoursesInput, ModuleUncheckedCreateWithoutCoursesInput>
+    connectOrCreate?: ModuleCreateOrConnectWithoutCoursesInput
+    connect?: ModuleWhereUniqueInput
+  }
+
+  export type CourseUpdateOneRequiredWithoutModulesNestedInput = {
+    create?: XOR<CourseCreateWithoutModulesInput, CourseUncheckedCreateWithoutModulesInput>
+    connectOrCreate?: CourseCreateOrConnectWithoutModulesInput
+    upsert?: CourseUpsertWithoutModulesInput
+    connect?: CourseWhereUniqueInput
+    update?: XOR<XOR<CourseUpdateToOneWithWhereWithoutModulesInput, CourseUpdateWithoutModulesInput>, CourseUncheckedUpdateWithoutModulesInput>
+  }
+
+  export type ModuleUpdateOneRequiredWithoutCoursesNestedInput = {
+    create?: XOR<ModuleCreateWithoutCoursesInput, ModuleUncheckedCreateWithoutCoursesInput>
+    connectOrCreate?: ModuleCreateOrConnectWithoutCoursesInput
+    upsert?: ModuleUpsertWithoutCoursesInput
+    connect?: ModuleWhereUniqueInput
+    update?: XOR<XOR<ModuleUpdateToOneWithWhereWithoutCoursesInput, ModuleUpdateWithoutCoursesInput>, ModuleUncheckedUpdateWithoutCoursesInput>
   }
 
   export type UserCreateNestedOneWithoutEnrollmentsInput = {
@@ -34258,6 +45692,20 @@ export namespace Prisma {
     connect?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
   }
 
+  export type CodingProjectCreateNestedManyWithoutTopicInput = {
+    create?: XOR<CodingProjectCreateWithoutTopicInput, CodingProjectUncheckedCreateWithoutTopicInput> | CodingProjectCreateWithoutTopicInput[] | CodingProjectUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: CodingProjectCreateOrConnectWithoutTopicInput | CodingProjectCreateOrConnectWithoutTopicInput[]
+    createMany?: CodingProjectCreateManyTopicInputEnvelope
+    connect?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+  }
+
+  export type TopicExerciseCreateNestedManyWithoutTopicInput = {
+    create?: XOR<TopicExerciseCreateWithoutTopicInput, TopicExerciseUncheckedCreateWithoutTopicInput> | TopicExerciseCreateWithoutTopicInput[] | TopicExerciseUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: TopicExerciseCreateOrConnectWithoutTopicInput | TopicExerciseCreateOrConnectWithoutTopicInput[]
+    createMany?: TopicExerciseCreateManyTopicInputEnvelope
+    connect?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
+  }
+
   export type QuestionUncheckedCreateNestedManyWithoutTopicInput = {
     create?: XOR<QuestionCreateWithoutTopicInput, QuestionUncheckedCreateWithoutTopicInput> | QuestionCreateWithoutTopicInput[] | QuestionUncheckedCreateWithoutTopicInput[]
     connectOrCreate?: QuestionCreateOrConnectWithoutTopicInput | QuestionCreateOrConnectWithoutTopicInput[]
@@ -34284,6 +45732,20 @@ export namespace Prisma {
     connectOrCreate?: TopicPdfCreateOrConnectWithoutTopicInput | TopicPdfCreateOrConnectWithoutTopicInput[]
     createMany?: TopicPdfCreateManyTopicInputEnvelope
     connect?: TopicPdfWhereUniqueInput | TopicPdfWhereUniqueInput[]
+  }
+
+  export type CodingProjectUncheckedCreateNestedManyWithoutTopicInput = {
+    create?: XOR<CodingProjectCreateWithoutTopicInput, CodingProjectUncheckedCreateWithoutTopicInput> | CodingProjectCreateWithoutTopicInput[] | CodingProjectUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: CodingProjectCreateOrConnectWithoutTopicInput | CodingProjectCreateOrConnectWithoutTopicInput[]
+    createMany?: CodingProjectCreateManyTopicInputEnvelope
+    connect?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+  }
+
+  export type TopicExerciseUncheckedCreateNestedManyWithoutTopicInput = {
+    create?: XOR<TopicExerciseCreateWithoutTopicInput, TopicExerciseUncheckedCreateWithoutTopicInput> | TopicExerciseCreateWithoutTopicInput[] | TopicExerciseUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: TopicExerciseCreateOrConnectWithoutTopicInput | TopicExerciseCreateOrConnectWithoutTopicInput[]
+    createMany?: TopicExerciseCreateManyTopicInputEnvelope
+    connect?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
   }
 
   export type ChapterUpdateOneRequiredWithoutTopicsNestedInput = {
@@ -34350,6 +45812,34 @@ export namespace Prisma {
     deleteMany?: TopicPdfScalarWhereInput | TopicPdfScalarWhereInput[]
   }
 
+  export type CodingProjectUpdateManyWithoutTopicNestedInput = {
+    create?: XOR<CodingProjectCreateWithoutTopicInput, CodingProjectUncheckedCreateWithoutTopicInput> | CodingProjectCreateWithoutTopicInput[] | CodingProjectUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: CodingProjectCreateOrConnectWithoutTopicInput | CodingProjectCreateOrConnectWithoutTopicInput[]
+    upsert?: CodingProjectUpsertWithWhereUniqueWithoutTopicInput | CodingProjectUpsertWithWhereUniqueWithoutTopicInput[]
+    createMany?: CodingProjectCreateManyTopicInputEnvelope
+    set?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+    disconnect?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+    delete?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+    connect?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+    update?: CodingProjectUpdateWithWhereUniqueWithoutTopicInput | CodingProjectUpdateWithWhereUniqueWithoutTopicInput[]
+    updateMany?: CodingProjectUpdateManyWithWhereWithoutTopicInput | CodingProjectUpdateManyWithWhereWithoutTopicInput[]
+    deleteMany?: CodingProjectScalarWhereInput | CodingProjectScalarWhereInput[]
+  }
+
+  export type TopicExerciseUpdateManyWithoutTopicNestedInput = {
+    create?: XOR<TopicExerciseCreateWithoutTopicInput, TopicExerciseUncheckedCreateWithoutTopicInput> | TopicExerciseCreateWithoutTopicInput[] | TopicExerciseUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: TopicExerciseCreateOrConnectWithoutTopicInput | TopicExerciseCreateOrConnectWithoutTopicInput[]
+    upsert?: TopicExerciseUpsertWithWhereUniqueWithoutTopicInput | TopicExerciseUpsertWithWhereUniqueWithoutTopicInput[]
+    createMany?: TopicExerciseCreateManyTopicInputEnvelope
+    set?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
+    disconnect?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
+    delete?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
+    connect?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
+    update?: TopicExerciseUpdateWithWhereUniqueWithoutTopicInput | TopicExerciseUpdateWithWhereUniqueWithoutTopicInput[]
+    updateMany?: TopicExerciseUpdateManyWithWhereWithoutTopicInput | TopicExerciseUpdateManyWithWhereWithoutTopicInput[]
+    deleteMany?: TopicExerciseScalarWhereInput | TopicExerciseScalarWhereInput[]
+  }
+
   export type QuestionUncheckedUpdateManyWithoutTopicNestedInput = {
     create?: XOR<QuestionCreateWithoutTopicInput, QuestionUncheckedCreateWithoutTopicInput> | QuestionCreateWithoutTopicInput[] | QuestionUncheckedCreateWithoutTopicInput[]
     connectOrCreate?: QuestionCreateOrConnectWithoutTopicInput | QuestionCreateOrConnectWithoutTopicInput[]
@@ -34406,6 +45896,34 @@ export namespace Prisma {
     deleteMany?: TopicPdfScalarWhereInput | TopicPdfScalarWhereInput[]
   }
 
+  export type CodingProjectUncheckedUpdateManyWithoutTopicNestedInput = {
+    create?: XOR<CodingProjectCreateWithoutTopicInput, CodingProjectUncheckedCreateWithoutTopicInput> | CodingProjectCreateWithoutTopicInput[] | CodingProjectUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: CodingProjectCreateOrConnectWithoutTopicInput | CodingProjectCreateOrConnectWithoutTopicInput[]
+    upsert?: CodingProjectUpsertWithWhereUniqueWithoutTopicInput | CodingProjectUpsertWithWhereUniqueWithoutTopicInput[]
+    createMany?: CodingProjectCreateManyTopicInputEnvelope
+    set?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+    disconnect?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+    delete?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+    connect?: CodingProjectWhereUniqueInput | CodingProjectWhereUniqueInput[]
+    update?: CodingProjectUpdateWithWhereUniqueWithoutTopicInput | CodingProjectUpdateWithWhereUniqueWithoutTopicInput[]
+    updateMany?: CodingProjectUpdateManyWithWhereWithoutTopicInput | CodingProjectUpdateManyWithWhereWithoutTopicInput[]
+    deleteMany?: CodingProjectScalarWhereInput | CodingProjectScalarWhereInput[]
+  }
+
+  export type TopicExerciseUncheckedUpdateManyWithoutTopicNestedInput = {
+    create?: XOR<TopicExerciseCreateWithoutTopicInput, TopicExerciseUncheckedCreateWithoutTopicInput> | TopicExerciseCreateWithoutTopicInput[] | TopicExerciseUncheckedCreateWithoutTopicInput[]
+    connectOrCreate?: TopicExerciseCreateOrConnectWithoutTopicInput | TopicExerciseCreateOrConnectWithoutTopicInput[]
+    upsert?: TopicExerciseUpsertWithWhereUniqueWithoutTopicInput | TopicExerciseUpsertWithWhereUniqueWithoutTopicInput[]
+    createMany?: TopicExerciseCreateManyTopicInputEnvelope
+    set?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
+    disconnect?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
+    delete?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
+    connect?: TopicExerciseWhereUniqueInput | TopicExerciseWhereUniqueInput[]
+    update?: TopicExerciseUpdateWithWhereUniqueWithoutTopicInput | TopicExerciseUpdateWithWhereUniqueWithoutTopicInput[]
+    updateMany?: TopicExerciseUpdateManyWithWhereWithoutTopicInput | TopicExerciseUpdateManyWithWhereWithoutTopicInput[]
+    deleteMany?: TopicExerciseScalarWhereInput | TopicExerciseScalarWhereInput[]
+  }
+
   export type TopicCreateNestedOneWithoutPdfsInput = {
     create?: XOR<TopicCreateWithoutPdfsInput, TopicUncheckedCreateWithoutPdfsInput>
     connectOrCreate?: TopicCreateOrConnectWithoutPdfsInput
@@ -34418,10 +45936,6 @@ export namespace Prisma {
     upsert?: TopicUpsertWithoutPdfsInput
     connect?: TopicWhereUniqueInput
     update?: XOR<XOR<TopicUpdateToOneWithWhereWithoutPdfsInput, TopicUpdateWithoutPdfsInput>, TopicUncheckedUpdateWithoutPdfsInput>
-  }
-
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
   }
 
   export type TopicCreateNestedOneWithoutQuestionsInput = {
@@ -34768,6 +46282,36 @@ export namespace Prisma {
     update?: XOR<XOR<ModuleUpdateToOneWithWhereWithoutTimetablesInput, ModuleUpdateWithoutTimetablesInput>, ModuleUncheckedUpdateWithoutTimetablesInput>
   }
 
+  export type UserCreateNestedOneWithoutCalendarEventsInput = {
+    create?: XOR<UserCreateWithoutCalendarEventsInput, UserUncheckedCreateWithoutCalendarEventsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCalendarEventsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type ModuleCreateNestedOneWithoutCalendarEventsInput = {
+    create?: XOR<ModuleCreateWithoutCalendarEventsInput, ModuleUncheckedCreateWithoutCalendarEventsInput>
+    connectOrCreate?: ModuleCreateOrConnectWithoutCalendarEventsInput
+    connect?: ModuleWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutCalendarEventsNestedInput = {
+    create?: XOR<UserCreateWithoutCalendarEventsInput, UserUncheckedCreateWithoutCalendarEventsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCalendarEventsInput
+    upsert?: UserUpsertWithoutCalendarEventsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCalendarEventsInput, UserUpdateWithoutCalendarEventsInput>, UserUncheckedUpdateWithoutCalendarEventsInput>
+  }
+
+  export type ModuleUpdateOneWithoutCalendarEventsNestedInput = {
+    create?: XOR<ModuleCreateWithoutCalendarEventsInput, ModuleUncheckedCreateWithoutCalendarEventsInput>
+    connectOrCreate?: ModuleCreateOrConnectWithoutCalendarEventsInput
+    upsert?: ModuleUpsertWithoutCalendarEventsInput
+    disconnect?: ModuleWhereInput | boolean
+    delete?: ModuleWhereInput | boolean
+    connect?: ModuleWhereUniqueInput
+    update?: XOR<XOR<ModuleUpdateToOneWithWhereWithoutCalendarEventsInput, ModuleUpdateWithoutCalendarEventsInput>, ModuleUncheckedUpdateWithoutCalendarEventsInput>
+  }
+
   export type UserCreateNestedOneWithoutNotificationsInput = {
     create?: XOR<UserCreateWithoutNotificationsInput, UserUncheckedCreateWithoutNotificationsInput>
     connectOrCreate?: UserCreateOrConnectWithoutNotificationsInput
@@ -34972,6 +46516,120 @@ export namespace Prisma {
     update?: MessageUpdateWithWhereUniqueWithoutReplyToInput | MessageUpdateWithWhereUniqueWithoutReplyToInput[]
     updateMany?: MessageUpdateManyWithWhereWithoutReplyToInput | MessageUpdateManyWithWhereWithoutReplyToInput[]
     deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutEmailOtpsInput = {
+    create?: XOR<UserCreateWithoutEmailOtpsInput, UserUncheckedCreateWithoutEmailOtpsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutEmailOtpsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneWithoutEmailOtpsNestedInput = {
+    create?: XOR<UserCreateWithoutEmailOtpsInput, UserUncheckedCreateWithoutEmailOtpsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutEmailOtpsInput
+    upsert?: UserUpsertWithoutEmailOtpsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutEmailOtpsInput, UserUpdateWithoutEmailOtpsInput>, UserUncheckedUpdateWithoutEmailOtpsInput>
+  }
+
+  export type TopicCreateNestedOneWithoutCodingProjectsInput = {
+    create?: XOR<TopicCreateWithoutCodingProjectsInput, TopicUncheckedCreateWithoutCodingProjectsInput>
+    connectOrCreate?: TopicCreateOrConnectWithoutCodingProjectsInput
+    connect?: TopicWhereUniqueInput
+  }
+
+  export type ProjectSubmissionCreateNestedManyWithoutProjectInput = {
+    create?: XOR<ProjectSubmissionCreateWithoutProjectInput, ProjectSubmissionUncheckedCreateWithoutProjectInput> | ProjectSubmissionCreateWithoutProjectInput[] | ProjectSubmissionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: ProjectSubmissionCreateOrConnectWithoutProjectInput | ProjectSubmissionCreateOrConnectWithoutProjectInput[]
+    createMany?: ProjectSubmissionCreateManyProjectInputEnvelope
+    connect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+  }
+
+  export type ProjectSubmissionUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<ProjectSubmissionCreateWithoutProjectInput, ProjectSubmissionUncheckedCreateWithoutProjectInput> | ProjectSubmissionCreateWithoutProjectInput[] | ProjectSubmissionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: ProjectSubmissionCreateOrConnectWithoutProjectInput | ProjectSubmissionCreateOrConnectWithoutProjectInput[]
+    createMany?: ProjectSubmissionCreateManyProjectInputEnvelope
+    connect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+  }
+
+  export type TopicUpdateOneRequiredWithoutCodingProjectsNestedInput = {
+    create?: XOR<TopicCreateWithoutCodingProjectsInput, TopicUncheckedCreateWithoutCodingProjectsInput>
+    connectOrCreate?: TopicCreateOrConnectWithoutCodingProjectsInput
+    upsert?: TopicUpsertWithoutCodingProjectsInput
+    connect?: TopicWhereUniqueInput
+    update?: XOR<XOR<TopicUpdateToOneWithWhereWithoutCodingProjectsInput, TopicUpdateWithoutCodingProjectsInput>, TopicUncheckedUpdateWithoutCodingProjectsInput>
+  }
+
+  export type ProjectSubmissionUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<ProjectSubmissionCreateWithoutProjectInput, ProjectSubmissionUncheckedCreateWithoutProjectInput> | ProjectSubmissionCreateWithoutProjectInput[] | ProjectSubmissionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: ProjectSubmissionCreateOrConnectWithoutProjectInput | ProjectSubmissionCreateOrConnectWithoutProjectInput[]
+    upsert?: ProjectSubmissionUpsertWithWhereUniqueWithoutProjectInput | ProjectSubmissionUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: ProjectSubmissionCreateManyProjectInputEnvelope
+    set?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    disconnect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    delete?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    connect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    update?: ProjectSubmissionUpdateWithWhereUniqueWithoutProjectInput | ProjectSubmissionUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: ProjectSubmissionUpdateManyWithWhereWithoutProjectInput | ProjectSubmissionUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: ProjectSubmissionScalarWhereInput | ProjectSubmissionScalarWhereInput[]
+  }
+
+  export type ProjectSubmissionUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<ProjectSubmissionCreateWithoutProjectInput, ProjectSubmissionUncheckedCreateWithoutProjectInput> | ProjectSubmissionCreateWithoutProjectInput[] | ProjectSubmissionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: ProjectSubmissionCreateOrConnectWithoutProjectInput | ProjectSubmissionCreateOrConnectWithoutProjectInput[]
+    upsert?: ProjectSubmissionUpsertWithWhereUniqueWithoutProjectInput | ProjectSubmissionUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: ProjectSubmissionCreateManyProjectInputEnvelope
+    set?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    disconnect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    delete?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    connect?: ProjectSubmissionWhereUniqueInput | ProjectSubmissionWhereUniqueInput[]
+    update?: ProjectSubmissionUpdateWithWhereUniqueWithoutProjectInput | ProjectSubmissionUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: ProjectSubmissionUpdateManyWithWhereWithoutProjectInput | ProjectSubmissionUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: ProjectSubmissionScalarWhereInput | ProjectSubmissionScalarWhereInput[]
+  }
+
+  export type CodingProjectCreateNestedOneWithoutSubmissionsInput = {
+    create?: XOR<CodingProjectCreateWithoutSubmissionsInput, CodingProjectUncheckedCreateWithoutSubmissionsInput>
+    connectOrCreate?: CodingProjectCreateOrConnectWithoutSubmissionsInput
+    connect?: CodingProjectWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutProjectSubmissionsInput = {
+    create?: XOR<UserCreateWithoutProjectSubmissionsInput, UserUncheckedCreateWithoutProjectSubmissionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutProjectSubmissionsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type CodingProjectUpdateOneRequiredWithoutSubmissionsNestedInput = {
+    create?: XOR<CodingProjectCreateWithoutSubmissionsInput, CodingProjectUncheckedCreateWithoutSubmissionsInput>
+    connectOrCreate?: CodingProjectCreateOrConnectWithoutSubmissionsInput
+    upsert?: CodingProjectUpsertWithoutSubmissionsInput
+    connect?: CodingProjectWhereUniqueInput
+    update?: XOR<XOR<CodingProjectUpdateToOneWithWhereWithoutSubmissionsInput, CodingProjectUpdateWithoutSubmissionsInput>, CodingProjectUncheckedUpdateWithoutSubmissionsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutProjectSubmissionsNestedInput = {
+    create?: XOR<UserCreateWithoutProjectSubmissionsInput, UserUncheckedCreateWithoutProjectSubmissionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutProjectSubmissionsInput
+    upsert?: UserUpsertWithoutProjectSubmissionsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutProjectSubmissionsInput, UserUpdateWithoutProjectSubmissionsInput>, UserUncheckedUpdateWithoutProjectSubmissionsInput>
+  }
+
+  export type TopicCreateNestedOneWithoutExercisesInput = {
+    create?: XOR<TopicCreateWithoutExercisesInput, TopicUncheckedCreateWithoutExercisesInput>
+    connectOrCreate?: TopicCreateOrConnectWithoutExercisesInput
+    connect?: TopicWhereUniqueInput
+  }
+
+  export type TopicUpdateOneRequiredWithoutExercisesNestedInput = {
+    create?: XOR<TopicCreateWithoutExercisesInput, TopicUncheckedCreateWithoutExercisesInput>
+    connectOrCreate?: TopicCreateOrConnectWithoutExercisesInput
+    upsert?: TopicUpsertWithoutExercisesInput
+    connect?: TopicWhereUniqueInput
+    update?: XOR<XOR<TopicUpdateToOneWithWhereWithoutExercisesInput, TopicUpdateWithoutExercisesInput>, TopicUncheckedUpdateWithoutExercisesInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -35216,6 +46874,11 @@ export namespace Prisma {
     not?: NestedEnumRoleFilter<$PrismaModel> | $Enums.Role
   }
 
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -35224,11 +46887,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRoleFilter<$PrismaModel>
     _max?: NestedEnumRoleFilter<$PrismaModel>
-  }
-
-  export type NestedBoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -35272,6 +46930,29 @@ export namespace Prisma {
     _min?: NestedEnumMessageTypeFilter<$PrismaModel>
     _max?: NestedEnumMessageTypeFilter<$PrismaModel>
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type UserCreateWithoutQuizAttemptsInput = {
     id?: string
@@ -35281,6 +46962,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -35297,6 +46980,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutQuizAttemptsInput = {
@@ -35307,6 +46993,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -35323,6 +47011,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutQuizAttemptsInput = {
@@ -35337,10 +47028,14 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     chapter: ChapterCreateNestedOneWithoutTopicsInput
     questions?: QuestionCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateWithoutQuizAttemptsInput = {
@@ -35351,9 +47046,13 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectUncheckedCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicCreateOrConnectWithoutQuizAttemptsInput = {
@@ -35366,9 +47065,13 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     chapters?: ChapterCreateNestedManyWithoutModuleInput
     timetables?: TimetableCreateNestedManyWithoutModuleInput
     enrollments?: ModuleEnrollmentCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleUncheckedCreateWithoutQuizAttemptsInput = {
@@ -35376,9 +47079,13 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     chapters?: ChapterUncheckedCreateNestedManyWithoutModuleInput
     timetables?: TimetableUncheckedCreateNestedManyWithoutModuleInput
     enrollments?: ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleUncheckedCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleCreateOrConnectWithoutQuizAttemptsInput = {
@@ -35391,6 +47098,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -35405,6 +47113,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -35439,6 +47148,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35455,6 +47166,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutQuizAttemptsInput = {
@@ -35465,6 +47179,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35481,6 +47197,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TopicUpsertWithoutQuizAttemptsInput = {
@@ -35501,10 +47220,14 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
     questions?: QuestionUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateWithoutQuizAttemptsInput = {
@@ -35515,9 +47238,13 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUncheckedUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type ModuleUpsertWithoutQuizAttemptsInput = {
@@ -35536,9 +47263,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     chapters?: ChapterUpdateManyWithoutModuleNestedInput
     timetables?: TimetableUpdateManyWithoutModuleNestedInput
     enrollments?: ModuleEnrollmentUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUpdateManyWithoutModuleNestedInput
   }
 
   export type ModuleUncheckedUpdateWithoutQuizAttemptsInput = {
@@ -35546,9 +47277,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     chapters?: ChapterUncheckedUpdateManyWithoutModuleNestedInput
     timetables?: TimetableUncheckedUpdateManyWithoutModuleNestedInput
     enrollments?: ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUncheckedUpdateManyWithoutModuleNestedInput
   }
 
   export type QuestionAttemptUpsertWithWhereUniqueWithoutQuizAttemptInput = {
@@ -35578,6 +47313,7 @@ export namespace Prisma {
     isCorrect?: BoolNullableFilter<"QuestionAttempt"> | boolean | null
     order?: IntFilter<"QuestionAttempt"> | number
     status?: EnumAnswerStatusFilter<"QuestionAttempt"> | $Enums.AnswerStatus
+    typedAnswer?: StringNullableFilter<"QuestionAttempt"> | string | null
     answeredAt?: DateTimeNullableFilter<"QuestionAttempt"> | Date | string | null
     createdAt?: DateTimeFilter<"QuestionAttempt"> | Date | string
     updatedAt?: DateTimeFilter<"QuestionAttempt"> | Date | string
@@ -35625,6 +47361,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     topic?: TopicCreateNestedOneWithoutQuestionsInput
     chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     answers?: AnswerCreateNestedManyWithoutQuestionInput
@@ -35638,6 +47378,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     answers?: AnswerUncheckedCreateNestedManyWithoutQuestionInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutQuestionInput
   }
@@ -35727,6 +47471,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     topic?: TopicUpdateOneWithoutQuestionsNestedInput
     chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     answers?: AnswerUpdateManyWithoutQuestionNestedInput
@@ -35740,6 +47488,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     answers?: AnswerUncheckedUpdateManyWithoutQuestionNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutQuestionNestedInput
   }
@@ -35834,6 +47586,7 @@ export namespace Prisma {
   export type UserAnswerCreateWithoutUserInput = {
     id?: string
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
     question: QuestionCreateNestedOneWithoutUserAnswersInput
     selectedAnswer?: AnswerCreateNestedOneWithoutUserAnswersInput
@@ -35844,6 +47597,7 @@ export namespace Prisma {
     questionId: string
     selectedAnswerId?: string | null
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
   }
 
@@ -36115,6 +47869,114 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CalendarEventCreateWithoutUserInput = {
+    id?: string
+    type?: string
+    title: string
+    notes?: string | null
+    startAt: Date | string
+    endAt?: Date | string | null
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: Date | string | null
+    remindedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    module?: ModuleCreateNestedOneWithoutCalendarEventsInput
+  }
+
+  export type CalendarEventUncheckedCreateWithoutUserInput = {
+    id?: string
+    moduleId?: string | null
+    type?: string
+    title: string
+    notes?: string | null
+    startAt: Date | string
+    endAt?: Date | string | null
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: Date | string | null
+    remindedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CalendarEventCreateOrConnectWithoutUserInput = {
+    where: CalendarEventWhereUniqueInput
+    create: XOR<CalendarEventCreateWithoutUserInput, CalendarEventUncheckedCreateWithoutUserInput>
+  }
+
+  export type CalendarEventCreateManyUserInputEnvelope = {
+    data: CalendarEventCreateManyUserInput | CalendarEventCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type EmailOtpCreateWithoutUserInput = {
+    id?: string
+    purpose: string
+    key: string
+    email: string
+    codeHash: string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: number
+    sends?: number
+    expiresAt: Date | string
+    lastSentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type EmailOtpUncheckedCreateWithoutUserInput = {
+    id?: string
+    purpose: string
+    key: string
+    email: string
+    codeHash: string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: number
+    sends?: number
+    expiresAt: Date | string
+    lastSentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type EmailOtpCreateOrConnectWithoutUserInput = {
+    where: EmailOtpWhereUniqueInput
+    create: XOR<EmailOtpCreateWithoutUserInput, EmailOtpUncheckedCreateWithoutUserInput>
+  }
+
+  export type EmailOtpCreateManyUserInputEnvelope = {
+    data: EmailOtpCreateManyUserInput | EmailOtpCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ProjectSubmissionCreateWithoutUserInput = {
+    id?: string
+    files: string
+    score: number
+    feedback: string
+    createdAt?: Date | string
+    project: CodingProjectCreateNestedOneWithoutSubmissionsInput
+  }
+
+  export type ProjectSubmissionUncheckedCreateWithoutUserInput = {
+    id?: string
+    projectId: string
+    files: string
+    score: number
+    feedback: string
+    createdAt?: Date | string
+  }
+
+  export type ProjectSubmissionCreateOrConnectWithoutUserInput = {
+    where: ProjectSubmissionWhereUniqueInput
+    create: XOR<ProjectSubmissionCreateWithoutUserInput, ProjectSubmissionUncheckedCreateWithoutUserInput>
+  }
+
+  export type ProjectSubmissionCreateManyUserInputEnvelope = {
+    data: ProjectSubmissionCreateManyUserInput | ProjectSubmissionCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
     where: AccountWhereUniqueInput
     update: XOR<AccountUpdateWithoutUserInput, AccountUncheckedUpdateWithoutUserInput>
@@ -36200,6 +48062,7 @@ export namespace Prisma {
     questionId?: StringFilter<"UserAnswer"> | string
     selectedAnswerId?: StringNullableFilter<"UserAnswer"> | string | null
     isCorrect?: BoolFilter<"UserAnswer"> | boolean
+    typedAnswer?: StringNullableFilter<"UserAnswer"> | string | null
     answeredAt?: DateTimeFilter<"UserAnswer"> | Date | string
   }
 
@@ -36440,6 +48303,105 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Message"> | Date | string
   }
 
+  export type CalendarEventUpsertWithWhereUniqueWithoutUserInput = {
+    where: CalendarEventWhereUniqueInput
+    update: XOR<CalendarEventUpdateWithoutUserInput, CalendarEventUncheckedUpdateWithoutUserInput>
+    create: XOR<CalendarEventCreateWithoutUserInput, CalendarEventUncheckedCreateWithoutUserInput>
+  }
+
+  export type CalendarEventUpdateWithWhereUniqueWithoutUserInput = {
+    where: CalendarEventWhereUniqueInput
+    data: XOR<CalendarEventUpdateWithoutUserInput, CalendarEventUncheckedUpdateWithoutUserInput>
+  }
+
+  export type CalendarEventUpdateManyWithWhereWithoutUserInput = {
+    where: CalendarEventScalarWhereInput
+    data: XOR<CalendarEventUpdateManyMutationInput, CalendarEventUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type CalendarEventScalarWhereInput = {
+    AND?: CalendarEventScalarWhereInput | CalendarEventScalarWhereInput[]
+    OR?: CalendarEventScalarWhereInput[]
+    NOT?: CalendarEventScalarWhereInput | CalendarEventScalarWhereInput[]
+    id?: StringFilter<"CalendarEvent"> | string
+    userId?: StringFilter<"CalendarEvent"> | string
+    moduleId?: StringNullableFilter<"CalendarEvent"> | string | null
+    type?: StringFilter<"CalendarEvent"> | string
+    title?: StringFilter<"CalendarEvent"> | string
+    notes?: StringNullableFilter<"CalendarEvent"> | string | null
+    startAt?: DateTimeFilter<"CalendarEvent"> | Date | string
+    endAt?: DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
+    allDay?: BoolFilter<"CalendarEvent"> | boolean
+    completed?: BoolFilter<"CalendarEvent"> | boolean
+    remindAt?: DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
+    remindedAt?: DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
+    createdAt?: DateTimeFilter<"CalendarEvent"> | Date | string
+    updatedAt?: DateTimeFilter<"CalendarEvent"> | Date | string
+  }
+
+  export type EmailOtpUpsertWithWhereUniqueWithoutUserInput = {
+    where: EmailOtpWhereUniqueInput
+    update: XOR<EmailOtpUpdateWithoutUserInput, EmailOtpUncheckedUpdateWithoutUserInput>
+    create: XOR<EmailOtpCreateWithoutUserInput, EmailOtpUncheckedCreateWithoutUserInput>
+  }
+
+  export type EmailOtpUpdateWithWhereUniqueWithoutUserInput = {
+    where: EmailOtpWhereUniqueInput
+    data: XOR<EmailOtpUpdateWithoutUserInput, EmailOtpUncheckedUpdateWithoutUserInput>
+  }
+
+  export type EmailOtpUpdateManyWithWhereWithoutUserInput = {
+    where: EmailOtpScalarWhereInput
+    data: XOR<EmailOtpUpdateManyMutationInput, EmailOtpUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type EmailOtpScalarWhereInput = {
+    AND?: EmailOtpScalarWhereInput | EmailOtpScalarWhereInput[]
+    OR?: EmailOtpScalarWhereInput[]
+    NOT?: EmailOtpScalarWhereInput | EmailOtpScalarWhereInput[]
+    id?: StringFilter<"EmailOtp"> | string
+    purpose?: StringFilter<"EmailOtp"> | string
+    key?: StringFilter<"EmailOtp"> | string
+    email?: StringFilter<"EmailOtp"> | string
+    userId?: StringNullableFilter<"EmailOtp"> | string | null
+    codeHash?: StringFilter<"EmailOtp"> | string
+    payload?: JsonNullableFilter<"EmailOtp">
+    attempts?: IntFilter<"EmailOtp"> | number
+    sends?: IntFilter<"EmailOtp"> | number
+    expiresAt?: DateTimeFilter<"EmailOtp"> | Date | string
+    lastSentAt?: DateTimeFilter<"EmailOtp"> | Date | string
+    createdAt?: DateTimeFilter<"EmailOtp"> | Date | string
+  }
+
+  export type ProjectSubmissionUpsertWithWhereUniqueWithoutUserInput = {
+    where: ProjectSubmissionWhereUniqueInput
+    update: XOR<ProjectSubmissionUpdateWithoutUserInput, ProjectSubmissionUncheckedUpdateWithoutUserInput>
+    create: XOR<ProjectSubmissionCreateWithoutUserInput, ProjectSubmissionUncheckedCreateWithoutUserInput>
+  }
+
+  export type ProjectSubmissionUpdateWithWhereUniqueWithoutUserInput = {
+    where: ProjectSubmissionWhereUniqueInput
+    data: XOR<ProjectSubmissionUpdateWithoutUserInput, ProjectSubmissionUncheckedUpdateWithoutUserInput>
+  }
+
+  export type ProjectSubmissionUpdateManyWithWhereWithoutUserInput = {
+    where: ProjectSubmissionScalarWhereInput
+    data: XOR<ProjectSubmissionUpdateManyMutationInput, ProjectSubmissionUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type ProjectSubmissionScalarWhereInput = {
+    AND?: ProjectSubmissionScalarWhereInput | ProjectSubmissionScalarWhereInput[]
+    OR?: ProjectSubmissionScalarWhereInput[]
+    NOT?: ProjectSubmissionScalarWhereInput | ProjectSubmissionScalarWhereInput[]
+    id?: StringFilter<"ProjectSubmission"> | string
+    projectId?: StringFilter<"ProjectSubmission"> | string
+    userId?: StringFilter<"ProjectSubmission"> | string
+    files?: StringFilter<"ProjectSubmission"> | string
+    score?: IntFilter<"ProjectSubmission"> | number
+    feedback?: StringFilter<"ProjectSubmission"> | string
+    createdAt?: DateTimeFilter<"ProjectSubmission"> | Date | string
+  }
+
   export type UserCreateWithoutAccountsInput = {
     id?: string
     name?: string | null
@@ -36448,6 +48410,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -36464,6 +48428,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -36474,6 +48441,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -36490,6 +48459,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -36516,6 +48488,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36532,6 +48506,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -36542,6 +48519,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36558,6 +48537,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -36568,6 +48550,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -36584,6 +48568,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -36594,6 +48581,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -36610,6 +48599,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -36636,6 +48628,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36652,6 +48646,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -36662,6 +48659,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36678,6 +48677,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ChapterCreateWithoutModuleInput = {
@@ -36802,6 +48804,68 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CalendarEventCreateWithoutModuleInput = {
+    id?: string
+    type?: string
+    title: string
+    notes?: string | null
+    startAt: Date | string
+    endAt?: Date | string | null
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: Date | string | null
+    remindedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCalendarEventsInput
+  }
+
+  export type CalendarEventUncheckedCreateWithoutModuleInput = {
+    id?: string
+    userId: string
+    type?: string
+    title: string
+    notes?: string | null
+    startAt: Date | string
+    endAt?: Date | string | null
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: Date | string | null
+    remindedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CalendarEventCreateOrConnectWithoutModuleInput = {
+    where: CalendarEventWhereUniqueInput
+    create: XOR<CalendarEventCreateWithoutModuleInput, CalendarEventUncheckedCreateWithoutModuleInput>
+  }
+
+  export type CalendarEventCreateManyModuleInputEnvelope = {
+    data: CalendarEventCreateManyModuleInput | CalendarEventCreateManyModuleInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CourseModuleCreateWithoutModuleInput = {
+    position?: number
+    course: CourseCreateNestedOneWithoutModulesInput
+  }
+
+  export type CourseModuleUncheckedCreateWithoutModuleInput = {
+    courseId: string
+    position?: number
+  }
+
+  export type CourseModuleCreateOrConnectWithoutModuleInput = {
+    where: CourseModuleWhereUniqueInput
+    create: XOR<CourseModuleCreateWithoutModuleInput, CourseModuleUncheckedCreateWithoutModuleInput>
+  }
+
+  export type CourseModuleCreateManyModuleInputEnvelope = {
+    data: CourseModuleCreateManyModuleInput | CourseModuleCreateManyModuleInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ChapterUpsertWithWhereUniqueWithoutModuleInput = {
     where: ChapterWhereUniqueInput
     update: XOR<ChapterUpdateWithoutModuleInput, ChapterUncheckedUpdateWithoutModuleInput>
@@ -36877,6 +48941,203 @@ export namespace Prisma {
     data: XOR<QuizAttemptUpdateManyMutationInput, QuizAttemptUncheckedUpdateManyWithoutModuleInput>
   }
 
+  export type CalendarEventUpsertWithWhereUniqueWithoutModuleInput = {
+    where: CalendarEventWhereUniqueInput
+    update: XOR<CalendarEventUpdateWithoutModuleInput, CalendarEventUncheckedUpdateWithoutModuleInput>
+    create: XOR<CalendarEventCreateWithoutModuleInput, CalendarEventUncheckedCreateWithoutModuleInput>
+  }
+
+  export type CalendarEventUpdateWithWhereUniqueWithoutModuleInput = {
+    where: CalendarEventWhereUniqueInput
+    data: XOR<CalendarEventUpdateWithoutModuleInput, CalendarEventUncheckedUpdateWithoutModuleInput>
+  }
+
+  export type CalendarEventUpdateManyWithWhereWithoutModuleInput = {
+    where: CalendarEventScalarWhereInput
+    data: XOR<CalendarEventUpdateManyMutationInput, CalendarEventUncheckedUpdateManyWithoutModuleInput>
+  }
+
+  export type CourseModuleUpsertWithWhereUniqueWithoutModuleInput = {
+    where: CourseModuleWhereUniqueInput
+    update: XOR<CourseModuleUpdateWithoutModuleInput, CourseModuleUncheckedUpdateWithoutModuleInput>
+    create: XOR<CourseModuleCreateWithoutModuleInput, CourseModuleUncheckedCreateWithoutModuleInput>
+  }
+
+  export type CourseModuleUpdateWithWhereUniqueWithoutModuleInput = {
+    where: CourseModuleWhereUniqueInput
+    data: XOR<CourseModuleUpdateWithoutModuleInput, CourseModuleUncheckedUpdateWithoutModuleInput>
+  }
+
+  export type CourseModuleUpdateManyWithWhereWithoutModuleInput = {
+    where: CourseModuleScalarWhereInput
+    data: XOR<CourseModuleUpdateManyMutationInput, CourseModuleUncheckedUpdateManyWithoutModuleInput>
+  }
+
+  export type CourseModuleScalarWhereInput = {
+    AND?: CourseModuleScalarWhereInput | CourseModuleScalarWhereInput[]
+    OR?: CourseModuleScalarWhereInput[]
+    NOT?: CourseModuleScalarWhereInput | CourseModuleScalarWhereInput[]
+    courseId?: StringFilter<"CourseModule"> | string
+    moduleId?: StringFilter<"CourseModule"> | string
+    position?: IntFilter<"CourseModule"> | number
+  }
+
+  export type CourseModuleCreateWithoutCourseInput = {
+    position?: number
+    module: ModuleCreateNestedOneWithoutCoursesInput
+  }
+
+  export type CourseModuleUncheckedCreateWithoutCourseInput = {
+    moduleId: string
+    position?: number
+  }
+
+  export type CourseModuleCreateOrConnectWithoutCourseInput = {
+    where: CourseModuleWhereUniqueInput
+    create: XOR<CourseModuleCreateWithoutCourseInput, CourseModuleUncheckedCreateWithoutCourseInput>
+  }
+
+  export type CourseModuleCreateManyCourseInputEnvelope = {
+    data: CourseModuleCreateManyCourseInput | CourseModuleCreateManyCourseInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CourseModuleUpsertWithWhereUniqueWithoutCourseInput = {
+    where: CourseModuleWhereUniqueInput
+    update: XOR<CourseModuleUpdateWithoutCourseInput, CourseModuleUncheckedUpdateWithoutCourseInput>
+    create: XOR<CourseModuleCreateWithoutCourseInput, CourseModuleUncheckedCreateWithoutCourseInput>
+  }
+
+  export type CourseModuleUpdateWithWhereUniqueWithoutCourseInput = {
+    where: CourseModuleWhereUniqueInput
+    data: XOR<CourseModuleUpdateWithoutCourseInput, CourseModuleUncheckedUpdateWithoutCourseInput>
+  }
+
+  export type CourseModuleUpdateManyWithWhereWithoutCourseInput = {
+    where: CourseModuleScalarWhereInput
+    data: XOR<CourseModuleUpdateManyMutationInput, CourseModuleUncheckedUpdateManyWithoutCourseInput>
+  }
+
+  export type CourseCreateWithoutModulesInput = {
+    id?: string
+    title: string
+    description?: string | null
+    level?: string
+    createdAt?: Date | string
+  }
+
+  export type CourseUncheckedCreateWithoutModulesInput = {
+    id?: string
+    title: string
+    description?: string | null
+    level?: string
+    createdAt?: Date | string
+  }
+
+  export type CourseCreateOrConnectWithoutModulesInput = {
+    where: CourseWhereUniqueInput
+    create: XOR<CourseCreateWithoutModulesInput, CourseUncheckedCreateWithoutModulesInput>
+  }
+
+  export type ModuleCreateWithoutCoursesInput = {
+    id?: string
+    title: string
+    description?: string | null
+    createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
+    chapters?: ChapterCreateNestedManyWithoutModuleInput
+    timetables?: TimetableCreateNestedManyWithoutModuleInput
+    enrollments?: ModuleEnrollmentCreateNestedManyWithoutModuleInput
+    quizAttempts?: QuizAttemptCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutModuleInput
+  }
+
+  export type ModuleUncheckedCreateWithoutCoursesInput = {
+    id?: string
+    title: string
+    description?: string | null
+    createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
+    chapters?: ChapterUncheckedCreateNestedManyWithoutModuleInput
+    timetables?: TimetableUncheckedCreateNestedManyWithoutModuleInput
+    enrollments?: ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
+    quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutModuleInput
+  }
+
+  export type ModuleCreateOrConnectWithoutCoursesInput = {
+    where: ModuleWhereUniqueInput
+    create: XOR<ModuleCreateWithoutCoursesInput, ModuleUncheckedCreateWithoutCoursesInput>
+  }
+
+  export type CourseUpsertWithoutModulesInput = {
+    update: XOR<CourseUpdateWithoutModulesInput, CourseUncheckedUpdateWithoutModulesInput>
+    create: XOR<CourseCreateWithoutModulesInput, CourseUncheckedCreateWithoutModulesInput>
+    where?: CourseWhereInput
+  }
+
+  export type CourseUpdateToOneWithWhereWithoutModulesInput = {
+    where?: CourseWhereInput
+    data: XOR<CourseUpdateWithoutModulesInput, CourseUncheckedUpdateWithoutModulesInput>
+  }
+
+  export type CourseUpdateWithoutModulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CourseUncheckedUpdateWithoutModulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ModuleUpsertWithoutCoursesInput = {
+    update: XOR<ModuleUpdateWithoutCoursesInput, ModuleUncheckedUpdateWithoutCoursesInput>
+    create: XOR<ModuleCreateWithoutCoursesInput, ModuleUncheckedCreateWithoutCoursesInput>
+    where?: ModuleWhereInput
+  }
+
+  export type ModuleUpdateToOneWithWhereWithoutCoursesInput = {
+    where?: ModuleWhereInput
+    data: XOR<ModuleUpdateWithoutCoursesInput, ModuleUncheckedUpdateWithoutCoursesInput>
+  }
+
+  export type ModuleUpdateWithoutCoursesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    chapters?: ChapterUpdateManyWithoutModuleNestedInput
+    timetables?: TimetableUpdateManyWithoutModuleNestedInput
+    enrollments?: ModuleEnrollmentUpdateManyWithoutModuleNestedInput
+    quizAttempts?: QuizAttemptUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutModuleNestedInput
+  }
+
+  export type ModuleUncheckedUpdateWithoutCoursesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    chapters?: ChapterUncheckedUpdateManyWithoutModuleNestedInput
+    timetables?: TimetableUncheckedUpdateManyWithoutModuleNestedInput
+    enrollments?: ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
+    quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutModuleNestedInput
+  }
+
   export type UserCreateWithoutEnrollmentsInput = {
     id?: string
     name?: string | null
@@ -36885,6 +49146,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -36901,6 +49164,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutEnrollmentsInput = {
@@ -36911,6 +49177,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -36927,6 +49195,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutEnrollmentsInput = {
@@ -36939,9 +49210,13 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     chapters?: ChapterCreateNestedManyWithoutModuleInput
     timetables?: TimetableCreateNestedManyWithoutModuleInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleUncheckedCreateWithoutEnrollmentsInput = {
@@ -36949,9 +49224,13 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     chapters?: ChapterUncheckedCreateNestedManyWithoutModuleInput
     timetables?: TimetableUncheckedCreateNestedManyWithoutModuleInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleUncheckedCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleCreateOrConnectWithoutEnrollmentsInput = {
@@ -36978,6 +49257,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36994,6 +49275,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutEnrollmentsInput = {
@@ -37004,6 +49288,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -37020,6 +49306,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ModuleUpsertWithoutEnrollmentsInput = {
@@ -37038,9 +49327,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     chapters?: ChapterUpdateManyWithoutModuleNestedInput
     timetables?: TimetableUpdateManyWithoutModuleNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUpdateManyWithoutModuleNestedInput
   }
 
   export type ModuleUncheckedUpdateWithoutEnrollmentsInput = {
@@ -37048,9 +49341,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     chapters?: ChapterUncheckedUpdateManyWithoutModuleNestedInput
     timetables?: TimetableUncheckedUpdateManyWithoutModuleNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUncheckedUpdateManyWithoutModuleNestedInput
   }
 
   export type ModuleCreateWithoutChaptersInput = {
@@ -37058,9 +49355,13 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     timetables?: TimetableCreateNestedManyWithoutModuleInput
     enrollments?: ModuleEnrollmentCreateNestedManyWithoutModuleInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleUncheckedCreateWithoutChaptersInput = {
@@ -37068,9 +49369,13 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     timetables?: TimetableUncheckedCreateNestedManyWithoutModuleInput
     enrollments?: ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleUncheckedCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleCreateOrConnectWithoutChaptersInput = {
@@ -37085,10 +49390,14 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     questions?: QuestionCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateWithoutChapterInput = {
@@ -37098,10 +49407,14 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectUncheckedCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicCreateOrConnectWithoutChapterInput = {
@@ -37119,6 +49432,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     topic?: TopicCreateNestedOneWithoutQuestionsInput
     answers?: AnswerCreateNestedManyWithoutQuestionInput
     userAnswers?: UserAnswerCreateNestedManyWithoutQuestionInput
@@ -37131,6 +49448,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     answers?: AnswerUncheckedCreateNestedManyWithoutQuestionInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutQuestionInput
     questionAttempts?: QuestionAttemptUncheckedCreateNestedManyWithoutQuestionInput
@@ -37162,9 +49483,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     timetables?: TimetableUpdateManyWithoutModuleNestedInput
     enrollments?: ModuleEnrollmentUpdateManyWithoutModuleNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUpdateManyWithoutModuleNestedInput
   }
 
   export type ModuleUncheckedUpdateWithoutChaptersInput = {
@@ -37172,9 +49497,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     timetables?: TimetableUncheckedUpdateManyWithoutModuleNestedInput
     enrollments?: ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUncheckedUpdateManyWithoutModuleNestedInput
   }
 
   export type TopicUpsertWithWhereUniqueWithoutChapterInput = {
@@ -37204,6 +49533,8 @@ export namespace Prisma {
     order?: IntFilter<"Topic"> | number
     createdAt?: DateTimeFilter<"Topic"> | Date | string
     assignment?: StringNullableFilter<"Topic"> | string | null
+    locked?: BoolFilter<"Topic"> | boolean
+    published?: BoolFilter<"Topic"> | boolean
   }
 
   export type QuestionUpsertWithWhereUniqueWithoutChapterInput = {
@@ -37232,6 +49563,10 @@ export namespace Prisma {
     question?: StringFilter<"Question"> | string
     difficulty?: StringFilter<"Question"> | string
     createdAt?: DateTimeFilter<"Question"> | Date | string
+    studyNote?: StringNullableFilter<"Question"> | string | null
+    studyNoteClaimedAt?: DateTimeNullableFilter<"Question"> | Date | string | null
+    paper?: StringNullableFilter<"Question"> | string | null
+    kind?: StringFilter<"Question"> | string
   }
 
   export type ChapterCreateWithoutTopicsInput = {
@@ -37262,6 +49597,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     answers?: AnswerCreateNestedManyWithoutQuestionInput
     userAnswers?: UserAnswerCreateNestedManyWithoutQuestionInput
@@ -37274,6 +49613,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     answers?: AnswerUncheckedCreateNestedManyWithoutQuestionInput
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutQuestionInput
     questionAttempts?: QuestionAttemptUncheckedCreateNestedManyWithoutQuestionInput
@@ -37378,6 +49721,76 @@ export namespace Prisma {
 
   export type TopicPdfCreateManyTopicInputEnvelope = {
     data: TopicPdfCreateManyTopicInput | TopicPdfCreateManyTopicInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CodingProjectCreateWithoutTopicInput = {
+    id?: string
+    title: string
+    brief: string
+    language: string
+    starterCode?: string | null
+    rubric: string
+    difficulty?: string
+    order?: number
+    createdAt?: Date | string
+    submissions?: ProjectSubmissionCreateNestedManyWithoutProjectInput
+  }
+
+  export type CodingProjectUncheckedCreateWithoutTopicInput = {
+    id?: string
+    title: string
+    brief: string
+    language: string
+    starterCode?: string | null
+    rubric: string
+    difficulty?: string
+    order?: number
+    createdAt?: Date | string
+    submissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type CodingProjectCreateOrConnectWithoutTopicInput = {
+    where: CodingProjectWhereUniqueInput
+    create: XOR<CodingProjectCreateWithoutTopicInput, CodingProjectUncheckedCreateWithoutTopicInput>
+  }
+
+  export type CodingProjectCreateManyTopicInputEnvelope = {
+    data: CodingProjectCreateManyTopicInput | CodingProjectCreateManyTopicInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TopicExerciseCreateWithoutTopicInput = {
+    id?: string
+    title: string
+    instructions: string
+    code: string
+    blanks: string
+    explanation?: string | null
+    language: string
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type TopicExerciseUncheckedCreateWithoutTopicInput = {
+    id?: string
+    title: string
+    instructions: string
+    code: string
+    blanks: string
+    explanation?: string | null
+    language: string
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type TopicExerciseCreateOrConnectWithoutTopicInput = {
+    where: TopicExerciseWhereUniqueInput
+    create: XOR<TopicExerciseCreateWithoutTopicInput, TopicExerciseUncheckedCreateWithoutTopicInput>
+  }
+
+  export type TopicExerciseCreateManyTopicInputEnvelope = {
+    data: TopicExerciseCreateManyTopicInput | TopicExerciseCreateManyTopicInput[]
     skipDuplicates?: boolean
   }
 
@@ -37497,6 +49910,70 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"TopicPdf"> | Date | string
   }
 
+  export type CodingProjectUpsertWithWhereUniqueWithoutTopicInput = {
+    where: CodingProjectWhereUniqueInput
+    update: XOR<CodingProjectUpdateWithoutTopicInput, CodingProjectUncheckedUpdateWithoutTopicInput>
+    create: XOR<CodingProjectCreateWithoutTopicInput, CodingProjectUncheckedCreateWithoutTopicInput>
+  }
+
+  export type CodingProjectUpdateWithWhereUniqueWithoutTopicInput = {
+    where: CodingProjectWhereUniqueInput
+    data: XOR<CodingProjectUpdateWithoutTopicInput, CodingProjectUncheckedUpdateWithoutTopicInput>
+  }
+
+  export type CodingProjectUpdateManyWithWhereWithoutTopicInput = {
+    where: CodingProjectScalarWhereInput
+    data: XOR<CodingProjectUpdateManyMutationInput, CodingProjectUncheckedUpdateManyWithoutTopicInput>
+  }
+
+  export type CodingProjectScalarWhereInput = {
+    AND?: CodingProjectScalarWhereInput | CodingProjectScalarWhereInput[]
+    OR?: CodingProjectScalarWhereInput[]
+    NOT?: CodingProjectScalarWhereInput | CodingProjectScalarWhereInput[]
+    id?: StringFilter<"CodingProject"> | string
+    topicId?: StringFilter<"CodingProject"> | string
+    title?: StringFilter<"CodingProject"> | string
+    brief?: StringFilter<"CodingProject"> | string
+    language?: StringFilter<"CodingProject"> | string
+    starterCode?: StringNullableFilter<"CodingProject"> | string | null
+    rubric?: StringFilter<"CodingProject"> | string
+    difficulty?: StringFilter<"CodingProject"> | string
+    order?: IntFilter<"CodingProject"> | number
+    createdAt?: DateTimeFilter<"CodingProject"> | Date | string
+  }
+
+  export type TopicExerciseUpsertWithWhereUniqueWithoutTopicInput = {
+    where: TopicExerciseWhereUniqueInput
+    update: XOR<TopicExerciseUpdateWithoutTopicInput, TopicExerciseUncheckedUpdateWithoutTopicInput>
+    create: XOR<TopicExerciseCreateWithoutTopicInput, TopicExerciseUncheckedCreateWithoutTopicInput>
+  }
+
+  export type TopicExerciseUpdateWithWhereUniqueWithoutTopicInput = {
+    where: TopicExerciseWhereUniqueInput
+    data: XOR<TopicExerciseUpdateWithoutTopicInput, TopicExerciseUncheckedUpdateWithoutTopicInput>
+  }
+
+  export type TopicExerciseUpdateManyWithWhereWithoutTopicInput = {
+    where: TopicExerciseScalarWhereInput
+    data: XOR<TopicExerciseUpdateManyMutationInput, TopicExerciseUncheckedUpdateManyWithoutTopicInput>
+  }
+
+  export type TopicExerciseScalarWhereInput = {
+    AND?: TopicExerciseScalarWhereInput | TopicExerciseScalarWhereInput[]
+    OR?: TopicExerciseScalarWhereInput[]
+    NOT?: TopicExerciseScalarWhereInput | TopicExerciseScalarWhereInput[]
+    id?: StringFilter<"TopicExercise"> | string
+    topicId?: StringFilter<"TopicExercise"> | string
+    title?: StringFilter<"TopicExercise"> | string
+    instructions?: StringFilter<"TopicExercise"> | string
+    code?: StringFilter<"TopicExercise"> | string
+    blanks?: StringFilter<"TopicExercise"> | string
+    explanation?: StringNullableFilter<"TopicExercise"> | string | null
+    language?: StringFilter<"TopicExercise"> | string
+    order?: IntFilter<"TopicExercise"> | number
+    createdAt?: DateTimeFilter<"TopicExercise"> | Date | string
+  }
+
   export type TopicCreateWithoutPdfsInput = {
     id?: string
     title: string
@@ -37504,10 +49981,14 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     chapter: ChapterCreateNestedOneWithoutTopicsInput
     questions?: QuestionCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateWithoutPdfsInput = {
@@ -37518,9 +49999,13 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
     flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectUncheckedCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicCreateOrConnectWithoutPdfsInput = {
@@ -37546,10 +50031,14 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
     questions?: QuestionUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateWithoutPdfsInput = {
@@ -37560,9 +50049,13 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUncheckedUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicCreateWithoutQuestionsInput = {
@@ -37572,10 +50065,14 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     chapter: ChapterCreateNestedOneWithoutTopicsInput
     flashcards?: FlashcardCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateWithoutQuestionsInput = {
@@ -37586,9 +50083,13 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectUncheckedCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicCreateOrConnectWithoutQuestionsInput = {
@@ -37648,6 +50149,7 @@ export namespace Prisma {
   export type UserAnswerCreateWithoutQuestionInput = {
     id?: string
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
     user: UserCreateNestedOneWithoutUserAnswersInput
     selectedAnswer?: AnswerCreateNestedOneWithoutUserAnswersInput
@@ -37658,6 +50160,7 @@ export namespace Prisma {
     userId: string
     selectedAnswerId?: string | null
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
   }
 
@@ -37676,6 +50179,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -37690,6 +50194,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -37723,10 +50228,14 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
     flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateWithoutQuestionsInput = {
@@ -37737,9 +50246,13 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUncheckedUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type ChapterUpsertWithoutQuestionsInput = {
@@ -37834,6 +50347,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     topic?: TopicCreateNestedOneWithoutQuestionsInput
     chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     userAnswers?: UserAnswerCreateNestedManyWithoutQuestionInput
@@ -37847,6 +50364,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutQuestionInput
     questionAttempts?: QuestionAttemptUncheckedCreateNestedManyWithoutQuestionInput
   }
@@ -37859,6 +50380,7 @@ export namespace Prisma {
   export type UserAnswerCreateWithoutSelectedAnswerInput = {
     id?: string
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
     user: UserCreateNestedOneWithoutUserAnswersInput
     question: QuestionCreateNestedOneWithoutUserAnswersInput
@@ -37869,6 +50391,7 @@ export namespace Prisma {
     userId: string
     questionId: string
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
   }
 
@@ -37887,6 +50410,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -37901,6 +50425,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -37932,6 +50457,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     topic?: TopicUpdateOneWithoutQuestionsNestedInput
     chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutQuestionNestedInput
@@ -37945,6 +50474,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutQuestionNestedInput
     questionAttempts?: QuestionAttemptUncheckedUpdateManyWithoutQuestionNestedInput
   }
@@ -37989,6 +50522,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38005,6 +50540,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutUserAnswersInput = {
@@ -38015,6 +50553,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38031,6 +50571,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutUserAnswersInput = {
@@ -38043,6 +50586,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     topic?: TopicCreateNestedOneWithoutQuestionsInput
     chapter?: ChapterCreateNestedOneWithoutQuestionsInput
     answers?: AnswerCreateNestedManyWithoutQuestionInput
@@ -38056,6 +50603,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
     answers?: AnswerUncheckedCreateNestedManyWithoutQuestionInput
     questionAttempts?: QuestionAttemptUncheckedCreateNestedManyWithoutQuestionInput
   }
@@ -38105,6 +50656,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38121,6 +50674,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutUserAnswersInput = {
@@ -38131,6 +50687,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38147,6 +50705,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type QuestionUpsertWithoutUserAnswersInput = {
@@ -38165,6 +50726,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     topic?: TopicUpdateOneWithoutQuestionsNestedInput
     chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     answers?: AnswerUpdateManyWithoutQuestionNestedInput
@@ -38178,6 +50743,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     answers?: AnswerUncheckedUpdateManyWithoutQuestionNestedInput
     questionAttempts?: QuestionAttemptUncheckedUpdateManyWithoutQuestionNestedInput
   }
@@ -38216,10 +50785,14 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     chapter: ChapterCreateNestedOneWithoutTopicsInput
     questions?: QuestionCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseCreateNestedManyWithoutTopicInput
   }
 
   export type TopicUncheckedCreateWithoutFlashcardsInput = {
@@ -38230,9 +50803,13 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
     questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
     pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectUncheckedCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseUncheckedCreateNestedManyWithoutTopicInput
   }
 
   export type TopicCreateOrConnectWithoutFlashcardsInput = {
@@ -38258,10 +50835,14 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
     questions?: QuestionUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateWithoutFlashcardsInput = {
@@ -38272,9 +50853,13 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUncheckedUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type UserCreateWithoutTimetablesInput = {
@@ -38285,6 +50870,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38301,6 +50888,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTimetablesInput = {
@@ -38311,6 +50901,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38327,6 +50919,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTimetablesInput = {
@@ -38339,9 +50934,13 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     chapters?: ChapterCreateNestedManyWithoutModuleInput
     enrollments?: ModuleEnrollmentCreateNestedManyWithoutModuleInput
     quizAttempts?: QuizAttemptCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleUncheckedCreateWithoutTimetablesInput = {
@@ -38349,9 +50948,13 @@ export namespace Prisma {
     title: string
     description?: string | null
     createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
     chapters?: ChapterUncheckedCreateNestedManyWithoutModuleInput
     enrollments?: ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
     quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleUncheckedCreateNestedManyWithoutModuleInput
   }
 
   export type ModuleCreateOrConnectWithoutTimetablesInput = {
@@ -38378,6 +50981,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38394,6 +50999,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTimetablesInput = {
@@ -38404,6 +51012,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38420,6 +51030,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ModuleUpsertWithoutTimetablesInput = {
@@ -38438,9 +51051,13 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     chapters?: ChapterUpdateManyWithoutModuleNestedInput
     enrollments?: ModuleEnrollmentUpdateManyWithoutModuleNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUpdateManyWithoutModuleNestedInput
   }
 
   export type ModuleUncheckedUpdateWithoutTimetablesInput = {
@@ -38448,9 +51065,225 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
     chapters?: ChapterUncheckedUpdateManyWithoutModuleNestedInput
     enrollments?: ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUncheckedUpdateManyWithoutModuleNestedInput
+  }
+
+  export type UserCreateWithoutCalendarEventsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
+    streakDays?: number
+    lastVisitDate?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastSeen?: Date | string | null
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
+    timetables?: TimetableCreateNestedManyWithoutUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    enrollments?: ModuleEnrollmentCreateNestedManyWithoutUserInput
+    quizAttempts?: QuizAttemptCreateNestedManyWithoutUserInput
+    sentFriendRequests?: FriendshipCreateNestedManyWithoutSenderInput
+    receivedFriendRequests?: FriendshipCreateNestedManyWithoutReceiverInput
+    conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
+    conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
+    sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCalendarEventsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
+    streakDays?: number
+    lastVisitDate?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastSeen?: Date | string | null
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
+    timetables?: TimetableUncheckedCreateNestedManyWithoutUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    enrollments?: ModuleEnrollmentUncheckedCreateNestedManyWithoutUserInput
+    quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutUserInput
+    sentFriendRequests?: FriendshipUncheckedCreateNestedManyWithoutSenderInput
+    receivedFriendRequests?: FriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
+    conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
+    sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCalendarEventsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCalendarEventsInput, UserUncheckedCreateWithoutCalendarEventsInput>
+  }
+
+  export type ModuleCreateWithoutCalendarEventsInput = {
+    id?: string
+    title: string
+    description?: string | null
+    createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
+    chapters?: ChapterCreateNestedManyWithoutModuleInput
+    timetables?: TimetableCreateNestedManyWithoutModuleInput
+    enrollments?: ModuleEnrollmentCreateNestedManyWithoutModuleInput
+    quizAttempts?: QuizAttemptCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleCreateNestedManyWithoutModuleInput
+  }
+
+  export type ModuleUncheckedCreateWithoutCalendarEventsInput = {
+    id?: string
+    title: string
+    description?: string | null
+    createdAt?: Date | string
+    codingLanguage?: string | null
+    level?: string
+    chapters?: ChapterUncheckedCreateNestedManyWithoutModuleInput
+    timetables?: TimetableUncheckedCreateNestedManyWithoutModuleInput
+    enrollments?: ModuleEnrollmentUncheckedCreateNestedManyWithoutModuleInput
+    quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutModuleInput
+    courses?: CourseModuleUncheckedCreateNestedManyWithoutModuleInput
+  }
+
+  export type ModuleCreateOrConnectWithoutCalendarEventsInput = {
+    where: ModuleWhereUniqueInput
+    create: XOR<ModuleCreateWithoutCalendarEventsInput, ModuleUncheckedCreateWithoutCalendarEventsInput>
+  }
+
+  export type UserUpsertWithoutCalendarEventsInput = {
+    update: XOR<UserUpdateWithoutCalendarEventsInput, UserUncheckedUpdateWithoutCalendarEventsInput>
+    create: XOR<UserCreateWithoutCalendarEventsInput, UserUncheckedCreateWithoutCalendarEventsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCalendarEventsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCalendarEventsInput, UserUncheckedUpdateWithoutCalendarEventsInput>
+  }
+
+  export type UserUpdateWithoutCalendarEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
+    streakDays?: IntFieldUpdateOperationsInput | number
+    lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
+    timetables?: TimetableUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    enrollments?: ModuleEnrollmentUpdateManyWithoutUserNestedInput
+    quizAttempts?: QuizAttemptUpdateManyWithoutUserNestedInput
+    sentFriendRequests?: FriendshipUpdateManyWithoutSenderNestedInput
+    receivedFriendRequests?: FriendshipUpdateManyWithoutReceiverNestedInput
+    conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
+    conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
+    sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCalendarEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
+    streakDays?: IntFieldUpdateOperationsInput | number
+    lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
+    timetables?: TimetableUncheckedUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    enrollments?: ModuleEnrollmentUncheckedUpdateManyWithoutUserNestedInput
+    quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutUserNestedInput
+    sentFriendRequests?: FriendshipUncheckedUpdateManyWithoutSenderNestedInput
+    receivedFriendRequests?: FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
+    conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
+    sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ModuleUpsertWithoutCalendarEventsInput = {
+    update: XOR<ModuleUpdateWithoutCalendarEventsInput, ModuleUncheckedUpdateWithoutCalendarEventsInput>
+    create: XOR<ModuleCreateWithoutCalendarEventsInput, ModuleUncheckedCreateWithoutCalendarEventsInput>
+    where?: ModuleWhereInput
+  }
+
+  export type ModuleUpdateToOneWithWhereWithoutCalendarEventsInput = {
+    where?: ModuleWhereInput
+    data: XOR<ModuleUpdateWithoutCalendarEventsInput, ModuleUncheckedUpdateWithoutCalendarEventsInput>
+  }
+
+  export type ModuleUpdateWithoutCalendarEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    chapters?: ChapterUpdateManyWithoutModuleNestedInput
+    timetables?: TimetableUpdateManyWithoutModuleNestedInput
+    enrollments?: ModuleEnrollmentUpdateManyWithoutModuleNestedInput
+    quizAttempts?: QuizAttemptUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUpdateManyWithoutModuleNestedInput
+  }
+
+  export type ModuleUncheckedUpdateWithoutCalendarEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codingLanguage?: NullableStringFieldUpdateOperationsInput | string | null
+    level?: StringFieldUpdateOperationsInput | string
+    chapters?: ChapterUncheckedUpdateManyWithoutModuleNestedInput
+    timetables?: TimetableUncheckedUpdateManyWithoutModuleNestedInput
+    enrollments?: ModuleEnrollmentUncheckedUpdateManyWithoutModuleNestedInput
+    quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutModuleNestedInput
+    courses?: CourseModuleUncheckedUpdateManyWithoutModuleNestedInput
   }
 
   export type UserCreateWithoutNotificationsInput = {
@@ -38461,6 +51294,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38477,6 +51312,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -38487,6 +51325,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38503,6 +51343,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -38529,6 +51372,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38545,6 +51390,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -38555,6 +51403,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38571,6 +51421,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSentFriendRequestsInput = {
@@ -38581,6 +51434,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38597,6 +51452,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSentFriendRequestsInput = {
@@ -38607,6 +51465,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38623,6 +51483,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSentFriendRequestsInput = {
@@ -38638,6 +51501,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38654,6 +51519,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutReceivedFriendRequestsInput = {
@@ -38664,6 +51532,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38680,6 +51550,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutReceivedFriendRequestsInput = {
@@ -38706,6 +51579,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38722,6 +51597,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSentFriendRequestsInput = {
@@ -38732,6 +51610,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38748,6 +51628,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutReceivedFriendRequestsInput = {
@@ -38769,6 +51652,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38785,6 +51670,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutReceivedFriendRequestsInput = {
@@ -38795,6 +51683,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38811,6 +51701,9 @@ export namespace Prisma {
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutConversationsAsUser1Input = {
@@ -38821,6 +51714,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38837,6 +51732,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipCreateNestedManyWithoutReceiverInput
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutConversationsAsUser1Input = {
@@ -38847,6 +51745,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38863,6 +51763,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUncheckedCreateNestedManyWithoutReceiverInput
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutConversationsAsUser1Input = {
@@ -38878,6 +51781,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38894,6 +51799,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipCreateNestedManyWithoutReceiverInput
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutConversationsAsUser2Input = {
@@ -38904,6 +51812,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -38920,6 +51830,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUncheckedCreateNestedManyWithoutReceiverInput
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutConversationsAsUser2Input = {
@@ -38982,6 +51895,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38998,6 +51913,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUpdateManyWithoutReceiverNestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutConversationsAsUser1Input = {
@@ -39008,6 +51926,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39024,6 +51944,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutConversationsAsUser2Input = {
@@ -39045,6 +51968,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39061,6 +51986,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUpdateManyWithoutReceiverNestedInput
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutConversationsAsUser2Input = {
@@ -39071,6 +51999,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39087,6 +52017,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutConversationInput = {
@@ -39134,6 +52067,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -39150,6 +52085,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipCreateNestedManyWithoutReceiverInput
     conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -39160,6 +52098,8 @@ export namespace Prisma {
     image?: string | null
     password?: string | null
     role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
     streakDays?: number
     lastVisitDate?: Date | string | null
     createdAt?: Date | string
@@ -39176,6 +52116,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUncheckedCreateNestedManyWithoutReceiverInput
     conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
     conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -39296,6 +52239,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39312,6 +52257,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUpdateManyWithoutReceiverNestedInput
     conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -39322,6 +52270,8 @@ export namespace Prisma {
     image?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
     streakDays?: IntFieldUpdateOperationsInput | number
     lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39338,6 +52288,9 @@ export namespace Prisma {
     receivedFriendRequests?: FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
     conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
     conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type MessageUpsertWithoutRepliesInput = {
@@ -39393,6 +52346,566 @@ export namespace Prisma {
     data: XOR<MessageUpdateManyMutationInput, MessageUncheckedUpdateManyWithoutReplyToInput>
   }
 
+  export type UserCreateWithoutEmailOtpsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
+    streakDays?: number
+    lastVisitDate?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastSeen?: Date | string | null
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
+    timetables?: TimetableCreateNestedManyWithoutUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    enrollments?: ModuleEnrollmentCreateNestedManyWithoutUserInput
+    quizAttempts?: QuizAttemptCreateNestedManyWithoutUserInput
+    sentFriendRequests?: FriendshipCreateNestedManyWithoutSenderInput
+    receivedFriendRequests?: FriendshipCreateNestedManyWithoutReceiverInput
+    conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
+    conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
+    sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutEmailOtpsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
+    streakDays?: number
+    lastVisitDate?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastSeen?: Date | string | null
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
+    timetables?: TimetableUncheckedCreateNestedManyWithoutUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    enrollments?: ModuleEnrollmentUncheckedCreateNestedManyWithoutUserInput
+    quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutUserInput
+    sentFriendRequests?: FriendshipUncheckedCreateNestedManyWithoutSenderInput
+    receivedFriendRequests?: FriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
+    conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
+    sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    projectSubmissions?: ProjectSubmissionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutEmailOtpsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutEmailOtpsInput, UserUncheckedCreateWithoutEmailOtpsInput>
+  }
+
+  export type UserUpsertWithoutEmailOtpsInput = {
+    update: XOR<UserUpdateWithoutEmailOtpsInput, UserUncheckedUpdateWithoutEmailOtpsInput>
+    create: XOR<UserCreateWithoutEmailOtpsInput, UserUncheckedCreateWithoutEmailOtpsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutEmailOtpsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutEmailOtpsInput, UserUncheckedUpdateWithoutEmailOtpsInput>
+  }
+
+  export type UserUpdateWithoutEmailOtpsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
+    streakDays?: IntFieldUpdateOperationsInput | number
+    lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
+    timetables?: TimetableUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    enrollments?: ModuleEnrollmentUpdateManyWithoutUserNestedInput
+    quizAttempts?: QuizAttemptUpdateManyWithoutUserNestedInput
+    sentFriendRequests?: FriendshipUpdateManyWithoutSenderNestedInput
+    receivedFriendRequests?: FriendshipUpdateManyWithoutReceiverNestedInput
+    conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
+    conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
+    sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutEmailOtpsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
+    streakDays?: IntFieldUpdateOperationsInput | number
+    lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
+    timetables?: TimetableUncheckedUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    enrollments?: ModuleEnrollmentUncheckedUpdateManyWithoutUserNestedInput
+    quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutUserNestedInput
+    sentFriendRequests?: FriendshipUncheckedUpdateManyWithoutSenderNestedInput
+    receivedFriendRequests?: FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
+    conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
+    sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    projectSubmissions?: ProjectSubmissionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type TopicCreateWithoutCodingProjectsInput = {
+    id?: string
+    title: string
+    content?: string | null
+    order?: number
+    createdAt?: Date | string
+    assignment?: string | null
+    locked?: boolean
+    published?: boolean
+    chapter: ChapterCreateNestedOneWithoutTopicsInput
+    questions?: QuestionCreateNestedManyWithoutTopicInput
+    flashcards?: FlashcardCreateNestedManyWithoutTopicInput
+    quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseCreateNestedManyWithoutTopicInput
+  }
+
+  export type TopicUncheckedCreateWithoutCodingProjectsInput = {
+    id?: string
+    chapterId: string
+    title: string
+    content?: string | null
+    order?: number
+    createdAt?: Date | string
+    assignment?: string | null
+    locked?: boolean
+    published?: boolean
+    questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
+    flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
+    quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
+    exercises?: TopicExerciseUncheckedCreateNestedManyWithoutTopicInput
+  }
+
+  export type TopicCreateOrConnectWithoutCodingProjectsInput = {
+    where: TopicWhereUniqueInput
+    create: XOR<TopicCreateWithoutCodingProjectsInput, TopicUncheckedCreateWithoutCodingProjectsInput>
+  }
+
+  export type ProjectSubmissionCreateWithoutProjectInput = {
+    id?: string
+    files: string
+    score: number
+    feedback: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutProjectSubmissionsInput
+  }
+
+  export type ProjectSubmissionUncheckedCreateWithoutProjectInput = {
+    id?: string
+    userId: string
+    files: string
+    score: number
+    feedback: string
+    createdAt?: Date | string
+  }
+
+  export type ProjectSubmissionCreateOrConnectWithoutProjectInput = {
+    where: ProjectSubmissionWhereUniqueInput
+    create: XOR<ProjectSubmissionCreateWithoutProjectInput, ProjectSubmissionUncheckedCreateWithoutProjectInput>
+  }
+
+  export type ProjectSubmissionCreateManyProjectInputEnvelope = {
+    data: ProjectSubmissionCreateManyProjectInput | ProjectSubmissionCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TopicUpsertWithoutCodingProjectsInput = {
+    update: XOR<TopicUpdateWithoutCodingProjectsInput, TopicUncheckedUpdateWithoutCodingProjectsInput>
+    create: XOR<TopicCreateWithoutCodingProjectsInput, TopicUncheckedCreateWithoutCodingProjectsInput>
+    where?: TopicWhereInput
+  }
+
+  export type TopicUpdateToOneWithWhereWithoutCodingProjectsInput = {
+    where?: TopicWhereInput
+    data: XOR<TopicUpdateWithoutCodingProjectsInput, TopicUncheckedUpdateWithoutCodingProjectsInput>
+  }
+
+  export type TopicUpdateWithoutCodingProjectsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
+    chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
+    questions?: QuestionUpdateManyWithoutTopicNestedInput
+    flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
+    quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUpdateManyWithoutTopicNestedInput
+  }
+
+  export type TopicUncheckedUpdateWithoutCodingProjectsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    chapterId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
+    questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
+    flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
+    quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUncheckedUpdateManyWithoutTopicNestedInput
+  }
+
+  export type ProjectSubmissionUpsertWithWhereUniqueWithoutProjectInput = {
+    where: ProjectSubmissionWhereUniqueInput
+    update: XOR<ProjectSubmissionUpdateWithoutProjectInput, ProjectSubmissionUncheckedUpdateWithoutProjectInput>
+    create: XOR<ProjectSubmissionCreateWithoutProjectInput, ProjectSubmissionUncheckedCreateWithoutProjectInput>
+  }
+
+  export type ProjectSubmissionUpdateWithWhereUniqueWithoutProjectInput = {
+    where: ProjectSubmissionWhereUniqueInput
+    data: XOR<ProjectSubmissionUpdateWithoutProjectInput, ProjectSubmissionUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type ProjectSubmissionUpdateManyWithWhereWithoutProjectInput = {
+    where: ProjectSubmissionScalarWhereInput
+    data: XOR<ProjectSubmissionUpdateManyMutationInput, ProjectSubmissionUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type CodingProjectCreateWithoutSubmissionsInput = {
+    id?: string
+    title: string
+    brief: string
+    language: string
+    starterCode?: string | null
+    rubric: string
+    difficulty?: string
+    order?: number
+    createdAt?: Date | string
+    topic: TopicCreateNestedOneWithoutCodingProjectsInput
+  }
+
+  export type CodingProjectUncheckedCreateWithoutSubmissionsInput = {
+    id?: string
+    topicId: string
+    title: string
+    brief: string
+    language: string
+    starterCode?: string | null
+    rubric: string
+    difficulty?: string
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type CodingProjectCreateOrConnectWithoutSubmissionsInput = {
+    where: CodingProjectWhereUniqueInput
+    create: XOR<CodingProjectCreateWithoutSubmissionsInput, CodingProjectUncheckedCreateWithoutSubmissionsInput>
+  }
+
+  export type UserCreateWithoutProjectSubmissionsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
+    streakDays?: number
+    lastVisitDate?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastSeen?: Date | string | null
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    userAnswers?: UserAnswerCreateNestedManyWithoutUserInput
+    timetables?: TimetableCreateNestedManyWithoutUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    enrollments?: ModuleEnrollmentCreateNestedManyWithoutUserInput
+    quizAttempts?: QuizAttemptCreateNestedManyWithoutUserInput
+    sentFriendRequests?: FriendshipCreateNestedManyWithoutSenderInput
+    receivedFriendRequests?: FriendshipCreateNestedManyWithoutReceiverInput
+    conversationsAsUser1?: ConversationCreateNestedManyWithoutUser1Input
+    conversationsAsUser2?: ConversationCreateNestedManyWithoutUser2Input
+    sentMessages?: MessageCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutProjectSubmissionsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    isSuperuser?: boolean
+    level?: string
+    streakDays?: number
+    lastVisitDate?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastSeen?: Date | string | null
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    userAnswers?: UserAnswerUncheckedCreateNestedManyWithoutUserInput
+    timetables?: TimetableUncheckedCreateNestedManyWithoutUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    enrollments?: ModuleEnrollmentUncheckedCreateNestedManyWithoutUserInput
+    quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutUserInput
+    sentFriendRequests?: FriendshipUncheckedCreateNestedManyWithoutSenderInput
+    receivedFriendRequests?: FriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    conversationsAsUser1?: ConversationUncheckedCreateNestedManyWithoutUser1Input
+    conversationsAsUser2?: ConversationUncheckedCreateNestedManyWithoutUser2Input
+    sentMessages?: MessageUncheckedCreateNestedManyWithoutSenderInput
+    calendarEvents?: CalendarEventUncheckedCreateNestedManyWithoutUserInput
+    emailOtps?: EmailOtpUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutProjectSubmissionsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutProjectSubmissionsInput, UserUncheckedCreateWithoutProjectSubmissionsInput>
+  }
+
+  export type CodingProjectUpsertWithoutSubmissionsInput = {
+    update: XOR<CodingProjectUpdateWithoutSubmissionsInput, CodingProjectUncheckedUpdateWithoutSubmissionsInput>
+    create: XOR<CodingProjectCreateWithoutSubmissionsInput, CodingProjectUncheckedCreateWithoutSubmissionsInput>
+    where?: CodingProjectWhereInput
+  }
+
+  export type CodingProjectUpdateToOneWithWhereWithoutSubmissionsInput = {
+    where?: CodingProjectWhereInput
+    data: XOR<CodingProjectUpdateWithoutSubmissionsInput, CodingProjectUncheckedUpdateWithoutSubmissionsInput>
+  }
+
+  export type CodingProjectUpdateWithoutSubmissionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    starterCode?: NullableStringFieldUpdateOperationsInput | string | null
+    rubric?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    topic?: TopicUpdateOneRequiredWithoutCodingProjectsNestedInput
+  }
+
+  export type CodingProjectUncheckedUpdateWithoutSubmissionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    topicId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    starterCode?: NullableStringFieldUpdateOperationsInput | string | null
+    rubric?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserUpsertWithoutProjectSubmissionsInput = {
+    update: XOR<UserUpdateWithoutProjectSubmissionsInput, UserUncheckedUpdateWithoutProjectSubmissionsInput>
+    create: XOR<UserCreateWithoutProjectSubmissionsInput, UserUncheckedCreateWithoutProjectSubmissionsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutProjectSubmissionsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutProjectSubmissionsInput, UserUncheckedUpdateWithoutProjectSubmissionsInput>
+  }
+
+  export type UserUpdateWithoutProjectSubmissionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
+    streakDays?: IntFieldUpdateOperationsInput | number
+    lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    userAnswers?: UserAnswerUpdateManyWithoutUserNestedInput
+    timetables?: TimetableUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    enrollments?: ModuleEnrollmentUpdateManyWithoutUserNestedInput
+    quizAttempts?: QuizAttemptUpdateManyWithoutUserNestedInput
+    sentFriendRequests?: FriendshipUpdateManyWithoutSenderNestedInput
+    receivedFriendRequests?: FriendshipUpdateManyWithoutReceiverNestedInput
+    conversationsAsUser1?: ConversationUpdateManyWithoutUser1NestedInput
+    conversationsAsUser2?: ConversationUpdateManyWithoutUser2NestedInput
+    sentMessages?: MessageUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutProjectSubmissionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isSuperuser?: BoolFieldUpdateOperationsInput | boolean
+    level?: StringFieldUpdateOperationsInput | string
+    streakDays?: IntFieldUpdateOperationsInput | number
+    lastVisitDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSeen?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    userAnswers?: UserAnswerUncheckedUpdateManyWithoutUserNestedInput
+    timetables?: TimetableUncheckedUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    enrollments?: ModuleEnrollmentUncheckedUpdateManyWithoutUserNestedInput
+    quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutUserNestedInput
+    sentFriendRequests?: FriendshipUncheckedUpdateManyWithoutSenderNestedInput
+    receivedFriendRequests?: FriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    conversationsAsUser1?: ConversationUncheckedUpdateManyWithoutUser1NestedInput
+    conversationsAsUser2?: ConversationUncheckedUpdateManyWithoutUser2NestedInput
+    sentMessages?: MessageUncheckedUpdateManyWithoutSenderNestedInput
+    calendarEvents?: CalendarEventUncheckedUpdateManyWithoutUserNestedInput
+    emailOtps?: EmailOtpUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type TopicCreateWithoutExercisesInput = {
+    id?: string
+    title: string
+    content?: string | null
+    order?: number
+    createdAt?: Date | string
+    assignment?: string | null
+    locked?: boolean
+    published?: boolean
+    chapter: ChapterCreateNestedOneWithoutTopicsInput
+    questions?: QuestionCreateNestedManyWithoutTopicInput
+    flashcards?: FlashcardCreateNestedManyWithoutTopicInput
+    quizAttempts?: QuizAttemptCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectCreateNestedManyWithoutTopicInput
+  }
+
+  export type TopicUncheckedCreateWithoutExercisesInput = {
+    id?: string
+    chapterId: string
+    title: string
+    content?: string | null
+    order?: number
+    createdAt?: Date | string
+    assignment?: string | null
+    locked?: boolean
+    published?: boolean
+    questions?: QuestionUncheckedCreateNestedManyWithoutTopicInput
+    flashcards?: FlashcardUncheckedCreateNestedManyWithoutTopicInput
+    quizAttempts?: QuizAttemptUncheckedCreateNestedManyWithoutTopicInput
+    pdfs?: TopicPdfUncheckedCreateNestedManyWithoutTopicInput
+    codingProjects?: CodingProjectUncheckedCreateNestedManyWithoutTopicInput
+  }
+
+  export type TopicCreateOrConnectWithoutExercisesInput = {
+    where: TopicWhereUniqueInput
+    create: XOR<TopicCreateWithoutExercisesInput, TopicUncheckedCreateWithoutExercisesInput>
+  }
+
+  export type TopicUpsertWithoutExercisesInput = {
+    update: XOR<TopicUpdateWithoutExercisesInput, TopicUncheckedUpdateWithoutExercisesInput>
+    create: XOR<TopicCreateWithoutExercisesInput, TopicUncheckedCreateWithoutExercisesInput>
+    where?: TopicWhereInput
+  }
+
+  export type TopicUpdateToOneWithWhereWithoutExercisesInput = {
+    where?: TopicWhereInput
+    data: XOR<TopicUpdateWithoutExercisesInput, TopicUncheckedUpdateWithoutExercisesInput>
+  }
+
+  export type TopicUpdateWithoutExercisesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
+    chapter?: ChapterUpdateOneRequiredWithoutTopicsNestedInput
+    questions?: QuestionUpdateManyWithoutTopicNestedInput
+    flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
+    quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUpdateManyWithoutTopicNestedInput
+  }
+
+  export type TopicUncheckedUpdateWithoutExercisesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    chapterId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    content?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
+    questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
+    flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
+    quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
+    pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUncheckedUpdateManyWithoutTopicNestedInput
+  }
+
   export type QuestionAttemptCreateManyQuizAttemptInput = {
     id?: string
     questionId: string
@@ -39400,6 +52913,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -39410,6 +52924,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39424,6 +52939,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39436,6 +52952,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39466,6 +52983,7 @@ export namespace Prisma {
     questionId: string
     selectedAnswerId?: string | null
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
   }
 
@@ -39549,6 +53067,45 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type CalendarEventCreateManyUserInput = {
+    id?: string
+    moduleId?: string | null
+    type?: string
+    title: string
+    notes?: string | null
+    startAt: Date | string
+    endAt?: Date | string | null
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: Date | string | null
+    remindedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmailOtpCreateManyUserInput = {
+    id?: string
+    purpose: string
+    key: string
+    email: string
+    codeHash: string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: number
+    sends?: number
+    expiresAt: Date | string
+    lastSentAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type ProjectSubmissionCreateManyUserInput = {
+    id?: string
+    projectId: string
+    files: string
+    score: number
+    feedback: string
+    createdAt?: Date | string
+  }
+
   export type AccountUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
@@ -39612,6 +53169,7 @@ export namespace Prisma {
   export type UserAnswerUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     question?: QuestionUpdateOneRequiredWithoutUserAnswersNestedInput
     selectedAnswer?: AnswerUpdateOneWithoutUserAnswersNestedInput
@@ -39622,6 +53180,7 @@ export namespace Prisma {
     questionId?: StringFieldUpdateOperationsInput | string
     selectedAnswerId?: NullableStringFieldUpdateOperationsInput | string | null
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -39630,6 +53189,7 @@ export namespace Prisma {
     questionId?: StringFieldUpdateOperationsInput | string
     selectedAnswerId?: NullableStringFieldUpdateOperationsInput | string | null
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -39881,6 +53441,123 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CalendarEventUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    module?: ModuleUpdateOneWithoutCalendarEventsNestedInput
+  }
+
+  export type CalendarEventUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    moduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CalendarEventUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    moduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailOtpUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    sends?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailOtpUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    sends?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailOtpUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    attempts?: IntFieldUpdateOperationsInput | number
+    sends?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastSentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectSubmissionUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: CodingProjectUpdateOneRequiredWithoutSubmissionsNestedInput
+  }
+
+  export type ProjectSubmissionUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectSubmissionUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ChapterCreateManyModuleInput = {
     id?: string
     title: string
@@ -39917,6 +53594,27 @@ export namespace Prisma {
     completedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type CalendarEventCreateManyModuleInput = {
+    id?: string
+    userId: string
+    type?: string
+    title: string
+    notes?: string | null
+    startAt: Date | string
+    endAt?: Date | string | null
+    allDay?: boolean
+    completed?: boolean
+    remindAt?: Date | string | null
+    remindedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CourseModuleCreateManyModuleInput = {
+    courseId: string
+    position?: number
   }
 
   export type ChapterUpdateWithoutModuleInput = {
@@ -40039,6 +53737,89 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CalendarEventUpdateWithoutModuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCalendarEventsNestedInput
+  }
+
+  export type CalendarEventUncheckedUpdateWithoutModuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CalendarEventUncheckedUpdateManyWithoutModuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allDay?: BoolFieldUpdateOperationsInput | boolean
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    remindAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    remindedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CourseModuleUpdateWithoutModuleInput = {
+    position?: IntFieldUpdateOperationsInput | number
+    course?: CourseUpdateOneRequiredWithoutModulesNestedInput
+  }
+
+  export type CourseModuleUncheckedUpdateWithoutModuleInput = {
+    courseId?: StringFieldUpdateOperationsInput | string
+    position?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type CourseModuleUncheckedUpdateManyWithoutModuleInput = {
+    courseId?: StringFieldUpdateOperationsInput | string
+    position?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type CourseModuleCreateManyCourseInput = {
+    moduleId: string
+    position?: number
+  }
+
+  export type CourseModuleUpdateWithoutCourseInput = {
+    position?: IntFieldUpdateOperationsInput | number
+    module?: ModuleUpdateOneRequiredWithoutCoursesNestedInput
+  }
+
+  export type CourseModuleUncheckedUpdateWithoutCourseInput = {
+    moduleId?: StringFieldUpdateOperationsInput | string
+    position?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type CourseModuleUncheckedUpdateManyWithoutCourseInput = {
+    moduleId?: StringFieldUpdateOperationsInput | string
+    position?: IntFieldUpdateOperationsInput | number
+  }
+
   export type TopicCreateManyChapterInput = {
     id?: string
     title: string
@@ -40046,6 +53827,8 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     assignment?: string | null
+    locked?: boolean
+    published?: boolean
   }
 
   export type QuestionCreateManyChapterInput = {
@@ -40054,6 +53837,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
   }
 
   export type TopicUpdateWithoutChapterInput = {
@@ -40063,10 +53850,14 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     questions?: QuestionUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateWithoutChapterInput = {
@@ -40076,10 +53867,14 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
     questions?: QuestionUncheckedUpdateManyWithoutTopicNestedInput
     flashcards?: FlashcardUncheckedUpdateManyWithoutTopicNestedInput
     quizAttempts?: QuizAttemptUncheckedUpdateManyWithoutTopicNestedInput
     pdfs?: TopicPdfUncheckedUpdateManyWithoutTopicNestedInput
+    codingProjects?: CodingProjectUncheckedUpdateManyWithoutTopicNestedInput
+    exercises?: TopicExerciseUncheckedUpdateManyWithoutTopicNestedInput
   }
 
   export type TopicUncheckedUpdateManyWithoutChapterInput = {
@@ -40089,6 +53884,8 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignment?: NullableStringFieldUpdateOperationsInput | string | null
+    locked?: BoolFieldUpdateOperationsInput | boolean
+    published?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type QuestionUpdateWithoutChapterInput = {
@@ -40096,6 +53893,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     topic?: TopicUpdateOneWithoutQuestionsNestedInput
     answers?: AnswerUpdateManyWithoutQuestionNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutQuestionNestedInput
@@ -40108,6 +53909,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     answers?: AnswerUncheckedUpdateManyWithoutQuestionNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutQuestionNestedInput
     questionAttempts?: QuestionAttemptUncheckedUpdateManyWithoutQuestionNestedInput
@@ -40119,6 +53924,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
   }
 
   export type QuestionCreateManyTopicInput = {
@@ -40127,6 +53936,10 @@ export namespace Prisma {
     question: string
     difficulty?: string
     createdAt?: Date | string
+    studyNote?: string | null
+    studyNoteClaimedAt?: Date | string | null
+    paper?: string | null
+    kind?: string
   }
 
   export type FlashcardCreateManyTopicInput = {
@@ -40159,11 +53972,39 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type CodingProjectCreateManyTopicInput = {
+    id?: string
+    title: string
+    brief: string
+    language: string
+    starterCode?: string | null
+    rubric: string
+    difficulty?: string
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type TopicExerciseCreateManyTopicInput = {
+    id?: string
+    title: string
+    instructions: string
+    code: string
+    blanks: string
+    explanation?: string | null
+    language: string
+    order?: number
+    createdAt?: Date | string
+  }
+
   export type QuestionUpdateWithoutTopicInput = {
     id?: StringFieldUpdateOperationsInput | string
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     chapter?: ChapterUpdateOneWithoutQuestionsNestedInput
     answers?: AnswerUpdateManyWithoutQuestionNestedInput
     userAnswers?: UserAnswerUpdateManyWithoutQuestionNestedInput
@@ -40176,6 +54017,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
     answers?: AnswerUncheckedUpdateManyWithoutQuestionNestedInput
     userAnswers?: UserAnswerUncheckedUpdateManyWithoutQuestionNestedInput
     questionAttempts?: QuestionAttemptUncheckedUpdateManyWithoutQuestionNestedInput
@@ -40187,6 +54032,10 @@ export namespace Prisma {
     question?: StringFieldUpdateOperationsInput | string
     difficulty?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    studyNote?: NullableStringFieldUpdateOperationsInput | string | null
+    studyNoteClaimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paper?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
   }
 
   export type FlashcardUpdateWithoutTopicInput = {
@@ -40281,6 +54130,80 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CodingProjectUpdateWithoutTopicInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    starterCode?: NullableStringFieldUpdateOperationsInput | string | null
+    rubric?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    submissions?: ProjectSubmissionUpdateManyWithoutProjectNestedInput
+  }
+
+  export type CodingProjectUncheckedUpdateWithoutTopicInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    starterCode?: NullableStringFieldUpdateOperationsInput | string | null
+    rubric?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    submissions?: ProjectSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
+  export type CodingProjectUncheckedUpdateManyWithoutTopicInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    brief?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    starterCode?: NullableStringFieldUpdateOperationsInput | string | null
+    rubric?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicExerciseUpdateWithoutTopicInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    instructions?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    blanks?: StringFieldUpdateOperationsInput | string
+    explanation?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicExerciseUncheckedUpdateWithoutTopicInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    instructions?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    blanks?: StringFieldUpdateOperationsInput | string
+    explanation?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TopicExerciseUncheckedUpdateManyWithoutTopicInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    instructions?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    blanks?: StringFieldUpdateOperationsInput | string
+    explanation?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type AnswerCreateManyQuestionInput = {
     id?: string
     answer: string
@@ -40292,6 +54215,7 @@ export namespace Prisma {
     userId: string
     selectedAnswerId?: string | null
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
   }
 
@@ -40302,6 +54226,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -40332,6 +54257,7 @@ export namespace Prisma {
   export type UserAnswerUpdateWithoutQuestionInput = {
     id?: StringFieldUpdateOperationsInput | string
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutUserAnswersNestedInput
     selectedAnswer?: AnswerUpdateOneWithoutUserAnswersNestedInput
@@ -40342,6 +54268,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     selectedAnswerId?: NullableStringFieldUpdateOperationsInput | string | null
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -40350,6 +54277,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     selectedAnswerId?: NullableStringFieldUpdateOperationsInput | string | null
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -40358,6 +54286,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -40372,6 +54301,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -40384,6 +54314,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -40394,6 +54325,7 @@ export namespace Prisma {
     userId: string
     questionId: string
     isCorrect: boolean
+    typedAnswer?: string | null
     answeredAt?: Date | string
   }
 
@@ -40404,6 +54336,7 @@ export namespace Prisma {
     isCorrect?: boolean | null
     order: number
     status?: $Enums.AnswerStatus
+    typedAnswer?: string | null
     answeredAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -40412,6 +54345,7 @@ export namespace Prisma {
   export type UserAnswerUpdateWithoutSelectedAnswerInput = {
     id?: StringFieldUpdateOperationsInput | string
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutUserAnswersNestedInput
     question?: QuestionUpdateOneRequiredWithoutUserAnswersNestedInput
@@ -40422,6 +54356,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     questionId?: StringFieldUpdateOperationsInput | string
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -40430,6 +54365,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     questionId?: StringFieldUpdateOperationsInput | string
     isCorrect?: BoolFieldUpdateOperationsInput | boolean
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -40438,6 +54374,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -40452,6 +54389,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -40464,6 +54402,7 @@ export namespace Prisma {
     isCorrect?: NullableBoolFieldUpdateOperationsInput | boolean | null
     order?: IntFieldUpdateOperationsInput | number
     status?: EnumAnswerStatusFieldUpdateOperationsInput | $Enums.AnswerStatus
+    typedAnswer?: NullableStringFieldUpdateOperationsInput | string | null
     answeredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -40566,6 +54505,42 @@ export namespace Prisma {
     mediaUrl?: NullableStringFieldUpdateOperationsInput | string | null
     mediaDuration?: NullableIntFieldUpdateOperationsInput | number | null
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectSubmissionCreateManyProjectInput = {
+    id?: string
+    userId: string
+    files: string
+    score: number
+    feedback: string
+    createdAt?: Date | string
+  }
+
+  export type ProjectSubmissionUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutProjectSubmissionsNestedInput
+  }
+
+  export type ProjectSubmissionUncheckedUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectSubmissionUncheckedUpdateManyWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    feedback?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

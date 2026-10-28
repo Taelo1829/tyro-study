@@ -144,6 +144,7 @@ exports.Prisma.QuestionAttemptScalarFieldEnum = {
   isCorrect: 'isCorrect',
   order: 'order',
   status: 'status',
+  typedAnswer: 'typedAnswer',
   answeredAt: 'answeredAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -157,6 +158,8 @@ exports.Prisma.UserScalarFieldEnum = {
   image: 'image',
   password: 'password',
   role: 'role',
+  isSuperuser: 'isSuperuser',
+  level: 'level',
   streakDays: 'streakDays',
   lastVisitDate: 'lastVisitDate',
   createdAt: 'createdAt',
@@ -196,7 +199,23 @@ exports.Prisma.ModuleScalarFieldEnum = {
   id: 'id',
   title: 'title',
   description: 'description',
+  createdAt: 'createdAt',
+  codingLanguage: 'codingLanguage',
+  level: 'level'
+};
+
+exports.Prisma.CourseScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  level: 'level',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.CourseModuleScalarFieldEnum = {
+  courseId: 'courseId',
+  moduleId: 'moduleId',
+  position: 'position'
 };
 
 exports.Prisma.ModuleEnrollmentScalarFieldEnum = {
@@ -221,7 +240,9 @@ exports.Prisma.TopicScalarFieldEnum = {
   content: 'content',
   order: 'order',
   createdAt: 'createdAt',
-  assignment: 'assignment'
+  assignment: 'assignment',
+  locked: 'locked',
+  published: 'published'
 };
 
 exports.Prisma.TopicPdfScalarFieldEnum = {
@@ -248,7 +269,11 @@ exports.Prisma.QuestionScalarFieldEnum = {
   chapterId: 'chapterId',
   question: 'question',
   difficulty: 'difficulty',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  studyNote: 'studyNote',
+  studyNoteClaimedAt: 'studyNoteClaimedAt',
+  paper: 'paper',
+  kind: 'kind'
 };
 
 exports.Prisma.AnswerScalarFieldEnum = {
@@ -264,6 +289,7 @@ exports.Prisma.UserAnswerScalarFieldEnum = {
   questionId: 'questionId',
   selectedAnswerId: 'selectedAnswerId',
   isCorrect: 'isCorrect',
+  typedAnswer: 'typedAnswer',
   answeredAt: 'answeredAt'
 };
 
@@ -284,6 +310,23 @@ exports.Prisma.TimetableScalarFieldEnum = {
   dueDate: 'dueDate',
   chaptersPlanned: 'chaptersPlanned',
   chaptersCompleted: 'chaptersCompleted'
+};
+
+exports.Prisma.CalendarEventScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  moduleId: 'moduleId',
+  type: 'type',
+  title: 'title',
+  notes: 'notes',
+  startAt: 'startAt',
+  endAt: 'endAt',
+  allDay: 'allDay',
+  completed: 'completed',
+  remindAt: 'remindAt',
+  remindedAt: 'remindedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.NotificationScalarFieldEnum = {
@@ -333,9 +376,65 @@ exports.Prisma.PushSubscriptionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.EmailOtpScalarFieldEnum = {
+  id: 'id',
+  purpose: 'purpose',
+  key: 'key',
+  email: 'email',
+  userId: 'userId',
+  codeHash: 'codeHash',
+  payload: 'payload',
+  attempts: 'attempts',
+  sends: 'sends',
+  expiresAt: 'expiresAt',
+  lastSentAt: 'lastSentAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CodingProjectScalarFieldEnum = {
+  id: 'id',
+  topicId: 'topicId',
+  title: 'title',
+  brief: 'brief',
+  language: 'language',
+  starterCode: 'starterCode',
+  rubric: 'rubric',
+  difficulty: 'difficulty',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ProjectSubmissionScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  userId: 'userId',
+  files: 'files',
+  score: 'score',
+  feedback: 'feedback',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.TopicExerciseScalarFieldEnum = {
+  id: 'id',
+  topicId: 'topicId',
+  title: 'title',
+  instructions: 'instructions',
+  code: 'code',
+  blanks: 'blanks',
+  explanation: 'explanation',
+  language: 'language',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -346,6 +445,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 exports.QuizStatus = exports.$Enums.QuizStatus = {
   IN_PROGRESS: 'IN_PROGRESS',
@@ -386,6 +491,8 @@ exports.Prisma.ModelName = {
   Session: 'Session',
   VerificationToken: 'VerificationToken',
   Module: 'Module',
+  Course: 'Course',
+  CourseModule: 'CourseModule',
   ModuleEnrollment: 'ModuleEnrollment',
   Chapter: 'Chapter',
   Topic: 'Topic',
@@ -396,11 +503,16 @@ exports.Prisma.ModelName = {
   UserAnswer: 'UserAnswer',
   Flashcard: 'Flashcard',
   Timetable: 'Timetable',
+  CalendarEvent: 'CalendarEvent',
   Notification: 'Notification',
   Friendship: 'Friendship',
   Conversation: 'Conversation',
   Message: 'Message',
-  PushSubscription: 'PushSubscription'
+  PushSubscription: 'PushSubscription',
+  EmailOtp: 'EmailOtp',
+  CodingProject: 'CodingProject',
+  ProjectSubmission: 'ProjectSubmission',
+  TopicExercise: 'TopicExercise'
 };
 
 /**
