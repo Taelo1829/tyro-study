@@ -112,7 +112,6 @@ export default function AdminTopicDetailPage() {
       <PublishTopicToggle
         topicId={id}
         published={!!topic.published}
-        locked={!!topic.locked}
         hasLesson={!!topic.content?.replace(/<[^>]+>/g, "").trim() || /<(img|iframe|video)/i.test(topic.content ?? "")}
         onChanged={published => setTopic(prev => (prev ? { ...prev, published } : prev))}
       />

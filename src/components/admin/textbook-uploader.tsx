@@ -525,7 +525,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
                 {step === "writing" && (
                   <p className="text-xs text-muted-foreground">
                     Keep this window open. Topics already finished are saved, so if you stop, the rest show as &quot;No content&quot;
-                    and you can write them later with Write with AI.
+                    and you can Auto Generate them.
                   </p>
                 )}
               </div>

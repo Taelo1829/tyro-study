@@ -39,12 +39,6 @@ async function fetchSuggestion(topicId: string, exclude: string[], tried: string
   return data as Suggestion
 }
 
-/**
- * "Find video with AI": the AI describes the ideal video for this topic,
- * searches YouTube and picks the best match. The admin can choose another
- * result, then the video is added to the end of the lesson and saved.
- * Render it only while open (it searches as soon as it mounts).
- */
 export function VideoFinder({
   topicId,
   onClose,

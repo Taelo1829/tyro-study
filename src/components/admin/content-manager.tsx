@@ -203,11 +203,11 @@ export function ContentManager({
             onClick={() => { setAiError(""); setAiOpen(true) }}
           >
             <Sparkles className="h-4 w-4" />
-            Write with AI
+            Auto Generate
           </Button>
           <Button variant="default" onClick={() => setVideoOpen(true)}>
             <MonitorPlay className="h-4 w-4" />
-            Find video with AI
+            Find video 
           </Button>
           <Button
             variant="default"

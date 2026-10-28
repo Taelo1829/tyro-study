@@ -7,10 +7,10 @@ import { orFallback } from "@/lib/db-safe"
  * Public study notes: the written lessons anyone (including search engines
  * and AdSense review) can read without signing in.
  *
- * A topic is public when an admin has published it (lib/topic-publish.ts),
- * it has a written lesson (text, image or video - the
- * same rule as hasWrittenContent in lib/topic-content.ts) and is NOT locked
- * (locked topics stay in-app so students can't read ahead of the lock).
+ * A topic is public when an admin has published it (lib/topic-publish.ts)
+ * and it has a written lesson (text, image or video - the same rule as
+ * hasWrittenContent in lib/topic-content.ts). Locks don't apply here: they
+ * gate topics behind quizzes inside the app, which logged-out readers can't take.
  * Quizzes, flashcards, PDFs, assignments and progress stay behind login.
  */
 
@@ -37,7 +37,6 @@ export async function listPublicTopics(): Promise<PublicTopicRow[]> {
     JOIN "chapters" c ON c."id" = t."chapterId"
     JOIN "modules" m ON m."id" = c."moduleId"
     WHERE t."published" = true
-      AND t."locked" = false
       AND t."content" IS NOT NULL
       AND (
         t."content" ~* '<(img|iframe|video)'
@@ -142,7 +141,6 @@ export async function searchPublicTopics(query: string, limit = 40): Promise<Pub
     JOIN "chapters" c ON c."id" = t."chapterId"
     JOIN "modules" m ON m."id" = c."moduleId"
     WHERE t."published" = true
-      AND t."locked" = false
       AND t."content" IS NOT NULL
       AND (
         t."content" ~* '<(img|iframe|video)'

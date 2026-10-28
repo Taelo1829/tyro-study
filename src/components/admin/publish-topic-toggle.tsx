@@ -12,13 +12,11 @@ import { cn } from "@/lib/utils"
 export function PublishTopicToggle({
   topicId,
   published,
-  locked,
   hasLesson,
   onChanged,
 }: {
   topicId: string
   published: boolean
-  locked: boolean
   hasLesson: boolean
   onChanged: (published: boolean) => void
 }) {
@@ -48,7 +46,7 @@ export function PublishTopicToggle({
   }
 
   // Published, but the public page won't show it
-  const hidden = published && (locked || !hasLesson)
+  const hidden = published && !hasLesson
   const Icon = published ? Globe : EyeOff
 
   return (
@@ -79,9 +77,7 @@ export function PublishTopicToggle({
         </p>
         {hidden && (
           <p className="mt-1 text-sm text-amber-700">
-            {locked
-              ? "It's locked, so it stays off the public notes until you unlock it."
-              : "It has no written lesson yet, so it won't appear publicly."}
+            It has no written lesson yet, so it won&apos;t appear publicly.
           </p>
         )}
         {error && <p className="mt-1 text-sm text-red-600" role="alert">{error}</p>}

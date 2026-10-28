@@ -67,7 +67,7 @@ export function ModulePublishControl({ moduleId }: { moduleId: string }) {
         <p className="text-muted-foreground">
           {counts.live === counts.published
             ? "Published lessons are public study notes at /notes."
-            : `${counts.live} showing publicly; the rest are locked or have no lesson yet.`}
+            : `${counts.live} showing publicly; the rest have no written lesson yet.`}
         </p>
         {error && <p className="mt-1 text-red-600" role="alert">{error}</p>}
       </div>

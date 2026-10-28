@@ -9,8 +9,9 @@ import { orFallback } from "@/lib/db-safe"
  * sitemap, and shown with ads. Everything else stays inside the app for
  * signed-in students. New topics start unpublished.
  *
- * A published topic still only appears publicly when it has a written lesson
- * and isn't locked (see lib/public-notes.ts).
+ * A published topic only appears publicly when it has a written lesson
+ * (see lib/public-notes.ts). Locked topics are public too: the lock only
+ * applies to signed-in students inside the app.
  *
  * The "published" column is read and written with SQL (like "locked") so this
  * works whether or not the Prisma client has been regenerated since it was added.
@@ -44,7 +45,7 @@ export interface ModulePublishCounts {
   total: number
   /** Topics marked published */
   published: number
-  /** Published topics that actually show publicly (have a lesson, not locked) */
+  /** Published topics that actually show publicly (have a written lesson) */
   live: number
 }
 
@@ -54,7 +55,7 @@ export async function getModulePublishCounts(moduleId: string): Promise<ModulePu
       SELECT COUNT(*)::int AS "total",
              COUNT(*) FILTER (WHERE t."published")::int AS "published",
              COUNT(*) FILTER (
-               WHERE t."published" AND t."locked" = false AND t."content" IS NOT NULL
+               WHERE t."published" AND t."content" IS NOT NULL
                  AND (t."content" ~* '<(img|iframe|video)'
                       OR regexp_replace(t."content", '<[^>]*>|&nbsp;|\\s', '', 'gi') <> '')
              )::int AS "live"

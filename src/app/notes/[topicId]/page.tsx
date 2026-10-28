@@ -5,6 +5,8 @@ import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react"
 import { PublicShell } from "@/components/public/public-shell"
 import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { TopicContentView } from "@/components/topic/topic-content-view"
+import { SampleQuiz } from "@/components/public/sample-quiz"
+import { getPublicQuizSample } from "@/lib/public-quiz"
 import { coursesForModule, getPublicTopic } from "@/lib/public-notes"
 import { lessonSummary, renderTopicContentServer } from "@/lib/topic-content-server"
 import { SITE_NAME } from "@/lib/site"
@@ -28,7 +30,7 @@ export default async function PublicLessonPage({ params }: Props) {
   if (!topic) notFound()
 
   const html = renderTopicContentServer(topic.content)
-  const courses = await coursesForModule(topic.moduleId)
+  const [courses, quiz] = await Promise.all([coursesForModule(topic.moduleId), getPublicQuizSample(topic.id)])
 
   return (
     <PublicShell ads>
@@ -51,6 +53,9 @@ export default async function PublicLessonPage({ params }: Props) {
           <TopicContentView content={html} serverHtml={html} />
         </div>
 
+        {quiz.questions.length > 0 ? (
+          <SampleQuiz questions={quiz.questions} total={quiz.total} siteName={SITE_NAME} />
+        ) : (
         <aside className="mt-12 rounded-2xl bg-muted/60 p-6">
           <p className="flex items-center gap-2 font-semibold">
             <Sparkles className="h-4 w-4" /> Test yourself on this topic
@@ -67,6 +72,7 @@ export default async function PublicLessonPage({ params }: Props) {
             </Link>
           </div>
         </aside>
+        )}
 
         <nav aria-label="More notes" className="mt-10 grid gap-3 border-t border-border pt-6 sm:grid-cols-2">
           {topic.previous ? (
