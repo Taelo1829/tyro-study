@@ -22,6 +22,10 @@ export function MobileNav({ isAdmin = false }: MobileNavProps) {
     5
   )
 
+  // Quiz routes use the bottom edge for the answer action instead.
+  const isQuiz = /^\/modules\/[^/]+\/(?:(?:topics|chapters)\/[^/]+\/quiz|mock-exam)\/?$/.test(pathname ?? "")
+  if (isQuiz) return null
+
   return (
     <nav className="fixed inset-x-3 bottom-3 z-50 pb-[env(safe-area-inset-bottom)] lg:hidden">
       <ul className="neo-glass flex items-center justify-around rounded-full px-2 py-2 shadow-lg shadow-black/10">

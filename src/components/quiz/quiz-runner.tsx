@@ -15,7 +15,7 @@ import { BLANK } from "@/lib/code-blanks"
  *
  * Questions come from POST /api/quiz/attempt (which never includes the correct
  * answers). Each answer is graded and saved by PUT /api/quiz/attempt the moment
- * you press "Submit", so you get right/wrong feedback straight away. When the
+ * you press "Check answer", so you get right/wrong feedback straight away. When the
  * last question of the quiz is answered the attempt is complete and the
  * results are shown - no further questions are added.
  */
@@ -660,7 +660,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     const answeredCount = Object.keys(results).length
 
     return (
-        <div className="-mt-5 pb-28 sm:mt-0 sm:px-4 sm:pt-4">
+        <div className="-mt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:mt-0 sm:px-4 sm:pt-4">
             <div className="mx-auto max-w-4xl">
                 {backLink}
                 <div className="mb-2 sm:mb-8">
@@ -723,7 +723,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 {blankParts.prompt && (
                                     <h2 className="whitespace-pre-wrap text-xl font-semibold text-foreground"><MathText text={blankParts.prompt} /></h2>
                                 )}
-                                <p className="mt-1 text-sm text-muted-foreground">Type your answer in the blank{answered ? "" : ", then press Submit"}.</p>
+                                <p className="mt-1 text-sm text-muted-foreground">Type your answer in the blank{answered ? "" : ", then press Check answer"}.</p>
                             </>
                         ) : (
                             <h2 className="whitespace-pre-wrap text-xl font-semibold text-foreground"><MathText text={current.text} /></h2>
@@ -798,24 +798,26 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
 
                 {error && <p className="mb-4 text-center text-sm text-red-600" role="alert">{error}</p>}
 
-                <div className="flex justify-end gap-4">
-                    {!answered ? (
-                        <button
-                            onClick={() => void submitAnswer()}
-                            disabled={!hasSelected || checking}
-                            className={hasSelected && !checking ? primaryButton : disabledButton}
-                        >
-                            {checking ? "Checking…" : "Submit"}
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => void goNext()}
-                            disabled={checking}
-                            className={checking ? disabledButton : primaryButton}
-                        >
-                            {isLast ? "See results" : "Next Question"}
-                        </button>
-                    )}
+                <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6">
+                    <div className="mx-auto flex max-w-4xl justify-end [&>button]:min-h-12 [&>button]:w-full sm:[&>button]:w-auto sm:[&>button]:min-w-48">
+                        {!answered ? (
+                            <button
+                                onClick={() => void submitAnswer()}
+                                disabled={!hasSelected || checking}
+                                className={hasSelected && !checking ? primaryButton : disabledButton}
+                            >
+                                {checking ? "Checking…" : "Check answer"}
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => void goNext()}
+                                disabled={checking}
+                                className={checking ? disabledButton : primaryButton}
+                            >
+                                {isLast ? "See results" : "Next Question"}
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="mt-6 text-center text-sm text-muted-foreground">

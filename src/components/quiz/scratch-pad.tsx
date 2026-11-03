@@ -40,7 +40,7 @@ export function ScratchPad() {
 
   return (
     <>
-      {/* Floating button (sits above the mobile bottom bar) */}
+      {/* Floating button (sits above the pinned quiz action) */}
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -48,7 +48,7 @@ export function ScratchPad() {
         aria-label={open ? "Close notepad" : "Open notepad"}
         title="Notepad / scratch paper"
         className={cn(
-          "fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-xl shadow-black/20 transition-transform active:scale-95 lg:bottom-8 lg:right-8",
+          "fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-xl shadow-black/20 transition-transform active:scale-95 lg:right-8",
           open ? "bg-card text-foreground ring-1 ring-border" : "bg-primary text-primary-foreground"
         )}
       >
@@ -61,7 +61,7 @@ export function ScratchPad() {
       {open && (
         <section
           aria-label="Notepad"
-          className="fixed inset-x-3 bottom-40 z-40 flex h-[min(55dvh,460px)] flex-col overflow-hidden rounded-[var(--neo-radius-lg)] bg-card shadow-2xl shadow-black/20 ring-1 ring-border lg:inset-x-auto lg:bottom-28 lg:right-8 lg:h-[560px] lg:w-[440px]"
+          className="fixed inset-x-3 bottom-[calc(10rem+env(safe-area-inset-bottom))] z-40 flex h-[min(55dvh,460px)] flex-col overflow-hidden rounded-[var(--neo-radius-lg)] bg-card shadow-2xl shadow-black/20 ring-1 ring-border lg:inset-x-auto lg:right-8 lg:h-[560px] lg:w-[440px]"
         >
           {/* Header: tabs + close */}
           <div className="flex items-center gap-2 border-b border-border p-2">
