@@ -67,7 +67,7 @@ export default async function AdminPage() {
     <>
       <Header
         title="Admin"
-        subtitle="Manage users, content and AI extraction"
+        subtitle="Manage users, content and question imports"
       />
 
       <div className="mb-6 flex flex-wrap gap-3">
@@ -142,7 +142,7 @@ export default async function AdminPage() {
             Workflow: create a <strong>Course</strong> → add its{" "}
             <strong>Modules</strong> → add{" "}
             <strong>Chapters</strong> → add <strong>Topics</strong> with content
-            → upload a <strong>PDF</strong> to extract questions with AI.
+            → upload a <strong>PDF</strong> to extract question drafts.
           </p>
           <Link
             href="/admin/modules"

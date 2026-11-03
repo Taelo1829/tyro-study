@@ -52,7 +52,7 @@ export function ContentManager({
   const hasContent = content.replace(/<[^>]+>/g, "").trim().length > 0
 
   async function writeWithAi() {
-    if (hasContent && !confirm("Replace the current lesson with the AI draft? (Nothing is saved until you press Save lesson.)")) return
+    if (hasContent && !confirm("Replace the current lesson with the new draft? (Nothing is saved until you press Save lesson.)")) return
     setAiBusy(true)
     setAiError("")
     try {
@@ -62,17 +62,17 @@ export function ContentManager({
         body: JSON.stringify({ topicId, length: aiLength, notes: aiNotes }),
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error ?? "The AI couldn't write this lesson")
+      if (!res.ok) throw new Error(data.error ?? "Couldn't generate this lesson")
       const draft = sanitizeTopicHtml(data.html ?? "")
-      if (!draft) throw new Error("The AI didn't return any lesson content")
+      if (!draft) throw new Error("No lesson content was generated")
       setContent(draft)
       setAiDraft(true)
       setAiOpen(false)
       setMessage(
-        `AI draft added${data.usedPdfs ? ` (based on ${data.usedPdfs} PDF${data.usedPdfs > 1 ? "s" : ""})` : ""}. Check it over, edit anything you like, then press Save lesson.`
+        `Lesson draft added${data.usedPdfs ? ` (based on ${data.usedPdfs} PDF${data.usedPdfs > 1 ? "s" : ""})` : ""}. Check it over, edit anything you like, then press Save lesson.`
       )
     } catch (err) {
-      setAiError(err instanceof Error ? err.message : "The AI couldn't write this lesson")
+      setAiError(err instanceof Error ? err.message : "Couldn't generate this lesson")
     } finally {
       setAiBusy(false)
     }
@@ -227,10 +227,10 @@ export function ContentManager({
         )}
       </CardContent>
       <Modal open={aiOpen} onClose={() => !aiBusy && setAiOpen(false)} size="md">
-        <ModalHeader onClose={() => !aiBusy && setAiOpen(false)}>Write this lesson with AI</ModalHeader>
+        <ModalHeader onClose={() => !aiBusy && setAiOpen(false)}>Draft this lesson</ModalHeader>
         <ModalBody className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            The AI reads this topic&apos;s module, chapter and topic (plus its quiz questions and any PDFs you&apos;ve uploaded)
+            The lesson builder uses this topic&apos;s module, chapter and topic (plus its quiz questions and any PDFs you&apos;ve uploaded)
             and drafts a lesson for UNISA students. You can review and edit it before saving.
           </p>
 

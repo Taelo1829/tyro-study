@@ -100,7 +100,7 @@ export default function AdminModulesPage() {
               <LevelPicker value={newLevel} onChange={setNewLevel} name="new-level" />
               {newLevel === "highschool" && (
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  End the title with the grade, e.g. &ldquo;Physical Sciences - Grade 12&rdquo;. The AI uses it to follow that grade&apos;s CAPS content.
+                  End the title with the grade, e.g. &ldquo;Physical Sciences - Grade 12&rdquo;. This keeps generated content aligned with that grade&apos;s CAPS syllabus.
                 </p>
               )}
             </div>

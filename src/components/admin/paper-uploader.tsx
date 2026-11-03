@@ -151,7 +151,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
           {(step === "pick" || step === "uploading" || step === "ocr" || step === "reading") && (
             <>
               <p className="text-sm text-muted-foreground">
-                Upload a past exam or assignment paper (PDF, with or without its memo). The AI turns each question into a
+                Upload a past exam or assignment paper (PDF, with or without its memo). Each question is converted into a
                 multiple-choice question, keeping the paper&apos;s options and memo answers where it has them, and puts it in the
                 topic it tests. You check them before anything is saved. The mock exam asks past-paper questions first.
               </p>
@@ -201,7 +201,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
                 {questions.length} questions found.{" "}
                 {workedOut > 0 && (
                   <span className="font-medium text-amber-800">
-                    {workedOut} have answers worked out by the AI (no memo): check those.
+                    {workedOut} have automatically drafted answers (no memo): review those carefully.
                   </span>
                 )}{" "}
                 Pick the right answer by tapping an option.
@@ -222,7 +222,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
                         <div className="flex flex-wrap items-center gap-2 text-xs">
                           <span className="font-semibold">{q.number}</span>
                           <span className={cn("rounded-full px-2 py-0.5 font-medium", q.answerSource === "paper" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800")}>
-                            {q.answerSource === "paper" ? "Answer from the paper" : "Answer worked out by AI"}
+                            {q.answerSource === "paper" ? "Answer from the paper" : "Draft answer — no memo"}
                           </span>
                         </div>
                         <p className="whitespace-pre-wrap text-sm font-medium">

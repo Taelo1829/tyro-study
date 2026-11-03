@@ -67,7 +67,7 @@ export function ProjectManager({ topicId, moduleId, onCount }: { topicId: string
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? "Couldn't write the projects")
-      setMessage(data.added ? `Added ${data.added} project${data.added === 1 ? "" : "s"}.` : "The AI didn't come up with new projects. Try again.")
+      setMessage(data.added ? `Added ${data.added} project${data.added === 1 ? "" : "s"}.` : "No new projects were generated. Try again.")
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't write the projects")
@@ -111,10 +111,10 @@ export function ProjectManager({ topicId, moduleId, onCount }: { topicId: string
       ) : (
         <>
           <section className="space-y-3">
-            <h3 className="font-semibold">Generate with AI</h3>
+            <h3 className="font-semibold">Generate drafts</h3>
             <p className="text-sm text-muted-foreground">
-              The AI writes {language} projects that practise this topic: a brief with an example run, starter code and a marking
-              rubric. Students upload their code and the AI marks it against the rubric.
+              Generate draft {language} projects that practise this topic: a brief with an example run, starter code and a marking
+              rubric. Students upload their code for automatic marking against the rubric.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <label className="flex items-center gap-2 text-sm">

@@ -80,7 +80,7 @@ export function ModuleExerciseBuilder({ moduleId }: { moduleId: string }) {
         </ModalHeader>
         <ModalBody className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            For each topic with a lesson and no exercises yet, the AI writes 2 fill-in-the-blank code exercises (shown after the
+            For each topic with a lesson and no exercises yet, generate 2 fill-in-the-blank code exercises (shown after the
             lesson) and 5 type-the-answer quiz questions. It takes about half a minute a topic; keep this window open.
           </p>
           {!rows && !error && <p className="text-sm text-muted-foreground">Loading…</p>}

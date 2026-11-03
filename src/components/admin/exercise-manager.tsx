@@ -60,7 +60,7 @@ export function ExerciseManager({ topicId, onCount, onQuestionsAdded }: { topicI
         count ? `${data.exercises} exercise${data.exercises === 1 ? "" : "s"}` : "",
         questions ? `${data.questions} type-the-answer question${data.questions === 1 ? "" : "s"}` : "",
       ].filter(Boolean)
-      setMessage(data.exercises || data.questions ? `Added ${parts.join(" and ")}.` : "The AI didn't come up with usable ones. Try again.")
+      setMessage(data.exercises || data.questions ? `Added ${parts.join(" and ")}.` : "No usable exercises were generated. Try again.")
       if (data.questions) onQuestionsAdded?.()
       await load()
     } catch (err) {
@@ -90,7 +90,7 @@ export function ExerciseManager({ topicId, onCount, onQuestionsAdded }: { topicI
     <div className="space-y-6">
       <section className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Short programs with blanks to fill in, shown after the lesson and checked instantly. The AI can also write quiz questions
+          Short programs with blanks to fill in, shown after the lesson and checked instantly. You can also generate quiz questions
           that students answer by typing into a blank in the code; they join this topic&apos;s quiz.
         </p>
         <div className="flex flex-wrap items-center gap-3">
@@ -116,7 +116,7 @@ export function ExerciseManager({ topicId, onCount, onQuestionsAdded }: { topicI
           </label>
           <Button variant="primary" onClick={generate} disabled={busy || count + questions === 0}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {busy ? "Writing…" : "Generate with AI"}
+            {busy ? "Writing…" : "Generate drafts"}
           </Button>
         </div>
         {message && <p className="text-sm text-green-700">{message}</p>}

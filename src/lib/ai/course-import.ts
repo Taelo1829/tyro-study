@@ -210,7 +210,7 @@ export async function outlineModule(input: {
     }))
     .filter(c => c.title && c.topics.length > 0)
     .slice(0, MAX_CHAPTERS)
-  if (chapters.length === 0) throw new Error(`The AI couldn't plan ${input.code}. Try again.`)
+  if (chapters.length === 0) throw new Error(`Couldn't generate a plan for ${input.code}. Try again.`)
 
   const description = typeof parsed.description === "string" ? parsed.description.replace(/—/g, ", ").trim().slice(0, 1000) : ""
   return { description, chapters }
@@ -251,7 +251,7 @@ export async function outlineSubject(input: { name: string; grade: number; notes
     }))
     .filter(c => c.title && c.topics.length > 0)
     .slice(0, MAX_CHAPTERS)
-  if (chapters.length === 0) throw new Error(`The AI couldn't plan ${input.name}. Try again.`)
+  if (chapters.length === 0) throw new Error(`Couldn't generate a plan for ${input.name}. Try again.`)
   const subject = clean(parsed.subject).replace(/\s*[-–]?\s*Grade\s*\d+\s*$/i, "") || clean(input.name)
   const description = typeof parsed.description === "string" ? parsed.description.replace(/—/g, ", ").trim().slice(0, 1000) : ""
   return { subject, description, chapters }

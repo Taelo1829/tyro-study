@@ -161,10 +161,10 @@ export default function AdminTopicDetailPage() {
         </TabsContent>
 
         <TabsContent value="questions" forceMount className="data-[state=inactive]:hidden">
-          <Panel title="Questions" description="The topic quiz picks from these. Add them with AI, from Excel, or move them here from other topics.">
+          <Panel title="Questions" description="The topic quiz picks from these. Generate drafts, import from Excel, or move questions here from other topics.">
             <div className="space-y-8">
               <section className="space-y-3">
-                <h3 className="font-semibold">Generate with AI</h3>
+                <h3 className="font-semibold">Generate drafts</h3>
                 <AiQuestionGenerator topicId={id} onSaved={load} />
               </section>
 
@@ -231,7 +231,7 @@ export default function AdminTopicDetailPage() {
           </Panel>
         </TabsContent>
         <TabsContent value="projects" forceMount className="data-[state=inactive]:hidden">
-          <Panel title="Coding projects" description="Hands-on programming tasks for coding modules. Students upload their code and the AI marks it against each project's rubric.">
+          <Panel title="Coding projects" description="Hands-on programming tasks for coding modules. Students upload their code for automatic marking against each project's rubric.">
             <ProjectManager topicId={id} moduleId={topic.chapter.module.id} onCount={setProjectCount} />
           </Panel>
           <div className="mt-10 border-t-2 border-foreground pt-8">

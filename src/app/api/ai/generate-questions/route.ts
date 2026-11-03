@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       .join("\n")
 
     const questions = await writeQuestions(userPrompt, existing, difficulty)
-    if (questions.length === 0) throw new Error("The AI didn't return any usable questions. Try again")
+    if (questions.length === 0) throw new Error("No usable questions were generated. Try again")
     return NextResponse.json({ questions })
   } catch (err) {
     captureError("Generate questions error", err, "/api/ai/generate-questions")

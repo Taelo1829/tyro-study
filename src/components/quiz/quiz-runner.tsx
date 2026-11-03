@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AnswerExplanation } from "./answer-explanation"
 import { ScratchPad } from "./scratch-pad"
 import { MathText } from "@/components/ui/math-text"
 import { TopicContentView } from "@/components/topic/topic-content-view"
@@ -638,6 +639,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                                     </div>
                                                 </div>
                                             </div>
+                                            {result && attemptId && <AnswerExplanation attemptId={attemptId} questionId={question.id} />}
                                         </div>
                                     )
                                 })}
@@ -795,6 +797,8 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                         </div>
                     )}
                 </div>
+
+                {answered && attemptId && <AnswerExplanation key={`${attemptId}:${current.id}`} attemptId={attemptId} questionId={current.id} />}
 
                 {error && <p className="mb-4 text-center text-sm text-red-600" role="alert">{error}</p>}
 

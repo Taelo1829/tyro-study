@@ -111,7 +111,7 @@ export function VideoFinder({
     <Modal open onClose={() => busy !== "add" && onClose()} size="lg">
       <ModalHeader onClose={() => busy !== "add" && onClose()}>
         <span className="flex items-center gap-2">
-          <MonitorPlay className="h-5 w-5" /> Find a video with AI
+          <MonitorPlay className="h-5 w-5" /> Find a lesson video
         </span>
       </ModalHeader>
       <ModalBody className="space-y-4">
@@ -138,7 +138,7 @@ export function VideoFinder({
               <>
                 {!result.video && (
                   <p className="text-sm text-amber-700">
-                    The AI didn&apos;t think any result was a great match{result.reason ? `: ${result.reason}` : "."} Check the
+                    No close match was found{result.reason ? `: ${result.reason}` : "."} Check the
                     videos below before adding one.
                   </p>
                 )}
@@ -169,7 +169,7 @@ export function VideoFinder({
                             {isPick && (
                               <p className="mt-1 text-xs text-green-700">
                                 <Check className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
-                                AI&apos;s pick{result.reason ? `: ${result.reason}` : ""}
+                                Suggested video{result.reason ? `: ${result.reason}` : ""}
                               </p>
                             )}
                           </div>

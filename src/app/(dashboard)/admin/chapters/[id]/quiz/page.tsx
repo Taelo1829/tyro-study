@@ -84,7 +84,7 @@ export default function AdminChapterQuizPage() {
           </TabsTrigger>
           <TabsTrigger value="ai" className="gap-2 px-2">
             <Sparkles className="hidden h-4 w-4 sm:block" />
-            <span>AI</span>
+            <span>Generate</span>
           </TabsTrigger>
           <TabsTrigger value="manual" className="gap-2 px-2">
             <PenLine className="hidden h-4 w-4 sm:block" />
@@ -103,7 +103,7 @@ export default function AdminChapterQuizPage() {
           >
             {chapter.questions.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No chapter questions yet. Use the AI, Add or Excel tabs to add some.
+                No chapter questions yet. Use the Generate, Add or Excel tabs to add some.
               </p>
             ) : (
               <ul className="divide-y divide-border">
@@ -137,7 +137,7 @@ export default function AdminChapterQuizPage() {
         </TabsContent>
 
         <TabsContent value="ai" forceMount className="data-[state=inactive]:hidden">
-          <Section title="Generate questions with AI">
+          <Section title="Generate question drafts">
             <AiQuestionGenerator chapterId={id} onSaved={added} />
           </Section>
         </TabsContent>

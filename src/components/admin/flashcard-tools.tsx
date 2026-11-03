@@ -50,12 +50,12 @@ export function FlashcardTools({
   return (
     <div className="space-y-8">
       <section className="space-y-3">
-        <h3 className="font-semibold">Generate with AI</h3>
+        <h3 className="font-semibold">Generate drafts</h3>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             {hasLesson
               ? "Creates 10 flashcards from this topic's saved lesson."
-              : "Write and save a lesson first. The AI makes flashcards from it."}
+              : "Write and save a lesson first. Flashcards are generated from the saved lesson."}
           </p>
           <Button variant="primary" className="shrink-0" onClick={generate} disabled={busy || !hasLesson}>
             <Sparkles className="h-4 w-4" />

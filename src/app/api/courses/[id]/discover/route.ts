@@ -31,7 +31,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const found = await discoverModules({ courseTitle: course.title, courseDescription: course.description, url })
     if (found.modules.length === 0) {
       return NextResponse.json(
-        { error: url ? "No modules were found on that page. Check it's the qualification's page (the one listing its modules)." : "The AI couldn't list this course's modules. Paste the UNISA qualification link instead." },
+        { error: url ? "No modules were found on that page. Check it's the qualification's page (the one listing its modules)." : "Couldn't find this course's modules. Paste the UNISA qualification link instead." },
         { status: 422 }
       )
     }

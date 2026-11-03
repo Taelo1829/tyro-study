@@ -120,7 +120,7 @@ export default function AdminCoursesPage() {
           {courses.length === 0 && (
             <Card>
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                No courses yet. Create one (e.g. BSc Computing), then build it with AI from its UNISA page or choose the
+                No courses yet. Create one (e.g. BSc Computing), then build it from its UNISA page or choose the
                 modules that belong to it.
               </CardContent>
             </Card>
@@ -148,7 +148,7 @@ export default function AdminCoursesPage() {
                     ) : (
                       <Button size="sm" variant="primary" onClick={() => setBuilding(course)}>
                         <Sparkles className="h-4 w-4" />
-                        Build with AI
+                        Build from course page
                       </Button>
                     )}
                     <Button size="sm" onClick={() => setPicking(course)}>

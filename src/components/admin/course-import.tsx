@@ -340,7 +340,7 @@ export function CourseImport({
       <ModalHeader onClose={busy ? undefined : close}>
         <h2 className="flex items-center gap-2 text-lg font-semibold">
           <Sparkles className="h-5 w-5" />
-          Build {course.title} with AI
+          Build {course.title}
         </h2>
       </ModalHeader>
 
@@ -348,7 +348,7 @@ export function CourseImport({
         {(step === "find" || step === "finding") && (
           <>
             <p className="text-sm text-muted-foreground">
-              Paste the course&apos;s page from the UNISA website (the qualification page that lists its modules). The AI reads
+              Paste the course&apos;s page from the UNISA website (the qualification page that lists its modules). The builder reads
               the modules from it, you choose which to add, and it builds each new module: chapters, topics, lessons,
               quizzes, and flashcards for theory topics.
             </p>
@@ -402,7 +402,7 @@ export function CourseImport({
               {source === "ai" ? (
                 <p className="mt-1 flex items-start gap-2 rounded-2xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  Suggested by the AI from the course name, not read from UNISA. Check the codes against the UNISA website before
+                  Automatically suggested from the course name, not read from UNISA. Check the codes against the UNISA website before
                   building.
                 </p>
               ) : (
@@ -442,7 +442,7 @@ export function CourseImport({
                                 ? "already in this course"
                                 : r.existingModuleId
                                   ? "already in Tyro: added to the course as it is"
-                                  : "new: the AI builds it"}
+                                  : "new: build automatically"}
                             </span>
                           </span>
                         </label>

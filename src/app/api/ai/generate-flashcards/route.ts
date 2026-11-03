@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     })
 
     const raw = response.choices[0]?.message?.content
-    if (!raw) throw new Error("No response from AI")
+    if (!raw) throw new Error("No generated content was returned")
 
     const parsed = JSON.parse(raw) as {
       flashcards: { front: string; back: string }[]

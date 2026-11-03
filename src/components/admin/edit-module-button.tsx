@@ -138,7 +138,7 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
                 autoFocus
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Keep the UNISA module code at the start (e.g. COS1511). The AI uses it to pitch lessons and questions at the right year level.
+                Keep the UNISA module code at the start (e.g. COS1511). It sets the year level for generated lessons and questions.
               </p>
             </div>
             <fieldset>
@@ -185,7 +185,7 @@ export function EditModuleButton({ module, onSaved, chapterCount = 0, topicCount
                 ))}
               </select>
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Coding modules get coding projects: students upload their code and the AI marks it. The AI writes projects in this language.
+                Coding modules get coding projects: students upload their code for automatic marking. Projects are generated in this language.
               </p>
             </div>
             <fieldset>

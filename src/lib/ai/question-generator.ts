@@ -48,7 +48,7 @@ export async function extractQuestionsFromText(
 
   const raw = response.choices[0]?.message?.content
   if (!raw) {
-    throw new Error("No response from AI")
+    throw new Error("No generated content was returned")
   }
 
   const parsed = JSON.parse(raw) as ExtractionResult
@@ -72,7 +72,7 @@ export async function extractQuestionsFromText(
     .filter((q) => q.options.includes(q.correctOption))
 
   if (questions.length === 0) {
-    throw new Error("AI did not return valid questions")
+    throw new Error("No valid questions were generated")
   }
 
   return { questions }

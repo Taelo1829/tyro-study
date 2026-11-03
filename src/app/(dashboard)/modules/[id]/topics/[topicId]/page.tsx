@@ -520,7 +520,7 @@ export default function TopicPage() {
                             <Sheet>
                                 <SheetHeading
                                     title="Coding projects"
-                                    description="Write the program on your computer, then upload your files. The AI marks your code against each project's rubric and tells you what to improve."
+                                    description="Write the program on your computer, then upload your files. Automatic marking checks your code against each project's rubric and suggests improvements."
                                 />
                                 <TopicProjects projects={projects} moduleId={topic.chapter.module.id} topicId={topic.id} />
                             </Sheet>

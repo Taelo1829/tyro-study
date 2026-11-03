@@ -295,7 +295,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
           {(step === "pick" || step === "uploading" || step === "reading" || step === "ocr") && (
             <>
               <p className="text-sm text-muted-foreground">
-                Upload the textbook as a PDF. The AI finds its chapters and sections and suggests chapters and topics for this
+                Upload the textbook as a PDF. The textbook reader identifies its chapters and sections and suggests chapters and topics for this
                 module. You check them, then it writes each topic&apos;s lesson and quiz from the book&apos;s pages, and can add a
                 YouTube video to each topic.
               </p>

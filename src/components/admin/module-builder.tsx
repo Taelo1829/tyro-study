@@ -151,7 +151,7 @@ export function ModuleBuilder({
     <>
       <Button size="sm" variant="primary" onClick={() => setOpen(true)}>
         <Sparkles className="h-4 w-4" />
-        Add with AI
+        Build from a name
       </Button>
 
       <Modal open={open} onClose={close} size="lg" persistent={busy}>
@@ -159,7 +159,7 @@ export function ModuleBuilder({
           <ModalHeader onClose={busy ? undefined : close}>
             <h2 className="flex items-center gap-2 text-lg font-semibold">
               <Sparkles className="h-5 w-5" />
-              {built ? built.title : "Add a subject or module with AI"}
+              {built ? built.title : "Build a subject or module"}
             </h2>
           </ModalHeader>
 
@@ -167,7 +167,7 @@ export function ModuleBuilder({
             {step === "form" && (
               <>
                 <p className="text-sm text-muted-foreground">
-                  Type the name and the AI plans the chapters and topics from the syllabus (CAPS for high school subjects, the
+                  Type the name to generate a chapter and topic plan from the syllabus (CAPS for high school subjects, the
                   UNISA module for university modules), then writes each topic&apos;s lesson and quiz.
                 </p>
                 <LevelPicker value={level} onChange={setLevel} name="build-level" />
@@ -205,7 +205,7 @@ export function ModuleBuilder({
                 </div>
                 <div>
                   <label htmlFor="build-notes" className="mb-1.5 block text-sm font-medium">
-                    Notes for the AI <span className="font-normal text-muted-foreground">(optional)</span>
+                    Drafting instructions <span className="font-normal text-muted-foreground">(optional)</span>
                   </label>
                   <Input
                     id="build-notes"

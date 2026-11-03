@@ -113,7 +113,7 @@ export function AiQuestionGenerator({ topicId, chapterId, onSaved }: Props) {
         body: JSON.stringify({ topicId, chapterId, count, difficulty, notes }),
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error ?? "The AI couldn't write questions")
+      if (!res.ok) throw new Error(data.error ?? "Couldn't generate questions")
       const fresh = (data.questions as Omit<DraftQuestion, "keep">[]).map(q => ({ ...q, keep: true }))
       // "Generate more" adds to the list, skipping repeats
       setDrafts(prev => {
@@ -121,7 +121,7 @@ export function AiQuestionGenerator({ topicId, chapterId, onSaved }: Props) {
         return [...prev, ...fresh.filter(q => !seen.has(q.question.toLowerCase()))]
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "The AI couldn't write questions")
+      setError(err instanceof Error ? err.message : "Couldn't generate questions")
     } finally {
       setBusy(null)
     }
@@ -157,7 +157,7 @@ export function AiQuestionGenerator({ topicId, chapterId, onSaved }: Props) {
     <>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          The AI writes UNISA-style multiple-choice questions from {scopeLabel}&apos;s {topicId ? "lesson and PDFs" : "topics and lessons"}, avoiding ones you already have. You review them before anything is saved.
+          Generate draft UNISA-style multiple-choice questions from {scopeLabel}&apos;s {topicId ? "lesson and PDFs" : "topics and lessons"}, avoiding ones you already have. You review them before anything is saved.
         </p>
         <Button variant="primary" className="shrink-0" onClick={() => { setError(""); setOpen(true) }}>
           <Sparkles className="h-4 w-4" />
@@ -167,7 +167,7 @@ export function AiQuestionGenerator({ topicId, chapterId, onSaved }: Props) {
 
       <Modal open={open} onClose={close} size={reviewing ? "lg" : "md"}>
         <ModalHeader onClose={close}>
-          {reviewing ? `Review questions (${kept.length} of ${drafts.length} selected)` : "Generate questions with AI"}
+          {reviewing ? `Review questions (${kept.length} of ${drafts.length} selected)` : "Generate question drafts"}
         </ModalHeader>
 
         <ModalBody className="space-y-4">

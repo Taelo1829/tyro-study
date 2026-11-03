@@ -79,5 +79,5 @@ export async function chatJson<T>({
     }
   }
   console.warn("AI JSON failed after retries:", lastProblem)
-  throw new Error("The AI's answer came back incomplete. Please try again.")
+  throw new Error("The generated response was incomplete. Please try again.")
 }

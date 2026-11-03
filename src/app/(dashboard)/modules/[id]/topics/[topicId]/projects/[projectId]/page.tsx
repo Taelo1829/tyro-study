@@ -230,7 +230,7 @@ export default function ProjectPage() {
       <section className="mt-8">
         <h2 className="mb-1 text-lg font-semibold">Submit your code</h2>
         <p className="mb-3 text-sm text-muted-foreground">
-          Upload your source files (up to {MAX_FILES}). The AI reads your code, traces it against the brief and marks it with the
+          Upload your source files (up to {MAX_FILES}). Automatic marking checks your code against the brief and uses the
           rubric. It takes up to a minute.
         </p>
         <input
