@@ -2,10 +2,12 @@ import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { BookOpen, ChevronRight, FileText, GraduationCap, Layers, ListTree, Users } from "lucide-react"
+import { Activity, BarChart3, MessageSquare, BookOpen, ChevronRight, FileText, GraduationCap, Layers, ListTree, Users } from "lucide-react"
 import { prisma } from "@/lib/prisma"
+import { requireAdminPage } from "@/lib/admin"
 
 export default async function AdminPage() {
+  await requireAdminPage()
   const [moduleCount, chapterCount, topicCount, questionCount, userCount, [{ n: courseCount }]] =
     await Promise.all([
       prisma.module.count(),
@@ -86,6 +88,24 @@ export default async function AdminPage() {
           <Link href="/admin/modules">
             <BookOpen className="h-4 w-4" />
             Manage modules
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link href="/admin/analytics">
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/admin/monitoring">
+            <Activity className="h-4 w-4" />
+            Monitoring
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/admin/feedback">
+            <MessageSquare className="h-4 w-4" />
+            Feedback
           </Link>
         </Button>
       </div>

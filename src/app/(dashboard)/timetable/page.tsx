@@ -239,7 +239,8 @@ export default function TimetablePage() {
                   aria-label={`${dayTitleFormat.format(day)}${dayEvents.length ? `, ${dayEvents.length} item${dayEvents.length > 1 ? "s" : ""}` : ""}`}
                   className={cn(
                     "group flex min-h-14 flex-col items-center rounded-2xl p-1 transition-colors sm:min-h-24 sm:items-stretch sm:p-1.5",
-                    inMonth ? "hover:bg-muted" : "opacity-40 hover:opacity-70",
+                    // Days outside the month: muted grey, 5.6:1 on the page background (opacity made them 2.5:1, WCAG 1.4.3)
+                    inMonth ? "hover:bg-muted" : "text-[#5f6670] hover:bg-muted/60",
                     dayEvents.length > 0 && inMonth && "bg-muted/60"
                   )}
                 >

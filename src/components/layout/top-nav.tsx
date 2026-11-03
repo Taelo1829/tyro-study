@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { signOut, useSession } from "next-auth/react"
-import { Bell, BellRing, Brain, ChevronDown, LogOut, Shield, UserRound } from "lucide-react"
+import { Bell, BellRing, Brain, ChevronDown, LogOut, MessageSquarePlus, Shield, UserRound } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { UserAvatar } from "@/components/ui/user-avatar"
 import { MAIN_NAV, navLabel } from "@/lib/navigation"
@@ -60,7 +60,7 @@ export function TopNav({ isAdmin = false }: TopNavProps) {
         className="neo-glass mx-auto flex h-16 max-w-7xl items-center gap-3 rounded-full px-3 shadow-lg shadow-black/5 ring-1 ring-border"
       >
         {/* Logo */}
-        <Link href="/dashboard" className="flex shrink-0 items-center gap-2 pl-1 pr-2">
+        <Link href="/dashboard" aria-label="Tyro Study: dashboard" className="flex shrink-0 items-center gap-2 pl-1 pr-2">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
             <Brain className="h-5 w-5 text-primary-foreground" />
           </span>
@@ -145,6 +145,15 @@ export function TopNav({ isAdmin = false }: TopNavProps) {
                 >
                   <UserRound className="h-4 w-4 text-muted-foreground" />
                   Profile
+                </Link>
+                <Link
+                  href={`/feedback?from=${encodeURIComponent(pathname ?? "/")}`}
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-full px-3 py-2.5 text-sm hover:bg-muted"
+                >
+                  <MessageSquarePlus className="h-4 w-4 text-muted-foreground" />
+                  Send feedback
                 </Link>
                 {isAdmin && (
                   <Link

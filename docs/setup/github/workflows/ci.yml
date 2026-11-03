@@ -1,0 +1,148 @@
+name: CI
+
+# Runs on every pull request and every push to main (main deploys to staging).
+# One job, fail-fast order: cheap checks first, then a real database, a
+# production build and black-box tests against it.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # CI only ever talks to the throwaway Postgres above. No real services.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      DIRECT_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      NEXTAUTH_SECRET: ci-only-not-a-secret-0123456789abcdef
+      NEXTAUTH_URL: http://localhost:4000
+      APP_URL: http://localhost:4000
+      CRON_SECRET: ci-cron-secret
+      PUSHER_APP_ID: ci
+      PUSHER_SECRET: ci
+      NEXT_PUBLIC_PUSHER_KEY: ci
+      NEXT_PUBLIC_PUSHER_CLUSTER: eu
+      NEXT_TELEMETRY_DISABLED: "1"
+      TEST_PASSWORD: Test-Password-123
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the migration check compares with the base branch
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # --- fast checks -------------------------------------------------------------
+      - name: Prisma schema is valid
+        run: npx prisma validate
+
+      - name: Committed Prisma client matches the schema and Prisma version
+        # src/prisma is generated and committed; after upgrading prisma or
+        # changing schema.prisma, run `npx prisma generate` and commit it.
+        run: npx prisma generate && git diff --stat --exit-code -- src/prisma
+
+      - name: Migration safety (new migrations only)
+        if: github.event_name == 'pull_request'
+        run: node scripts/ci/check-migrations.mjs
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit and integration tests
+        run: npm test
+
+      # --- database: migrations apply cleanly from scratch, and re-running is a no-op ----
+      - name: Apply all migrations to an empty database
+        run: npx prisma migrate deploy
+
+      - name: Re-run migrations (must be a no-op)
+        run: npx prisma migrate deploy && npx prisma migrate status
+
+      - name: Schema drift report (schema.prisma vs migrated database)
+        # Informational: columns added with raw SQL (ADR 0004) show up here until
+        # they're added to schema.prisma.
+        continue-on-error: true
+        run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+
+      # --- build and run the app like production ------------------------------------------
+      - name: Build
+        run: npm run build
+
+      - name: Seed test fixtures
+        run: node scripts/qa/seed-test-data.mjs
+
+      - name: Start the app
+        run: |
+          npx next start -p 4000 > next.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:4000/api/health && exit 0
+            sleep 2
+          done
+          cat next.log; exit 1
+
+      - name: Smoke test
+        run: node scripts/ci/smoke.mjs
+        env:
+          BASE_URL: http://localhost:4000
+          WAIT_SECONDS: "30"
+          SMOKE_ALLOW_MISSING_SERVICES: "1"
+
+      - name: Security and permission tests
+        run: node scripts/qa/security-tests.mjs
+        env:
+          BASE_URL: http://localhost:4000
+          JSON_OUT: security-results.json
+
+      - name: Keep test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-results
+          path: |
+            security-results.json
+            next.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+  audit:
+    # Known advisories in production dependencies. Informational until the
+    # Next.js / Prisma / xlsx upgrades in business/07 are done, then blocking.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm audit --omit=dev --audit-level=high

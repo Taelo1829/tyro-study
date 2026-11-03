@@ -3,11 +3,21 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { orFallback } from "@/lib/db-safe"
-import { blankQuestionIds, saveTypedAnswer, saveUserTypedAnswer, typedAnswers } from "@/lib/question-kinds"
+import { blankQuestionIds, saveTypedAnswer, typedAnswers } from "@/lib/question-kinds"
 import { matchingAnswer } from "@/lib/code-blanks"
 import { getTopicLock, lockedResponseBody } from "@/lib/topic-locks"
 import { MOCK_EXAM_PASS_MARK, moduleProgress } from "@/lib/quiz-stats"
 import type { Prisma } from "@/prisma/client"
+import { track } from "@/lib/analytics"
+import { captureError } from "@/lib/monitoring"
+import { saveFinalAnswers } from "@/lib/quiz-finish"
+import { log, requestIdFrom } from "@/lib/log"
+
+/** What kind of quiz an attempt is, for analytics: "topic", "chapter", "mock_exam", "module" or "custom" */
+function quizKind(settings: { mockExam?: boolean; source?: string | null }) {
+    if (settings.mockExam) return "mock_exam"
+    return settings.source?.split(":")[0] ?? "custom"
+}
 
 /** Extra time after an (optional) time limit for a late submit to arrive */
 const SUBMIT_GRACE_MS = 2 * 60_000
@@ -146,7 +156,10 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        const body = await req.json()
+        const body = await req.json().catch(() => null)
+        if (!body || typeof body !== "object") {
+            return NextResponse.json({ error: "Send a JSON body" }, { status: 400 })
+        }
         const { topicId, questionIds, moduleId, chapterId, settings } = body
 
         if (!topicId && !moduleId && !questionIds && !chapterId) {
@@ -329,6 +342,18 @@ export async function POST(req: NextRequest) {
             })),
         })
 
+        track("quiz_started", {
+            userId: user.id,
+            props: {
+                kind: quizKind(quizSettings),
+                attemptId: quizAttempt.id,
+                topicId: quizTopicId ?? null,
+                chapterId: chapterId ?? null,
+                moduleId: quizModuleId ?? null,
+                questions: finalQuestions.length,
+            },
+        })
+
         const papers = await paperNames(finalQuestions.map(q => q.id))
         return NextResponse.json({
             success: true,
@@ -358,7 +383,7 @@ export async function POST(req: NextRequest) {
             },
         })
     } catch (error) {
-        console.error("Error creating quiz attempt:", error)
+        captureError("Error creating quiz attempt", error, "/api/quiz/attempt")
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
@@ -466,7 +491,7 @@ export async function GET(req: NextRequest) {
             },
         })
     } catch (error) {
-        console.error("Error fetching quiz attempt:", error)
+        captureError("Error fetching quiz attempt", error, "/api/quiz/attempt")
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
@@ -476,6 +501,7 @@ export async function GET(req: NextRequest) {
 
 // PUT - Update quiz attempt (submit answer)
 export async function PUT(req: NextRequest) {
+    const requestStarted = Date.now()
     try {
         const session = await getServerSession(authOptions)
 
@@ -497,7 +523,10 @@ export async function PUT(req: NextRequest) {
             )
         }
 
-        const body = await req.json()
+        const body = await req.json().catch(() => null)
+        if (!body || typeof body !== "object") {
+            return NextResponse.json({ error: "Send a JSON body" }, { status: 400 })
+        }
         // Note: any `isCorrect` sent by the client is ignored - correctness is
         // decided on the server so scores can't be faked from the browser.
         // Send { attemptId, questionId, selectedAnswerId } to answer a question
@@ -538,6 +567,8 @@ export async function PUT(req: NextRequest) {
         const settings = JSON.parse(quizAttempt.settings) as {
             passingScore: number
             timeLimit: number | null
+            mockExam?: boolean
+            source?: string | null
         }
 
         // Answers that arrive after the time limit (plus a short grace period
@@ -657,42 +688,35 @@ export async function PUT(req: NextRequest) {
                 settings.timeLimit ? Math.round(settings.timeLimit * 60) : Infinity
             )
 
-            // Save user answers to permanent storage
-            const typed = await typedAnswers(attemptId)
-            for (const qa of answered) {
-                const typedText = typed.get(qa.questionId)
-                if (!qa.selectedAnswerId && typedText === undefined) continue
-                const existingUserAnswer = await prisma.userAnswer.findFirst({
-                    where: {
-                        userId: user.id,
-                        questionId: qa.questionId,
-                    },
-                })
+            track("quiz_completed", {
+                userId: user.id,
+                props: {
+                    kind: quizKind(settings),
+                    attemptId,
+                    topicId: quizAttempt.topicId,
+                    moduleId: quizAttempt.moduleId,
+                    score,
+                    passed: score >= settings.passingScore,
+                    questions: quizAttempt.totalQuestions,
+                    answered: answered.length,
+                    durationSeconds,
+                    timedOut: timeIsUp,
+                },
+            })
 
-                let userAnswerId: string
-                if (existingUserAnswer) {
-                    userAnswerId = existingUserAnswer.id
-                    await prisma.userAnswer.update({
-                        where: { id: existingUserAnswer.id },
-                        data: {
-                            selectedAnswerId: qa.selectedAnswerId,
-                            isCorrect: qa.isCorrect || false,
-                            answeredAt: new Date(),
-                        },
-                    })
-                } else {
-                    userAnswerId = (await prisma.userAnswer.create({
-                        data: {
-                            userId: user.id,
-                            questionId: qa.questionId,
-                            selectedAnswerId: qa.selectedAnswerId,
-                            isCorrect: qa.isCorrect || false,
-                        },
-                        select: { id: true },
-                    })).id
-                }
-                if (typedText !== undefined) await saveUserTypedAnswer(userAnswerId, typedText)
-            }
+            // Save user answers to permanent storage (a fixed handful of statements; TS-053)
+            const typed = await typedAnswers(attemptId)
+            await saveFinalAnswers(
+                user.id,
+                answered
+                    .filter(qa => qa.selectedAnswerId || typed.has(qa.questionId))
+                    .map(qa => ({
+                        questionId: qa.questionId,
+                        selectedAnswerId: qa.selectedAnswerId,
+                        isCorrect: qa.isCorrect || false,
+                        typed: typed.get(qa.questionId),
+                    }))
+            )
 
             // Correct answer for every question, for the results review
             const correctAnswers = await prisma.answer.findMany({
@@ -704,6 +728,15 @@ export async function PUT(req: NextRequest) {
                 orderBy: { id: "asc" },
             })
             const blankIds = await blankQuestionIds(allQuestionAttempts.map(qa => qa.questionId))
+
+            // Quiz finish duration (business/08 §7.2): should stay flat as quizzes get longer.
+            const finishMs = Date.now() - requestStarted
+            log[finishMs > 3000 ? "warn" : "info"]("quiz.finished", {
+                ms: finishMs,
+                questions: quizAttempt.totalQuestions,
+                kind: quizKind(settings),
+                requestId: requestIdFrom(req.headers),
+            })
 
             return NextResponse.json({
                 success: true,
@@ -747,7 +780,7 @@ export async function PUT(req: NextRequest) {
             },
         })
     } catch (error) {
-        console.error("Error updating quiz attempt:", error)
+        captureError("Error updating quiz attempt", error, "/api/quiz/attempt")
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
@@ -763,4 +796,4 @@ function shuffleArray<T>(array: T[]): T[] {
             ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
     return shuffled
-}
+}

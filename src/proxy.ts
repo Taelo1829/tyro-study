@@ -25,6 +25,11 @@ export default withAuth(
         if (publicPaths.some((path) => pathname.startsWith(path))) {
           return true
         }
+        // Admin pages: admins only (business/12 §3). Pages re-check the role in
+        // the database (requireAdminPage) in case it changed since sign-in.
+        if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+          return token?.role === "ADMIN"
+        }
         return !!token
       }
     },
@@ -41,6 +46,7 @@ export const config = {
     "/chat/:path*",
     "/settings/:path*",
     "/profile/:path*",
+    "/feedback/:path*",
     "/admin/:path*",
   ],
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { OtpError, otpErrorBody, resendOtp } from "@/lib/email-otp"
+import { captureError } from "@/lib/monitoring"
 
 /** Email a new sign-up code */
 export async function POST(request: Request) {
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ email: sent.email, resendIn: sent.resendIn })
   } catch (error) {
     if (error instanceof OtpError) return NextResponse.json(otpErrorBody(error), { status: error.status })
-    console.error("Register resend error:", error)
+    captureError("Register resend error", error, "/api/auth/register/resend")
     return NextResponse.json({ error: "Couldn't send a new code" }, { status: 500 })
   }
 }

@@ -7,24 +7,13 @@ import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { moduleProgress } from "@/lib/quiz-stats"
+import { getTopicUpNext } from "@/lib/topic-up-next"
 import { moduleSteps } from "@/lib/progress-steps"
 import { recordDailyVisit } from "@/lib/streak"
 import { listCalendarEvents, type CalendarEventRow } from "@/lib/calendar"
 import Link from "next/link"
 import { getUserLevel, moduleLevels } from "@/lib/levels-server"
 import { termsFor, type StudyLevel } from "@/lib/levels"
-
-const TOPIC_COMPLETION_THRESHOLD = 0.7
-
-interface TopicUpNext {
-  id: string
-  title: string
-  moduleId: string
-  moduleTitle: string
-  chapterTitle: string
-  answered: number
-  totalQuestions: number
-}
 
 /**
  * Overall progress across the student's modules, counted the same way as the
@@ -51,40 +40,6 @@ async function getStudyProgressPercent(userId: string, ofLevel: (moduleId: strin
 async function getCurrentStreakDays(userId: string) {
   const user = await recordDailyVisit(userId)
   return user?.streakDays ?? 0
-}
-
-async function getTopicUpNext(userId: string, ofLevel: (moduleId: string) => boolean): Promise<TopicUpNext | null> {
-  const all = await prisma.$queryRaw<TopicUpNext[]>`
-    SELECT
-      t."id",
-      t."title",
-      m."id" AS "moduleId",
-      m."title" AS "moduleTitle",
-      c."title" AS "chapterTitle",
-      COUNT(DISTINCT q."id")::int AS "totalQuestions",
-      COUNT(DISTINCT ua."questionId")::int AS "answered"
-    FROM "module_enrollments" me
-    INNER JOIN "modules" m ON m."id" = me."moduleId"
-    INNER JOIN "chapters" c ON c."moduleId" = m."id"
-    INNER JOIN "topics" t ON t."chapterId" = c."id"
-    LEFT JOIN "questions" q ON q."topicId" = t."id"
-    LEFT JOIN "user_answers" ua ON ua."questionId" = q."id" AND ua."userId" = ${userId}
-    WHERE me."userId" = ${userId}
-    GROUP BY me."enrolledAt", m."id", m."title", c."id", c."title", c."order", t."id", t."title", t."order"
-    ORDER BY me."enrolledAt" ASC, c."order" ASC, t."order" ASC
-  `
-  const candidates = all.filter(t => ofLevel(t.moduleId))
-
-  return (
-    candidates.find((topic) => {
-      if (topic.totalQuestions === 0) return false
-      const completeAt = Math.floor(topic.totalQuestions * TOPIC_COMPLETION_THRESHOLD)
-      return topic.answered > 0 && topic.answered < completeAt
-    }) ??
-    candidates.find((topic) => topic.totalQuestions > 0 && topic.answered === 0) ??
-    candidates[0] ??
-    null
-  )
 }
 
 // Timetable entries are shown in South African time (SA has no daylight saving)
@@ -152,7 +107,42 @@ export default async function DashboardPage() {
         subtitle="Your study overview for today"
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <section aria-labelledby="up-next-heading" className="mb-6 rounded-3xl bg-black p-6 text-white sm:p-8 lg:p-10">
+        <div className="mb-5 flex items-center gap-3">
+          <BookOpen className="h-5 w-5 text-white/70" aria-hidden="true" />
+          <h2 id="up-next-heading" className="text-sm font-semibold uppercase tracking-widest">Up Next</h2>
+        </div>
+        {topicUpNext ? (
+          <Link
+            href={`/modules/${topicUpNext.moduleId}/topics/${topicUpNext.id}`}
+            className="group flex flex-col items-start justify-between gap-6 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-white sm:flex-row sm:items-center"
+          >
+            <div className="min-w-0">
+              <p className="mb-2 text-sm text-white/70">{topicUpNext.moduleTitle} / {topicUpNext.chapterTitle}</p>
+              <h3 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">{topicUpNext.title}</h3>
+              {topicUpNext.totalQuestions > 0 && (
+                <p className="mt-4 text-sm text-white/70">
+                  {topicUpNext.answered}/{topicUpNext.totalQuestions} questions answered
+                </p>
+              )}
+            </div>
+            <span className="inline-flex shrink-0 items-center gap-3 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black">
+              {topicUpNext.answered > 0 ? "Continue studying" : "Start studying"}
+              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+            </span>
+          </Link>
+        ) : (
+          <div>
+            <h3 className="text-2xl font-semibold sm:text-3xl">No topics available yet</h3>
+            <p className="mt-3 text-white/70">Explore your {t.modules} to find your next study topic.</p>
+            <Link href="/modules" className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+              Browse {t.modules}<ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </Link>
+          </div>
+        )}
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <DashboardWidget
           title="Study Progress"
           description={`Quizzes passed across your ${t.modules}`}
@@ -177,42 +167,6 @@ export default async function DashboardPage() {
               <p className="text-sm text-muted-foreground">days in a row</p>
             </div>
           </div>
-        </DashboardWidget>
-
-        <DashboardWidget
-          title="Topic Up Next"
-          description="Continue where you left off"
-          delay={0.1}
-        >
-          {topicUpNext ? (
-            <Link
-              href={`/modules/${topicUpNext.moduleId}/topics/${topicUpNext.id}`}
-              className="group flex items-start justify-between gap-3"
-            >
-              <div className="flex min-w-0 items-start gap-3">
-                <BookOpen className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{topicUpNext.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {topicUpNext.moduleTitle} / {topicUpNext.chapterTitle}
-                  </p>
-                  {topicUpNext.totalQuestions > 0 && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {topicUpNext.answered}/{topicUpNext.totalQuestions} questions answered
-                    </p>
-                  )}
-                </div>
-              </div>
-              <ChevronRight className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          ) : (
-            <div className="flex items-start gap-3">
-              <BookOpen className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-              <p className="text-sm text-muted-foreground">
-                No topics scheduled yet. Join a {t.module} to get started.
-              </p>
-            </div>
-          )}
         </DashboardWidget>
 
         <DashboardWidget

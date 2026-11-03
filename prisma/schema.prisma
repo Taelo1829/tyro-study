@@ -114,6 +114,8 @@ model User {
   calendarEvents         CalendarEvent[]
   emailOtps              EmailOtp[]
   projectSubmissions     ProjectSubmission[]
+  analyticsEvents        AnalyticsEvent[]
+  feedback               Feedback[]
   @@map("users")
   
 }
@@ -579,4 +581,86 @@ model TopicExercise {
 
   @@index([topicId])
   @@map("topic_exercises")
+}
+
+/// Product analytics: one row per thing a student (or a signed-out visitor)
+/// did, e.g. "sign_up", "quiz_completed", "page_view". Written by
+/// src/lib/analytics.ts and read by the admin analytics page.
+model AnalyticsEvent {
+  id        String   @id
+  name      String
+  /// The signed-in user, if any (deleted with the user)
+  userId    String?
+  /// Random id from the first-party "tyro_aid" cookie, so signed-out visits can be counted
+  anonId    String?
+  /// Page path without the query string
+  path      String?
+  /// Small JSON object of extra details (ids, scores, never personal details)
+  props     Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([name, createdAt])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("analytics_events")
+}
+
+/// One row per distinct production error (grouped by fingerprint). Written by
+/// src/lib/monitoring.ts, read on Admin → Monitoring (business/11).
+model ErrorEvent {
+  fingerprint     String    @id
+  source          String
+  message         String
+  route           String?
+  sampleRequestId String?
+  digest          String?
+  count           Int       @default(1)
+  firstSeenAt     DateTime  @default(now())
+  lastSeenAt      DateTime  @default(now())
+  resolvedAt      DateTime?
+
+  @@index([lastSeenAt])
+  @@map("error_events")
+}
+
+/// Last run of each scheduled job (business/11).
+model AppHeartbeat {
+  name      String    @id
+  lastRunAt DateTime
+  lastOkAt  DateTime?
+  lastError String?
+  details   Json?
+
+  @@map("app_heartbeats")
+}
+
+/// Fixed-window rate limits; keys are hashed (src/lib/rate-limit.ts, business/12).
+model RateLimit {
+  key         String   @id
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@index([windowStart])
+  @@map("rate_limits")
+}
+
+/// Student feedback from the in-app form (business/12).
+model Feedback {
+  id         String   @id
+  userId     String?
+  kind       String
+  message    String
+  page       String?
+  appVersion String?
+  status     String   @default("new")
+  adminNote  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@map("feedback")
 }

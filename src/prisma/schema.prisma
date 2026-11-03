@@ -114,6 +114,7 @@ model User {
   calendarEvents         CalendarEvent[]
   emailOtps              EmailOtp[]
   projectSubmissions     ProjectSubmission[]
+  analyticsEvents        AnalyticsEvent[]
 
   @@map("users")
 }
@@ -579,4 +580,28 @@ model TopicExercise {
 
   @@index([topicId])
   @@map("topic_exercises")
+}
+
+/// Product analytics: one row per thing a student (or a signed-out visitor)
+/// did, e.g. "sign_up", "quiz_completed", "page_view". Written by
+/// src/lib/analytics.ts and read by the admin analytics page.
+model AnalyticsEvent {
+  id        String   @id
+  name      String
+  /// The signed-in user, if any (deleted with the user)
+  userId    String?
+  /// Random id from the first-party "tyro_aid" cookie, so signed-out visits can be counted
+  anonId    String?
+  /// Page path without the query string
+  path      String?
+  /// Small JSON object of extra details (ids, scores, never personal details)
+  props     Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([name, createdAt])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("analytics_events")
 }

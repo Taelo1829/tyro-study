@@ -1,0 +1,39 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    # Majors are planned in the maintenance calendar (business/12 §4), not merged ad hoc.
+    # Security updates still arrive for any version (Dependabot security updates).
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # One PR for routine patch/minor updates of dev tools
+      dev-tools:
+        dependency-type: development
+        update-types: [minor, patch]
+      # Framework updates reviewed together
+      next:
+        patterns: ["next", "eslint-config-next", "@next/*", "react", "react-dom", "@types/react*"]
+      prisma:
+        patterns: ["prisma", "@prisma/*"]
+      # Runtime patch/minor updates of everything else, one PR a week
+      runtime:
+        dependency-type: production
+        update-types: [minor, patch]
+        exclude-patterns: ["next", "react", "react-dom", "prisma", "@prisma/*"]
+    labels: [dependencies]
+    commit-message:
+      prefix: "chore(deps)"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"

@@ -1,0 +1,12 @@
+[
+  {
+    "name": "High school learner can't open a university topic by id",
+    "ticket": "E-11",
+    "reason": "Level separation is enforced in the catalogue only. Product decision pending (business/08 \u00a73.1)."
+  },
+  {
+    "name": "Forgot-password gives the same answer for known and unknown emails",
+    "ticket": "-",
+    "reason": "Differs only where email sending isn't configured (CI and local). Must PASS on a preview with Resend set."
+  }
+]

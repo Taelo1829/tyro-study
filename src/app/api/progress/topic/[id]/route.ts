@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
+import { captureError } from "@/lib/monitoring"
 
 export async function GET(
   _req: NextRequest,
@@ -37,7 +38,7 @@ export async function GET(
       lastAttemptAt: completedAttempts[0]?.completedAt ?? null,
     })
   } catch (error) {
-    console.error("Error fetching progress:", error)
+    captureError("Error fetching progress", error, "/api/progress/topic/[id]")
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

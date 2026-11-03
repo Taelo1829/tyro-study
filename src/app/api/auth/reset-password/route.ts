@@ -5,6 +5,7 @@ import {
   hashPasswordResetToken,
   PASSWORD_RESET_TOKEN_PREFIX,
 } from "@/lib/password-reset"
+import { captureError } from "@/lib/monitoring"
 
 export async function POST(request: Request) {
   try {
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Your password has been reset. You can now sign in." })
   } catch (error) {
-    console.error("Reset password error:", error)
+    captureError("Reset password error", error, "/api/auth/reset-password")
     return NextResponse.json({ error: "Unable to reset your password." }, { status: 500 })
   }
 }

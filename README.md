@@ -1,46 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tyro Study
 
-## Password reset email
+Study app for UNISA students (and Grade 11–12 learners): lessons in plain English, quizzes with instant marking, topic locks, mock exams, flashcards, a study timetable with reminders, and chat. Live at [www.tyrostudy.co.za](https://www.tyrostudy.co.za).
 
-Password-reset links are sent through [Resend](https://resend.com). Add these values to `.env.local` before using the feature:
+**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · Prisma 7 · PostgreSQL (Neon) · Vercel + Vercel Blob · Pusher · Web Push · Resend · OpenAI. Why: `docs/adr/`.
 
-```env
-RESEND_API_KEY=re_...
-EMAIL_FROM="Tyro Study <no-reply@your-verified-domain.com>"
-NEXTAUTH_URL=https://your-app-url.example
-```
+## Getting started
 
-## Getting Started
-
-First, run the development server:
+Needs Node 22+ and Docker.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local      # fill in the keys you need
+npm run db:up                   # local PostgreSQL in Docker
+npx prisma migrate deploy       # create the tables
+npm run db:seed                 # optional: admin from SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD
+npm run dev                     # http://localhost:4000
 ```
 
-Open [http://localhost:4000](http://localhost:4000) with your browser to see the result.
+Never point `.env.local` at the production database.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Does |
+|---|---|
+| `npm run dev` | Dev server on port 4000 |
+| `npm run build` / `start` | Production build / serve |
+| `npm test` / `test:watch` | Unit and integration tests (Vitest + PGlite) |
+| `npm run typecheck` | TypeScript check |
+| `npm run lint` | ESLint |
+| `npm run db:up` | Start the local database |
+| `npm run db:migrate` | Create a migration from schema changes (local database only) |
+| `npm run db:seed` | Create a local admin |
 
-## Learn More
+## Project layout
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/app          pages, layouts and API route handlers
+src/lib          domain logic (quizzes, locks, progress, analytics, AI)
+src/components   UI by area; shared UI in components/ui
+src/prisma       generated Prisma client (committed)
+prisma/          schema and migrations
+test/            integration tests
+docs/adr/        architecture decision records
+business/        lifecycle documents: discovery, requirements, design, architecture, plan
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Branching, coding standards, commit messages, secrets and tests: [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Deploy on Vercel
+## Deploying
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Merging to `main` deploys to staging. Production releases go through GitHub Actions → **Release to production** (`docs/runbooks/release.md`), which backs up and migrates the database, deploys, smoke-tests and tags the release. Rollback: `docs/runbooks/rollback.md`. Pipeline decisions: ADR 0010 and `business/09-ci-cd-and-deployment.md`.

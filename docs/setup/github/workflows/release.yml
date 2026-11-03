@@ -1,0 +1,200 @@
+name: Release to production
+
+# Promotes a tested commit from main to production:
+#   1. checks   – CI passed for that commit, CHANGELOG has notes, the tag is new
+#   2. migrate  – (needs approval) backup branch in Neon, then `prisma migrate deploy`
+#   3. deploy   – fast-forwards the `production` branch; Vercel builds and serves it
+#   4. verify   – waits until /api/health reports the new commit, then smoke-tests
+#   5. publish  – tags vX.Y.Z and creates the GitHub release from CHANGELOG.md
+#
+# Setup (business/09 §8): Vercel production branch = `production`; GitHub
+# environment `production` with a required reviewer and these secrets:
+#   PRODUCTION_DIRECT_DATABASE_URL  Neon direct (non-pooled) URL of the production branch
+#   NEON_API_KEY, NEON_PROJECT_ID   for the pre-release backup branch
+# and the variable PRODUCTION_URL (https://www.tyrostudy.co.za).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without v, e.g. 1.0.0 (needs a ## [1.0.0] section in CHANGELOG.md)"
+        required: true
+      ref:
+        description: "Commit or branch to release (normally main; a hotfix branch made from production also works)"
+        required: true
+        default: main
+
+concurrency:
+  group: release-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: read
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+      migrations: ${{ steps.migrations.outputs.list }}
+      latest_migration: ${{ steps.migrations.outputs.latest }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Resolve commit
+        id: sha
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Version format and tag is new
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Version must look like 1.2.3"; exit 1; }
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then echo "::error::Tag v$VERSION already exists"; exit 1; fi
+
+      - name: CI passed for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.sha.outputs.sha }}
+        run: |
+          result=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs?check_name=check" --jq '[.check_runs[] | .conclusion] | first // "missing"')
+          echo "CI 'check' result for ${SHA:0:7}: $result"
+          [ "$result" = "success" ] || { echo "::error::CI hasn't passed for ${SHA:0:7}. Push it to main (or open a PR) and wait for green."; exit 1; }
+
+      - name: Production can fast-forward to this commit
+        env:
+          SHA: ${{ steps.sha.outputs.sha }}
+        run: |
+          if git rev-parse -q --verify origin/production >/dev/null; then
+            git merge-base --is-ancestor origin/production "$SHA" || { echo "::error::production has commits that ${SHA:0:7} doesn't contain. Merge production into your branch first."; exit 1; }
+          fi
+
+      - name: Release notes exist
+        run: node scripts/ci/release-notes.mjs "${{ inputs.version }}" > /dev/null
+
+      - name: Migrations in this release
+        id: migrations
+        run: |
+          base=$(git rev-parse -q --verify origin/production || git rev-list --max-parents=0 HEAD)
+          list=$(git diff --name-only --diff-filter=A "$base" HEAD -- prisma/migrations | cut -d/ -f3 | sort -u | tr '\n' ' ')
+          echo "list=$list" >> "$GITHUB_OUTPUT"
+          echo "latest=$(find prisma/migrations -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | tail -1)" >> "$GITHUB_OUTPUT"
+          { echo "### Release v${{ inputs.version }} (${{ steps.sha.outputs.sha }})"; echo; echo "New migrations: ${list:-none}"; } >> "$GITHUB_STEP_SUMMARY"
+
+  migrate:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production # required reviewer approves here
+    env:
+      DATABASE_URL: ${{ secrets.PRODUCTION_DIRECT_DATABASE_URL }}
+      DIRECT_DATABASE_URL: ${{ secrets.PRODUCTION_DIRECT_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.checks.outputs.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Backup branch in Neon (restore point)
+        if: needs.checks.outputs.migrations != ''
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+          NAME: pre-v${{ inputs.version }}
+        run: |
+          api=https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches
+          curl -fsS -X POST "$api" -H "Authorization: Bearer $NEON_API_KEY" -H "Content-Type: application/json" \
+            -d "{\"branch\":{\"name\":\"$NAME\"}}" > /dev/null
+          echo "Created Neon branch $NAME from the production branch" | tee -a "$GITHUB_STEP_SUMMARY"
+          # Keep the 3 newest pre-release backups; delete older ones (branch limits).
+          curl -fsS "$api" -H "Authorization: Bearer $NEON_API_KEY" \
+            | jq -r '[.branches[] | select(.name | startswith("pre-v"))] | sort_by(.created_at) | reverse | .[3:][] | .id' \
+            | while read -r id; do curl -fsS -X DELETE "$api/$id" -H "Authorization: Bearer $NEON_API_KEY" > /dev/null && echo "Deleted old backup $id"; done
+
+      - name: Pending migrations
+        run: npx prisma migrate status || true
+
+      - name: Apply migrations to production
+        run: npx prisma migrate deploy
+
+  deploy:
+    needs: [checks, migrate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.checks.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Fast-forward the production branch (Vercel deploys it)
+        env:
+          SHA: ${{ needs.checks.outputs.sha }}
+        run: git push origin "$SHA:refs/heads/production"
+
+  verify:
+    needs: [checks, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.checks.outputs.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Wait for the new deployment and smoke-test production
+        env:
+          BASE_URL: ${{ vars.PRODUCTION_URL }}
+          EXPECT_COMMIT: ${{ needs.checks.outputs.sha }}
+          EXPECT_MIGRATION: ${{ needs.checks.outputs.latest_migration }}
+          WAIT_SECONDS: "900"
+        run: node scripts/ci/smoke.mjs
+
+      - name: What to do if this failed
+        if: failure()
+        run: |
+          {
+            echo "## Production verification failed"
+            echo "1. Vercel → Project → Instant Rollback to the previous deployment (docs/runbooks/rollback.md)."
+            echo "2. The database was migrated with expand-only changes, so the previous code still works."
+            echo "3. Restore point: Neon branch pre-v${{ inputs.version }} (only if data was damaged)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    needs: [checks, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.checks.outputs.sha }}
+
+      - name: Tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          SHA: ${{ needs.checks.outputs.sha }}
+        run: |
+          node scripts/ci/release-notes.mjs "$VERSION" > notes.md
+          gh release create "v$VERSION" --target "$SHA" --title "v$VERSION" --notes-file notes.md

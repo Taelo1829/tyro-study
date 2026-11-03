@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { getOpenAIClient } from "@/lib/ai/openai"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { page, image } → { page, text }
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ page, text: text.slice(0, 20_000) })
   } catch (err) {
-    console.error("Textbook OCR error:", err)
+    captureError("Textbook OCR error", err, "/api/admin/textbooks/ocr")
     const message = err instanceof Error ? err.message : "Couldn't read this page"
     return NextResponse.json({ error: message }, { status: message.includes("OPENAI_API_KEY") ? 503 : 500 })
   }

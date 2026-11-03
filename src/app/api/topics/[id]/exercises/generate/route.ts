@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin"
 import { generateTopicPractice } from "@/lib/ai/exercises"
 import { getTopicCoding } from "@/lib/coding"
 import { countExercises } from "@/lib/exercises"
+import { captureError } from "@/lib/monitoring"
 
 export const runtime = "nodejs"
 export const maxDuration = 120
@@ -36,7 +37,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     })
     return NextResponse.json(added)
   } catch (err) {
-    console.error("Generate exercises error:", err)
+    captureError("Generate exercises error", err, "/api/topics/[id]/exercises/generate")
     let message = err instanceof Error ? err.message : "Couldn't write the exercises"
     if (/topic_exercises|column .*kind/i.test(message)) message = "Exercises need the latest database update: run `npx prisma migrate deploy`."
     return NextResponse.json({ error: message }, { status: /OPENAI_API_KEY|migrate deploy/.test(message) ? 503 : 500 })

@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tyro Study Prototype</title>
+<style>
+:root{--ink:#16181d;--muted:#5b6270;--bg:#eef1f4;--line:#d9dee4}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,sans-serif;display:flex;gap:28px;justify-content:center;padding:24px 16px;flex-wrap:wrap}
+.phone{position:relative;width:390px;max-width:100%;aspect-ratio:390/780;border-radius:36px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(22,24,29,.45);background:#fff;flex-shrink:0}
+.phone img{width:100%;height:100%;display:block}
+.hot{position:absolute;border-radius:14px;cursor:pointer;background:transparent;border:0;padding:0}
+.hot:focus-visible,.show .hot{outline:2px solid #ff6b3d;background:rgba(255,107,61,.12)}
+aside{max-width:320px;min-width:260px}h1{font-size:20px;margin:0}p{color:var(--muted)}
+ol{padding-left:18px;margin:8px 0}li{margin:3px 0}li button{all:unset;cursor:pointer;color:var(--ink);font-weight:600}li button[aria-current]{text-decoration:underline;text-underline-offset:3px}
+label{display:flex;gap:8px;align-items:center;margin-top:12px;font-weight:600}
+.btns{display:flex;gap:8px;margin-top:12px}.btns button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer}
+</style></head><body>
+<div class="phone" id="phone"><img id="screen" alt=""></div>
+<aside><h1>Tyro Study prototype</h1><p>Tap the phone where you would in the app. Turn on hotspots to see what's tappable.</p>
+<div class="btns"><button id="back">← Back</button><button id="restart">Restart</button></div>
+<label><input type="checkbox" id="show"> Show hotspots</label>
+<p style="margin-top:16px;font-weight:700;color:var(--ink)">Screens</p><ol id="list"></ol></aside>
+<script>
+const D=__DATA__;const phone=document.getElementById('phone'),img=document.getElementById('screen'),list=document.getElementById('list');let hist=[];
+function go(n,push=true){if(push&&cur)hist.push(cur);cur=n;img.src=D.imgs[n];img.alt=D.titles[n];
+ phone.querySelectorAll('.hot').forEach(h=>h.remove());
+ (D.spots[n]||[]).forEach(([x,y,w,h,t])=>{const b=document.createElement('button');b.className='hot';b.setAttribute('aria-label','Go to '+D.titles[t]);
+  Object.assign(b.style,{left:x/3.9+'%',top:y/7.8+'%',width:w/3.9+'%',height:h/7.8+'%'});b.onclick=()=>go(t);phone.appendChild(b)});
+ list.querySelectorAll('button').forEach(b=>b.toggleAttribute('aria-current',b.dataset.n===n))}
+let cur=null;D.order.forEach(n=>{const li=document.createElement('li'),b=document.createElement('button');b.textContent=D.titles[n];b.dataset.n=n;b.onclick=()=>go(n);li.appendChild(b);list.appendChild(li)});
+document.getElementById('show').onchange=e=>phone.classList.toggle('show',e.target.checked);
+document.getElementById('back').onclick=()=>{if(hist.length)go(hist.pop(),false)};document.getElementById('restart').onclick=()=>{hist=[];go(D.order[0],false)};
+go(D.order[0],false);
+</script></body></html>

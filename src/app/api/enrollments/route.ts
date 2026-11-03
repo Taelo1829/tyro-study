@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
+import { track } from "@/lib/analytics"
 
 export async function GET() {
   const { error, userId } = await requireAuth()
@@ -41,6 +42,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Module not found" }, { status: 404 })
   }
 
+  const alreadyJoined = await prisma.moduleEnrollment.findUnique({
+    where: { userId_moduleId: { userId: userId!, moduleId } },
+    select: { id: true },
+  })
+
   const enrollment = await prisma.moduleEnrollment.upsert({
     where: {
       userId_moduleId: { userId: userId!, moduleId },
@@ -51,6 +57,8 @@ export async function POST(request: Request) {
       module: { include: { _count: { select: { chapters: true } } } },
     },
   })
+
+  if (!alreadyJoined) track("module_joined", { userId, props: { moduleId } })
 
   return NextResponse.json(
     {

@@ -4,6 +4,8 @@ import { getTopicLock, lockedResponseBody } from "@/lib/topic-locks"
 import { getProject, saveSubmission, submissionsToday } from "@/lib/coding"
 import { MAX_FILE_BYTES, MAX_FILES, MAX_TOTAL_BYTES, SUBMISSIONS_PER_DAY, UPLOAD_EXTENSIONS, extensionOf } from "@/lib/coding-shared"
 import { markSubmission, topicHeader } from "@/lib/ai/projects"
+import { track } from "@/lib/analytics"
+import { captureError } from "@/lib/monitoring"
 
 export const runtime = "nodejs"
 export const maxDuration = 120
@@ -53,10 +55,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const info = await topicHeader(project.topicId)
     const { score, feedback } = await markSubmission({ header: info?.header ?? [], project, files })
     const id = await saveSubmission(project.id, userId, files, score, feedback)
+    track("project_submitted", { userId, props: { projectId: project.id, topicId: project.topicId, score } })
 
     return NextResponse.json({ submission: { id, score, feedback, files, createdAt: new Date() } })
   } catch (err) {
-    console.error("Project submission error:", err)
+    captureError("Project submission error", err, "/api/projects/[id]/submit")
     const message = err instanceof Error ? err.message : "Couldn't mark your project"
     return NextResponse.json({ error: message }, { status: message.includes("OPENAI_API_KEY") ? 503 : 500 })
   }

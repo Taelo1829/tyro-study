@@ -11,6 +11,7 @@ import { generateTopicProjects } from "@/lib/ai/projects"
 import { generateTopicPractice } from "@/lib/ai/exercises"
 import { countExercises } from "@/lib/exercises"
 import { DIFFICULTY_GUIDE, LENGTH_GUIDE, type Length, writeFlashcards, writeLessonHtml, writeQuestions } from "@/lib/ai/writers"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { topicId, pagesUrl?, startPage?, endPage?, length?, questionCount?, video?, flashcards? }
@@ -211,7 +212,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ wroteLesson, questionsAdded: added, hadSource: !!source, videoTitle, videoNote, flashcardsAdded, flashcardNote, projectsAdded, projectNote, exercisesAdded, typedQuestionsAdded, exerciseNote })
   } catch (err) {
-    console.error("Textbook topic error:", err)
+    captureError("Textbook topic error", err, "/api/admin/textbooks/generate-topic")
     const message = err instanceof Error ? err.message : "Couldn't write this topic"
     return NextResponse.json({ error: message }, { status: message.includes("OPENAI_API_KEY") ? 503 : 500 })
   }

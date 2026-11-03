@@ -17,7 +17,7 @@ export function PublicShell({ children, ads = false }: { children: React.ReactNo
 
       <header className="sticky top-0 z-40 border-b border-border bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4">
-          <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold">
+          <Link href="/" aria-label="Tyro Study home" className="flex shrink-0 items-center gap-2 font-semibold">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary">
               <Brain className="h-5 w-5 text-primary-foreground" />
             </span>

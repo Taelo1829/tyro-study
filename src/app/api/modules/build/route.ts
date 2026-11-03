@@ -6,6 +6,7 @@ import { codeOfModuleTitle, outlineModule, outlineSubject, type ModuleOutline } 
 import { moduleCode } from "@/lib/ai/unisa"
 import { HIGH_SCHOOL_GRADES, isStudyLevel } from "@/lib/levels"
 import { gradeCourseId, setModuleLevel } from "@/lib/levels-server"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { level, name, grade?, notes?, courseId? }
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ moduleId: mod.id, title: mod.title, chapters: outline.chapters.length, topics }, { status: 201 })
   } catch (err) {
-    console.error("Build module error:", err)
+    captureError("Build module error", err, "/api/modules/build")
     let message = err instanceof Error ? err.message : "Couldn't plan it"
     if (/column .*level|"level"/i.test(message)) message = "High school subjects need the latest database update: run `npx prisma migrate deploy`."
     return NextResponse.json({ error: message }, { status: /OPENAI_API_KEY|migrate deploy/.test(message) ? 503 : 500 })

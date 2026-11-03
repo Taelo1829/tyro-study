@@ -16,6 +16,10 @@ export const STUDY_LEVELS: { id: StudyLevel; label: string; hint: string }[] = [
 
 export const HIGH_SCHOOL_GRADES = [11, 12] as const
 
+/** Shown when the highschool_signup flag is off (src/lib/flags.ts) */
+export const HIGH_SCHOOL_PAUSED =
+  "High school sign-ups are paused while we add parent or guardian consent. University and college students can sign up as usual."
+
 export function asLevel(value: unknown): StudyLevel {
   return value === "highschool" ? "highschool" : "tertiary"
 }

@@ -172,7 +172,8 @@ export function VoiceRecorder({ onSend, onCancel, disabled }: VoiceRecorderProps
               key={i}
               className="w-1 bg-primary/40 rounded-full animate-pulse"
               style={{
-                height: `${8 + Math.sin(i * 0.8 + Date.now() / 500) * 6 + Math.random() * 4}px`,
+                // Fixed, varied heights (render must be pure); animate-pulse gives the motion
+                height: `${8 + Math.sin(i * 0.8) * 6 + ((i * 37) % 5)}px`,
                 animationDelay: `${i * 50}ms`,
               }}
             />

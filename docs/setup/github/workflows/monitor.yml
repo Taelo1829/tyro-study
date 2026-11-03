@@ -1,0 +1,63 @@
+name: Production monitor
+
+# Hourly synthetic check of production (scripts/ops/monitor.mjs): health,
+# key pages and their latency, scheduled-job heartbeats, error spikes.
+# Problems open (or update) a GitHub issue labelled "incident", which notifies
+# you by email and in the GitHub mobile app; recovery closes it.
+#
+# Availability every 5 minutes is the external uptime monitor's job
+# (business/11 §4); this adds the deeper checks. Hourly keeps a private repo
+# well inside the free Actions minutes; on a public repo you can use */15.
+#
+# Needs: repository variable PRODUCTION_URL, secret MONITOR_TOKEN (same value
+# as MONITOR_TOKEN in Vercel Production).
+
+on:
+  schedule:
+    - cron: "7 * * * *" # minute 7: GitHub delays jobs scheduled on the hour
+  workflow_dispatch:
+
+concurrency:
+  group: monitor
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ops
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check production
+        id: check
+        continue-on-error: true
+        env:
+          BASE_URL: ${{ vars.PRODUCTION_URL }}
+          MONITOR_TOKEN: ${{ secrets.MONITOR_TOKEN }}
+        run: node scripts/ops/monitor.mjs
+
+      - name: Open, update or close the incident issue
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/ops/github-alert.mjs monitor-result.json
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Production monitor"
+            echo '```json'
+            cat monitor-result.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

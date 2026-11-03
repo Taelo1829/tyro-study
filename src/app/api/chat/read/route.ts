@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { pusherServer, conversationChannel, EVENTS, userChannel } from '@/lib/pusher'
 import { getServerSession } from 'next-auth'
+import { captureError } from "@/lib/monitoring"
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
     )
   } catch (error) {
     // Messages are already marked read; a realtime hiccup shouldn't fail the request
-    console.error('Pusher read-receipt error:', error)
+    captureError('Pusher read-receipt error', error, "/api/chat/read")
   }
 
   return NextResponse.json({ success: true })

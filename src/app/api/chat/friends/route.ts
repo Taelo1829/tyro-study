@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { pusherServer, userChannel, EVENTS } from '@/lib/pusher'
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth'
+import { track } from '@/lib/analytics'
+import { captureError } from "@/lib/monitoring"
 
 // GET /api/chat/friends  - list friends + pending requests
 export async function GET(req: NextRequest) {
@@ -116,8 +118,10 @@ export async function POST(req: NextRequest) {
       sender: friendship.sender,
     })
   } catch (error) {
-    console.error('Pusher friend-request error:', error)
+    captureError('Pusher friend-request error', error, "/api/chat/friends")
   }
+
+  track('friend_request_sent', { userId: session.user.id })
 
   return NextResponse.json(friendship, { status: 201 })
 }
@@ -178,8 +182,10 @@ export async function PATCH(req: NextRequest) {
       conversationId: conversation.id,
     })
   } catch (error) {
-    console.error('Pusher friend-accepted error:', error)
+    captureError('Pusher friend-accepted error', error, "/api/chat/friends")
   }
+
+  track('friend_request_accepted', { userId: session.user.id })
 
   return NextResponse.json({ friendship: updated, conversationId: conversation.id })
 }

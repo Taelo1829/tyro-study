@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { lessonVideoIds, suggestTopicVideo } from "@/lib/ai/videos"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { topicId, exclude?: string[], tried?: string[] } → { description, query, video, reason, alternatives }
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     const tried = (Array.isArray(body.tried) ? body.tried : []).filter((x): x is string => typeof x === "string").slice(-5)
     return NextResponse.json(await suggestTopicVideo(body.topicId, { exclude, tried }))
   } catch (err) {
-    console.error("Find video error:", err)
+    captureError("Find video error", err, "/api/ai/find-video")
     const message = err instanceof Error ? err.message : "Couldn't find a video"
     const notConfigured = /YOUTUBE_API_KEY|OPENAI_API_KEY/.test(message)
     return NextResponse.json({ error: message }, { status: notConfigured ? 503 : 500 })

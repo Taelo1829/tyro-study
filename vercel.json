@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run vercel-build",
+  "git": {
+    "deploymentEnabled": {
+      "production": true,
+      "dependabot/**": false
+    }
+  },
+  "crons": [
+    { "path": "/api/cron/daily-digest", "schedule": "0 4 * * *" }
+  ]
+}

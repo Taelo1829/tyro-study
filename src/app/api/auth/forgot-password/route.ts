@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { issuePasswordReset } from "@/lib/password-reset"
+import { captureError } from "@/lib/monitoring"
 
 const SUCCESS_MESSAGE = "If an account exists for that email, a password reset link has been sent."
 
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
     try {
       await issuePasswordReset(user.email)
     } catch (error) {
-      console.error("Password reset email error:", error)
+      captureError("Password reset email error", error, "/api/auth/forgot-password")
       return NextResponse.json(
         { error: "We could not send the reset email. Please try again later." },
         { status: 503 }
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: SUCCESS_MESSAGE })
   } catch (error) {
-    console.error("Forgot password error:", error)
+    captureError("Forgot password error", error, "/api/auth/forgot-password")
     return NextResponse.json({ error: "Unable to process your request." }, { status: 500 })
   }
 }

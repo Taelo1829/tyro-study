@@ -44,6 +44,11 @@ export default function LoginPage() {
         callbackUrl,
       })
 
+      if (result?.error === "TooManyAttempts" || result?.status === 429) {
+        setError("Too many wrong passwords. Wait 15 minutes and try again, or reset your password.")
+        setLoading(false)
+        return
+      }
       if (!result || result.error || !result.ok) {
         setError("Invalid email or password")
         setLoading(false)

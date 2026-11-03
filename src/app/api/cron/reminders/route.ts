@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { sendDueReminders } from "@/lib/reminders"
+import { heartbeat } from "@/lib/monitoring"
+import { log } from "@/lib/log"
 
 /**
  * Sends calendar reminders that have come due. Call it every few minutes
@@ -23,11 +25,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  const started = Date.now()
   try {
     const result = await sendDueReminders()
+    const ms = Date.now() - started
+    // Heartbeat: Admin → Monitoring and the monitor alert if this stops running.
+    await heartbeat("cron:reminders", { ok: true, details: { ...result, ms } })
+    log.info("cron.reminders", { ...result, ms })
     return NextResponse.json({ ok: true, ...result })
   } catch (error) {
-    console.error("Reminder run failed:", error)
+    await heartbeat("cron:reminders", { ok: false, error })
+    log.error("cron.reminders.failed", { err: error, ms: Date.now() - started })
     return NextResponse.json({ error: "Reminder run failed" }, { status: 500 })
   }
 }

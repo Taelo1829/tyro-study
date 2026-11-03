@@ -6,7 +6,7 @@ export async function GET() {
   const { error } = await requireAdmin()
   if (error) return error
 
-  const buffer = buildQuestionsTemplate()
+  const buffer = await buildQuestionsTemplate()
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

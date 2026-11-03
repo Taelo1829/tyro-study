@@ -5,6 +5,7 @@ import { DIFFICULTY_GUIDE, type DifficultyChoice, writeQuestions } from "@/lib/a
 
 export type { GeneratedQuestion } from "@/lib/ai/writers"
 import { prisma } from "@/lib/prisma"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { topicId | chapterId, count?, difficulty?, notes? } → { questions }
@@ -145,7 +146,7 @@ export async function POST(request: Request) {
     if (questions.length === 0) throw new Error("The AI didn't return any usable questions. Try again")
     return NextResponse.json({ questions })
   } catch (err) {
-    console.error("Generate questions error:", err)
+    captureError("Generate questions error", err, "/api/ai/generate-questions")
     const message = err instanceof Error ? err.message : "Failed to generate questions"
     const status = message.includes("OPENAI_API_KEY") ? 503 : 500
     return NextResponse.json({ error: message }, { status })

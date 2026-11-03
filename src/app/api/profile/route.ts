@@ -3,8 +3,9 @@ import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { EMAIL_PATTERN, NAME_MAX, loadProfile, profileResponse, requireUserId } from "@/lib/profile"
 import { OtpError, deleteOtp, issueOtp, otpErrorBody } from "@/lib/email-otp"
-import { isStudyLevel } from "@/lib/levels"
-import { setUserLevel } from "@/lib/levels-server"
+import { HIGH_SCHOOL_PAUSED, isStudyLevel } from "@/lib/levels"
+import { getUserLevel, setUserLevel } from "@/lib/levels-server"
+import { isEnabled } from "@/lib/flags"
 
 /** The signed-in user's profile */
 export async function GET() {
@@ -40,6 +41,10 @@ export async function PATCH(request: Request) {
 
   if (body.level !== undefined) {
     if (!isStudyLevel(body.level)) return NextResponse.json({ error: "Choose high school or university" }, { status: 400 })
+    if (body.level === "highschool" && !isEnabled("highschool_signup", { userId, role: user.role })) {
+      const current = await getUserLevel(userId).catch(() => null)
+      if (current !== "highschool") return NextResponse.json({ error: HIGH_SCHOOL_PAUSED }, { status: 403 })
+    }
     try {
       await setUserLevel(userId, body.level)
     } catch {

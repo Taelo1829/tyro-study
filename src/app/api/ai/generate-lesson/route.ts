@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin"
 import { moduleLines, readPdfText } from "@/lib/ai/unisa"
 import { LENGTH_GUIDE, type Length, writeLessonHtml } from "@/lib/ai/writers"
 import { prisma } from "@/lib/prisma"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { topicId, length?, notes? } → { html }
@@ -107,7 +108,7 @@ export async function POST(request: Request) {
       usedPdfs: pdfText ? topic.pdfs.length : 0,
     })
   } catch (err) {
-    console.error("Generate lesson error:", err)
+    captureError("Generate lesson error", err, "/api/ai/generate-lesson")
     const message = err instanceof Error ? err.message : "Failed to write the lesson"
     return NextResponse.json({ error: message }, { status: 500 })
   }

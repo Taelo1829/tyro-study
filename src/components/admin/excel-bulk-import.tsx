@@ -19,7 +19,7 @@ const CONFIG = {
     templateUrl: "/api/admin/templates/questions",
     templateFilename: "tyro-questions-template.xlsx",
     importUrl: "/api/questions/import",
-    accept: ".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel",
+    accept: ".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   },
   flashcards: {
     title: "Bulk upload flashcards (Excel)",
@@ -28,7 +28,7 @@ const CONFIG = {
     templateUrl: "/api/admin/templates/flashcards",
     templateFilename: "tyro-flashcards-template.xlsx",
     importUrl: "/api/flashcards/import",
-    accept: ".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel",
+    accept: ".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   },
 } as const
 

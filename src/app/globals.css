@@ -5,7 +5,7 @@
   --neo-surface: #ffffff;
   --neo-surface-soft: #f4f6f8;
   --neo-text: #16181d;
-  --neo-muted: #6b7280;
+  --neo-muted: #5b6270; /* ≥ 4.9:1 on white, grey and tinted cards (was #6b7280: 3.9–4.5:1, WCAG 1.4.3) */
   --neo-border: #e3e7ec;
   --neo-primary: #16181d;
   --neo-primary-foreground: #ffffff;
@@ -242,7 +242,8 @@ body {
 }
 
 .topic-content a {
-  color: #1d8fd8 !important;
+  /* 5.3:1 on white (was #1d8fd8, 3.5:1: below WCAG 1.4.3) */
+  color: #0f6fb5 !important;
 }
 
 .topic-content a:hover {

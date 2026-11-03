@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageSquare, Users, UserPlus, ChevronLeft } from 'lucide-react'
+import { MessageSquare, Users, UserPlus, ChevronLeft, type LucideIcon } from 'lucide-react'
 import { ConversationList } from './conversation-list'
 import { MessageThread } from './message-thread'
 import { UserDirectory } from './user-directory'
@@ -39,7 +39,7 @@ export function ChatLayout({ currentUser }: ChatLayoutProps) {
     setTab('chats')
   }
 
-  const tabs: { id: Tab; label: string; icon: any }[] = [
+  const tabs: { id: Tab; label: string; icon: LucideIcon }[] = [
     { id: 'chats',    label: 'Chats',    icon: MessageSquare },
     { id: 'people',   label: 'People',   icon: Users },
     { id: 'requests', label: 'Requests', icon: UserPlus },

@@ -3,6 +3,7 @@ import { del, put } from "@vercel/blob"
 import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { NoTextError, TEXTBOOK_PREFIX, isTextbookBlobUrl, proposeOutline, readTextbookPdf, textbookFromOcr, type TextbookData } from "@/lib/ai/textbook"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { moduleId, url } → { pagesUrl, pageCount, chapters }
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
       })),
     })
   } catch (err) {
-    console.error("Textbook analyse error:", err)
+    captureError("Textbook analyse error", err, "/api/admin/textbooks/analyze")
     if (pdfUrl) await del(pdfUrl).catch(() => {})
     const message = err instanceof Error ? err.message : "Couldn't read the textbook"
     return NextResponse.json({ error: message }, { status: message.includes("OPENAI_API_KEY") ? 503 : 500 })

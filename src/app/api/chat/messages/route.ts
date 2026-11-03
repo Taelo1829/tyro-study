@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { pusherServer, conversationChannel, EVENTS, userChannel } from '@/lib/pusher'
 import { getServerSession } from 'next-auth'
 import { sendPushToUser } from '@/lib/web-push'
+import { track } from '@/lib/analytics'
+import { captureError } from "@/lib/monitoring"
 
 const messageInclude = {
   sender: { select: { id: true, name: true, email: true, image: true } },
@@ -139,7 +141,7 @@ export async function POST(req: NextRequest) {
       { conversationId, message }
     )
   } catch (error) {
-    console.error('Pusher new-message error:', error)
+    captureError('Pusher new-message error', error, "/api/chat/messages")
   }
 
   try {
@@ -156,8 +158,10 @@ export async function POST(req: NextRequest) {
       tag: `chat-${conversationId}`,
     })
   } catch (error) {
-    console.error('Web push error:', error)
+    captureError('Web push error', error, "/api/chat/messages")
   }
+
+  track('message_sent', { userId: session.user.id, props: { type } })
 
   return NextResponse.json(message, { status: 201 })
 }

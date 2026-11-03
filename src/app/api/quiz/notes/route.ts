@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { notesForQuestions } from "@/lib/ai/question-notes"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { attemptId } → { notes: [{ questionId, question, topicId, html }] }
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
   try {
     return NextResponse.json({ notes: await notesForQuestions(missed) })
   } catch (err) {
-    console.error("Quiz notes error:", err)
+    captureError("Quiz notes error", err, "/api/quiz/notes")
     return NextResponse.json({ error: "Couldn't load notes for the questions you missed" }, { status: 500 })
   }
 }

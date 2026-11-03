@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { generateTopicProjects } from "@/lib/ai/projects"
+import { captureError } from "@/lib/monitoring"
 
 export const runtime = "nodejs"
 export const maxDuration = 120
@@ -15,7 +16,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const added = await generateTopicProjects((await params).id, count)
     return NextResponse.json({ added })
   } catch (err) {
-    console.error("Generate projects error:", err)
+    captureError("Generate projects error", err, "/api/topics/[id]/projects/generate")
     const message = err instanceof Error ? err.message : "Couldn't write the projects"
     return NextResponse.json({ error: message }, { status: message.includes("OPENAI_API_KEY") ? 503 : 500 })
   }

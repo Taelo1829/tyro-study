@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { del, put } from "@vercel/blob"
 import { prisma } from "@/lib/prisma"
 import { loadProfile, profileResponse, requireUserId } from "@/lib/profile"
+import { captureError } from "@/lib/monitoring"
 
 /** Profile pictures: upload a new one (POST, form field "file") or remove it (DELETE) */
 
@@ -19,7 +20,7 @@ async function removeOldAvatar(url: string | null | undefined) {
   try {
     await del(url)
   } catch (err) {
-    console.error("Could not delete old profile picture:", err)
+    captureError("Could not delete old profile picture", err, "/api/profile/avatar")
   }
 }
 

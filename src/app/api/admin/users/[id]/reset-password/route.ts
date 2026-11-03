@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { issuePasswordReset } from "@/lib/password-reset"
+import { captureError } from "@/lib/monitoring"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -18,7 +19,7 @@ export async function POST(_request: Request, { params }: Params) {
   try {
     await issuePasswordReset(user.email)
   } catch (err) {
-    console.error("Admin password reset error:", err)
+    captureError("Admin password reset error", err, "/api/admin/users/[id]/reset-password")
     const message = err instanceof Error && err.message.includes("not configured")
       ? "Email isn't set up yet (RESEND_API_KEY / EMAIL_FROM)."
       : "Could not send the reset email."

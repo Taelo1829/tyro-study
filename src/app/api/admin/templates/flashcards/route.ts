@@ -6,7 +6,7 @@ export async function GET() {
   const { error } = await requireAdmin()
   if (error) return error
 
-  const buffer = buildFlashcardsTemplate()
+  const buffer = await buildFlashcardsTemplate()
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

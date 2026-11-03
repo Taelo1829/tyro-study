@@ -39,6 +39,7 @@ import { TopicContentView } from "@/components/topic/topic-content-view"
 import { AdSenseScript } from "@/components/ads/adsense-script"
 import { renderTopicContent, splitTopicVideos } from "@/lib/topic-content"
 import { TopicPdfDownload } from "@/components/topic/topic-pdf-download"
+import { trackEvent } from "@/lib/analytics-client"
 
 interface Topic {
     id: string
@@ -117,6 +118,12 @@ export default function TopicPage() {
     // Set when the topic is locked for this student (previous quiz not passed yet)
     const [lockedInfo, setLockedInfo] = useState<{ previousTopic: { id: string; title: string }; passMark: number } | null>(null)
 
+    // Switch tab (Lesson, Video, PDF, Flashcards...) and note which ones students use
+    const openTab = (tab: string) => {
+        setActiveTab(tab)
+        trackEvent("topic_tab_viewed", { tab, topicId })
+    }
+
     // Fetch topic data
     useEffect(() => {
         const fetchTopic = async () => {
@@ -133,6 +140,7 @@ export default function TopicPage() {
                 const data: Topic = await response.json()
                 setTopic(data)
                 setActiveTab("content")
+                trackEvent("lesson_opened", { topicId: data.id, chapterId: data.chapter.id, moduleId: data.chapter.module.id })
             } catch (error) {
                 console.error("Error fetching topic:", error)
                 toast.error("Error", "Failed to load topic content")
@@ -264,7 +272,7 @@ export default function TopicPage() {
                 {hasFlashcards && (
                     <button
                         type="button"
-                        onClick={() => setActiveTab("flashcards")}
+                        onClick={() => openTab("flashcards")}
                         className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
                     >
                         <Sparkles className="h-4 w-4" />
@@ -377,7 +385,11 @@ export default function TopicPage() {
             </div>
 
             <div className="container max-w-4xl mx-auto px-4 ">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                <Tabs
+                    value={activeTab}
+                    onValueChange={openTab}
+                    className="space-y-6"
+                >
                     <TabsList
                         className="grid w-full border border-foreground shadow-none"
                         style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}
@@ -592,7 +604,7 @@ export default function TopicPage() {
                                                 <Button
                                                     variant="default"
                                                     size="lg"
-                                                    onClick={() => setActiveTab("flashcards")}
+                                                    onClick={() => openTab("flashcards")}
                                                     className="flex-1"
                                                 >
                                                     <Sparkles className="mr-2 h-4 w-4" />

@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { addModuleToCourse, getCourse } from "@/lib/courses"
 import { codeOfModuleTitle, isUnisaUrl, outlineModule, readUnisaPage } from "@/lib/ai/course-import"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { code, title, year?, url? }
@@ -86,7 +87,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       topics: created.topics,
     })
   } catch (err) {
-    console.error("Course module import error:", err)
+    captureError("Course module import error", err, "/api/courses/[id]/import-module")
     const message = err instanceof Error ? err.message : "Couldn't add this module"
     return NextResponse.json({ error: message }, { status: message.includes("OPENAI_API_KEY") ? 503 : 500 })
   }

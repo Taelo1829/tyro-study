@@ -3,6 +3,8 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from '@/lib/prisma'
 import { cleanForAi, getOpenAIClient } from "@/lib/ai/openai"
 import { getServerSession } from 'next-auth'
+import { track } from '@/lib/analytics'
+import { captureError } from "@/lib/monitoring"
 
 interface GradeResult {
     percentage: number
@@ -132,12 +134,17 @@ Grade this submission.`
             },
         })
 
+        track('assignment_submitted', {
+            userId: session.user.id,
+            props: { topicId, score: result.percentage, passed: result.passed },
+        })
+
         return NextResponse.json(result)
-    } catch (err: any) {
-        console.error('Assignment grading error:', err)
+    } catch (err) {
+        captureError('Assignment grading error', err, "/api/assignment/grade")
         return NextResponse.json(
             { error: 'Grading failed. Please try again.' },
             { status: 500 }
         )
     }
-}
+}

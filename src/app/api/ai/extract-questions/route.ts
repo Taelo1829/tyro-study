@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { extractTextFromPdf } from "@/lib/ai/pdf-parser"
 import { extractQuestionsFromText } from "@/lib/ai/question-generator"
+import { captureError } from "@/lib/monitoring"
 
 export const runtime = "nodejs"
 export const maxDuration = 60
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result)
   } catch (err) {
-    console.error("Extract questions error:", err)
+    captureError("Extract questions error", err, "/api/ai/extract-questions")
     const message =
       err instanceof Error ? err.message : "Failed to extract questions"
     const status = message.includes("OPENAI_API_KEY") ? 503 : 500

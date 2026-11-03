@@ -4,6 +4,9 @@ import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { ApiLoader } from '@/components/ui/api-loader'
+import { PageViewTracker } from '@/components/analytics/page-view-tracker'
+import { WebVitalsReporter } from '@/components/monitoring/web-vitals-reporter'
+import { StatusBanner } from '@/components/monitoring/status-banner'
 import { ADSENSE_CLIENT, SITE_NAME, siteUrl } from '@/lib/site'
 
 const urbanist = Urbanist({
@@ -32,8 +35,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // No maximumScale / userScalable: people must be able to pinch-zoom (WCAG 1.4.4)
   viewportFit: 'cover',
   themeColor: '#ffffff'
 }
@@ -62,7 +64,10 @@ export default function RootLayout({
         />
       </head>
       <body className={`${urbanist.className} bg-background text-foreground`}>
+        <StatusBanner />
         <ApiLoader />
+        <PageViewTracker />
+        <WebVitalsReporter />
         <AuthProvider>
           {children}
           <Toaster />

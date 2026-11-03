@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx"
+import { buildSheet, readFirstSheet } from "@/lib/excel/workbook"
 import type { ExtractedQuestion } from "@/lib/ai/question-generator"
 
 export interface QuestionImportRow extends ExtractedQuestion {
@@ -36,54 +36,29 @@ const SAMPLE_ROWS: string[][] = [
   ],
 ]
 
-export function buildQuestionsTemplate(): Buffer {
-  const ws = XLSX.utils.aoa_to_sheet([
-    [...QUESTION_HEADERS],
-    ...SAMPLE_ROWS,
-  ])
-  ws["!cols"] = [
-    { wch: 40 },
-    { wch: 18 },
-    { wch: 18 },
-    { wch: 18 },
-    { wch: 18 },
-    { wch: 18 },
-    { wch: 12 },
-  ]
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, "Questions")
-  return Buffer.from(
-    XLSX.write(wb, { type: "buffer", bookType: "xlsx" }) as ArrayBuffer
-  )
+export function buildQuestionsTemplate(): Promise<Buffer> {
+  return buildSheet("Questions", QUESTION_HEADERS, SAMPLE_ROWS, [40, 18, 18, 18, 18, 18, 12])
 }
 
 function normalizeHeader(h: string): string {
   return h.trim().toLowerCase().replace(/\s+/g, "_")
 }
 
-export function parseQuestionsExcel(buffer: Buffer): {
+export async function parseQuestionsExcel(buffer: Buffer): Promise<{
   questions: QuestionImportRow[]
   errors: string[]
-} {
-  const workbook = XLSX.read(buffer, { type: "buffer" })
-  const sheetName = workbook.SheetNames[0]
-  if (!sheetName) {
+}> {
+  const { sheetFound, rows: raw } = await readFirstSheet(buffer)
+  if (!sheetFound) {
     return { questions: [], errors: ["Workbook has no sheets"] }
   }
-
-  const sheet = workbook.Sheets[sheetName]
-  const raw = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, {
-    defval: "",
-    raw: false,
-  })
 
   const questions: QuestionImportRow[] = []
   const errors: string[] = []
 
-  raw.forEach((row, index) => {
-    const rowNum = index + 2
+  raw.forEach(({ row: rowNum, values }) => {
     const mapped: Record<string, string> = {}
-    for (const [key, value] of Object.entries(row)) {
+    for (const [key, value] of Object.entries(values)) {
       mapped[normalizeHeader(key)] = String(value ?? "").trim()
     }
 
@@ -115,7 +90,7 @@ export function parseQuestionsExcel(buffer: Buffer): {
 
     if (!options.includes(correctOption)) {
       errors.push(
-        `Row ${rowNum}: correct_option must match one of the option columns exactly -  but recieved ${correctOption}`
+        `Row ${rowNum}: correct_option must match one of the option columns exactly -  but received ${correctOption}`
       )
       return
     }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
+import { track } from "@/lib/analytics"
 
 type Params = { params: Promise<{ moduleId: string }> }
 
@@ -23,6 +24,8 @@ export async function DELETE(_request: Request, { params }: Params) {
   await prisma.moduleEnrollment.delete({
     where: { id: existing.id },
   })
+
+  track("module_left", { userId, props: { moduleId } })
 
   return NextResponse.json({ success: true })
 }

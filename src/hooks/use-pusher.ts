@@ -41,7 +41,7 @@ export function usePusher() {
       setIsConnected(false);
     });
 
-    client.connection.bind('error', (error: any) => {
+    client.connection.bind('error', (error: unknown) => {
       console.error('Pusher connection error:', error);
       setIsConnected(false);
     });

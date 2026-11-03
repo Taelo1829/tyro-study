@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { track } from "@/lib/analytics"
+import { isAllowedPushEndpoint } from "@/lib/push-endpoint"
 
 interface BrowserPushSubscription {
   endpoint?: string
@@ -25,6 +27,12 @@ export async function POST(request: Request) {
   if (!endpoint || !p256dh || !auth) {
     return NextResponse.json({ error: "Invalid push subscription" }, { status: 400 })
   }
+  // The server will POST to this URL later, so only browser push services are allowed
+  if (!isAllowedPushEndpoint(endpoint) || p256dh.length > 200 || auth.length > 100) {
+    return NextResponse.json({ error: "Unsupported push service" }, { status: 400 })
+  }
+
+  const known = await prisma.pushSubscription.findUnique({ where: { endpoint }, select: { id: true } })
 
   await prisma.pushSubscription.upsert({
     where: { endpoint },
@@ -40,6 +48,8 @@ export async function POST(request: Request) {
       auth,
     },
   })
+
+  if (!known) track("push_enabled", { userId: session.user.id })
 
   return NextResponse.json({ success: true })
 }

@@ -4,6 +4,7 @@ import { cleanForAi, getOpenAIClient } from "@/lib/ai/openai"
 import { prisma } from "@/lib/prisma"
 import { notationFor } from "@/lib/ai/unisa"
 import { BULK_BATCH_SIZE } from "@/lib/bulk-import"
+import { captureError } from "@/lib/monitoring"
 
 export const runtime = "nodejs"
 export const maxDuration = 60
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ count: total })
   } catch (err) {
-    console.error("Generate flashcards error:", err)
+    captureError("Generate flashcards error", err, "/api/ai/generate-flashcards")
     const message =
       err instanceof Error ? err.message : "Failed to generate flashcards"
     return NextResponse.json({ error: message }, { status: 500 })

@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { getCourse } from "@/lib/courses"
 import { codeOfModuleTitle, discoverModules, isUnisaUrl } from "@/lib/ai/course-import"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { url? } → the course's modules, found on its UNISA qualification page
@@ -53,7 +54,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }),
     })
   } catch (err) {
-    console.error("Course discover error:", err)
+    captureError("Course discover error", err, "/api/courses/[id]/discover")
     const message = err instanceof Error ? err.message : "Couldn't find the modules"
     return NextResponse.json({ error: message }, { status: message.includes("OPENAI_API_KEY") ? 503 : 500 })
   }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth-session"
 import { getTopicLock, lockedResponseBody } from "@/lib/topic-locks"
 import { checkExercise, getExercise } from "@/lib/exercises"
+import { track } from "@/lib/analytics"
 
 /**
  * POST { answers: string[], reveal?: boolean }
@@ -25,6 +26,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const results = checkExercise(exercise, answers)
   const correct = results.length > 0 && results.every(Boolean)
   const show = correct || body.reveal === true
+  track("exercise_checked", {
+    userId: session!.user.id,
+    props: { exerciseId: exercise.id, topicId: exercise.topicId, correct, revealed: body.reveal === true },
+  })
   return NextResponse.json({
     results,
     correct,

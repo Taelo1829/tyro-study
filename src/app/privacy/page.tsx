@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <ProsePage title="Privacy Policy" updated="3 October 2026">
+    <ProsePage title="Privacy Policy" updated="29 October 2026">
       <p>
         This policy explains what information {SITE_NAME} (&ldquo;we&rdquo;) collects, how we use it and the choices you
         have. We process personal information in line with South Africa&apos;s Protection of Personal Information Act
@@ -23,6 +23,7 @@ export default function PrivacyPage() {
         <li><strong>Study activity:</strong> the modules you join, quiz answers and scores, your study streak, and the sessions and due dates you add to your timetable.</li>
         <li><strong>Chat:</strong> messages, images and voice notes you send, your friends list, and your online status and when you were last active.</li>
         <li><strong>Assignments:</strong> code files you submit for automatic feedback.</li>
+        <li><strong>Usage information:</strong> which pages you open and what you do in the app (for example joining a module, opening a lesson, starting or finishing a quiz, and your score), the website that sent you to us, and a random visitor ID stored in a cookie. We record this ourselves, in our own database.</li>
         <li><strong>Notifications:</strong> if you turn on notifications, a browser push subscription so we can alert you to new messages.</li>
         <li><strong>Technical information:</strong> like most websites, our hosting provider records basic request logs (such as IP address, browser type and pages requested) to keep the service secure and working.</li>
       </ul>
@@ -32,7 +33,7 @@ export default function PrivacyPage() {
         <li>To run your account and show your modules, progress, timetable and chats.</li>
         <li>To send emails you ask for, such as password-reset links.</li>
         <li>To give automatic feedback on assignment submissions.</li>
-        <li>To keep the service secure, fix problems and improve it.</li>
+        <li>To keep the service secure, fix problems and improve it, for example by seeing which steps new students get stuck on.</li>
         <li>To show advertising on public pages and in the app (see below), which helps keep {SITE_NAME} free.</li>
       </ul>
       <p>We do not sell your personal information.</p>
@@ -51,7 +52,8 @@ export default function PrivacyPage() {
 
       <h2>Cookies and advertising</h2>
       <p>
-        We use an essential cookie to keep you signed in. We also use Google AdSense to show ads. Google and its partners
+        We use an essential cookie to keep you signed in, and our own cookie with a random visitor ID so we can count
+        visits and see how people use {SITE_NAME} (it is not shared with anyone). We also use Google AdSense to show ads. Google and its partners
         use cookies to serve ads based on your previous visits to this and other websites. Google&apos;s use of
         advertising cookies enables it and its partners to serve ads to you based on your visits to {SITE_NAME} and/or
         other sites on the Internet.

@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { NoTextError, isTextbookBlobUrl, readTextbookPdf, textbookFromOcr } from "@/lib/ai/textbook"
 import { questionsFromPaper } from "@/lib/ai/papers"
+import { captureError } from "@/lib/monitoring"
 
 /**
  * POST { moduleId, url } or { moduleId, ocr: { pages } } (a scanned paper read
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ ...result, topics })
   } catch (err) {
-    console.error("Question paper read error:", err)
+    captureError("Question paper read error", err, "/api/admin/papers/read")
     if (pdfUrl) await del(pdfUrl).catch(() => {})
     const message = err instanceof Error ? err.message : "Couldn't read the paper"
     return NextResponse.json({ error: message }, { status: message.includes("OPENAI_API_KEY") ? 503 : 500 })

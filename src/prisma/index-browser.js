@@ -427,6 +427,16 @@ exports.Prisma.TopicExerciseScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AnalyticsEventScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  userId: 'userId',
+  anonId: 'anonId',
+  path: 'path',
+  props: 'props',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -512,7 +522,8 @@ exports.Prisma.ModelName = {
   EmailOtp: 'EmailOtp',
   CodingProject: 'CodingProject',
   ProjectSubmission: 'ProjectSubmission',
-  TopicExercise: 'TopicExercise'
+  TopicExercise: 'TopicExercise',
+  AnalyticsEvent: 'AnalyticsEvent'
 };
 
 /**

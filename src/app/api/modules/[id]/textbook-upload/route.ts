@@ -9,6 +9,7 @@ import {
   runBatched,
 } from "@/lib/bulk-import"
 import type { ExtractedQuestion } from "@/lib/ai/question-generator"
+import { captureError } from "@/lib/monitoring"
 
 export const runtime = "nodejs"
 export const maxDuration = 120
@@ -46,7 +47,7 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // Verify module exists
-    const module = await prisma.module.findUnique({
+    const mod = await prisma.module.findUnique({
       where: { id: moduleId },
       include: {
         chapters: {
@@ -62,7 +63,7 @@ export async function POST(request: Request, { params }: Params) {
       },
     })
 
-    if (!module) {
+    if (!mod) {
       return NextResponse.json({ error: "Module not found" }, { status: 404 })
     }
 
@@ -81,7 +82,7 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // Get all topics in this module for matching
-    const allTopics = module.chapters.flatMap((chapter) =>
+    const allTopics = mod.chapters.flatMap((chapter) =>
       chapter.topics.map((topic) => ({
         id: topic.id,
         title: topic.title.toLowerCase(),
@@ -179,7 +180,7 @@ export async function POST(request: Request, { params }: Params) {
       },
     })
   } catch (err) {
-    console.error("Textbook upload error:", err)
+    captureError("Textbook upload error", err, "/api/modules/[id]/textbook-upload")
     const message =
       err instanceof Error ? err.message : "Failed to process textbook"
     const status = message.includes("OPENAI_API_KEY") ? 503 : 500

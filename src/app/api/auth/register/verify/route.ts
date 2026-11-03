@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { OtpError, otpErrorBody, verifyOtp } from "@/lib/email-otp"
 import { asLevel } from "@/lib/levels"
 import { setUserLevel } from "@/lib/levels-server"
+import { track } from "@/lib/analytics"
+import { captureError } from "@/lib/monitoring"
 
 /** Step 2 of signing up: confirm the emailed code, then create the account */
 export async function POST(request: Request) {
@@ -22,6 +24,7 @@ export async function POST(request: Request) {
     })
     // High school or university (best effort: before its migration everyone is university)
     await setUserLevel(user.id, asLevel(level)).catch(err => console.warn("Couldn't save the study level:", err instanceof Error ? err.message : err))
+    track("sign_up", { userId: user.id, props: { level: asLevel(level) } })
     return NextResponse.json({ user }, { status: 201 })
   } catch (error) {
     if (error instanceof OtpError) return NextResponse.json(otpErrorBody(error), { status: error.status })
@@ -29,7 +32,7 @@ export async function POST(request: Request) {
     if (error && typeof error === "object" && "code" in error && (error as { code: string }).code === "P2002") {
       return NextResponse.json({ error: "Email already registered. Try signing in." }, { status: 409 })
     }
-    console.error("Register verify error:", error)
+    captureError("Register verify error", error, "/api/auth/register/verify")
     return NextResponse.json({ error: "Couldn't create your account" }, { status: 500 })
   }
 }

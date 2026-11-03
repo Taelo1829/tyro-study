@@ -37,9 +37,19 @@ export default function AdminChapterDetailPage() {
     if (res.ok) setChapter(await res.json())
   }, [id])
 
+  // First load (the effect sets state only after the fetch resolves, and not after unmount)
   useEffect(() => {
-    load()
-  }, [load])
+    let cancelled = false
+    fetch(`/api/chapters/${id}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then((data: ChapterDetail | null) => {
+        if (!cancelled && data) setChapter(data)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   if (!chapter) {
     return <p className="text-sm text-muted-foreground">Loading…</p>

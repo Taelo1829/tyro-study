@@ -3,6 +3,7 @@ import { pusherServer, conversationChannel, EVENTS } from '@/lib/pusher'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { captureError } from "@/lib/monitoring"
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
       { userId: session.user.id, name: session.user.name }
     )
   } catch (error) {
-    console.error('Pusher typing error:', error)
+    captureError('Pusher typing error', error, "/api/chat/typing")
   }
 
   return NextResponse.json({ success: true })

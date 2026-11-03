@@ -6,6 +6,8 @@ import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { AUTH_SECRET, SESSION_COOKIE_NAME, USE_SECURE_COOKIES } from "@/lib/auth-cookies"
 import { getUserLevel } from "@/lib/levels-server"
+import { track } from "@/lib/analytics"
+import { LOGIN_PER_EMAIL, LOGIN_PER_IP, clearLimit, clientIp, hit, limitKey } from "@/lib/rate-limit"
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -45,8 +47,16 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+        const emailKey = limitKey("login:email", credentials.email)
+        const ipKey = limitKey("login:ip", clientIp(req?.headers ?? {}))
+        // Count a wrong password against this email and network (TS-008).
+        // The route in app/api/auth/[...nextauth] refuses once the limit is reached.
+        const failed = async () => {
+          await Promise.all([hit(emailKey, LOGIN_PER_EMAIL), hit(ipKey, LOGIN_PER_IP)])
           return null
         }
 
@@ -61,7 +71,7 @@ export const authOptions: NextAuthOptions = {
           }))
 
         if (!user?.password) {
-          return null
+          return failed()
         }
 
         const valid = await bcrypt.compare(
@@ -69,8 +79,9 @@ export const authOptions: NextAuthOptions = {
           user.password
         )
         if (!valid) {
-          return null
+          return failed()
         }
+        await clearLimit(emailKey)
 
         return {
           id: user.id,
@@ -113,6 +124,11 @@ export const authOptions: NextAuthOptions = {
         session.user.level = token.level ?? "tertiary"
       }
       return session
+    },
+  },
+  events: {
+    signIn({ user }) {
+      track("login", { userId: user.id })
     },
   },
   pages: {

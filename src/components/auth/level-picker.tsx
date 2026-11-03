@@ -10,15 +10,19 @@ export function LevelPicker({
   onChange,
   disabled,
   name = "level",
+  levels,
 }: {
   value: StudyLevel | null
   onChange: (level: StudyLevel) => void
   disabled?: boolean
   name?: string
+  /** Limit the choices (e.g. when high school sign-ups are paused). Default: all levels. */
+  levels?: StudyLevel[]
 }) {
+  const choices = levels ? STUDY_LEVELS.filter(l => levels.includes(l.id)) : STUDY_LEVELS
   return (
-    <div role="radiogroup" aria-label="Study level" className="grid gap-2 sm:grid-cols-2">
-      {STUDY_LEVELS.map(l => {
+    <div role="radiogroup" aria-label="Study level" className={cn("grid gap-2", choices.length > 1 && "sm:grid-cols-2")}>
+      {choices.map(l => {
         const Icon = l.id === "highschool" ? School : GraduationCap
         const selected = value === l.id
         return (

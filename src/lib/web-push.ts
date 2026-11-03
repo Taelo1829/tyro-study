@@ -1,5 +1,6 @@
 import crypto from "crypto"
 import { prisma } from "@/lib/prisma"
+import { isAllowedPushEndpoint } from "@/lib/push-endpoint"
 
 // Values pasted into Vercel sometimes carry spaces or quotes; ignore them
 const cleanEnv = (value: string | undefined) => value?.trim().replace(/^["']|["']$/g, "").trim() || undefined
@@ -108,6 +109,7 @@ export function getVapidPublicKey() {
 }
 
 export async function sendPushNotification(subscription: StoredPushSubscription) {
+  if (!isAllowedPushEndpoint(subscription.endpoint)) return // never POST to a non-push-service URL
   const authorization = getVapidAuthorization(subscription.endpoint)
   if (!authorization) return
 
@@ -204,6 +206,7 @@ export interface PushDelivery {
 export async function deliverPush(subscription: StoredPushSubscriptionWithKeys, message: PushMessage): Promise<PushDelivery> {
   const problem = pushConfigProblem()
   if (problem) return { ok: false, status: 0, detail: problem }
+  if (!isAllowedPushEndpoint(subscription.endpoint)) return { ok: false, status: 0, detail: "Not a browser push service address" }
   const authorization = getVapidAuthorization(subscription.endpoint)
   if (!authorization) return { ok: false, status: 0, detail: "Could not sign the message with the VAPID keys" }
 

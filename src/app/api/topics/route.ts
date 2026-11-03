@@ -1,9 +1,20 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
+import { requireAuth } from "@/lib/auth-session"
 import { prisma } from "@/lib/prisma"
 import { hasWrittenContent } from "@/lib/topic-content"
 
+/**
+ * Topics of a chapter. Signed-in users only. Lesson text and assignment briefs
+ * are returned to admins only: students read a lesson through /api/topics/[id],
+ * which enforces topic locks (this list used to return every lesson, locked and
+ * unpublished ones included, to anyone).
+ */
 export async function GET(request: Request) {
+  const { error, session } = await requireAuth()
+  if (error) return error
+  const isAdmin = session?.user?.role === "ADMIN"
+
   const { searchParams } = new URL(request.url)
   const chapterId = searchParams.get("chapterId")
 
@@ -20,7 +31,15 @@ export async function GET(request: Request) {
     include: { _count: { select: { questions: true, flashcards: true } } },
   })
 
-  return NextResponse.json(topics)
+  if (isAdmin) return NextResponse.json(topics)
+  return NextResponse.json(
+    topics.map(t => {
+      const { content, assignment, ...rest } = t
+      void content
+      void assignment
+      return rest
+    })
+  )
 }
 
 export async function POST(request: Request) {

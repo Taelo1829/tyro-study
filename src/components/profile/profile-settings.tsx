@@ -226,6 +226,7 @@ function PhotoSection({ profile, onSaved }: { profile: Profile; onSaved: (p: Pro
           ref={input}
           type="file"
           accept="image/png,image/jpeg,image/webp,image/gif"
+          aria-label="Choose a profile picture"
           className="sr-only"
           tabIndex={-1}
           onChange={e => upload(e.target.files?.[0])}
