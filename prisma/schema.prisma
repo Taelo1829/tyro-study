@@ -93,6 +93,9 @@ model User {
   isSuperuser   Boolean   @default(false)
   /// "tertiary" (university modules) or "highschool" (Grade 11 and 12 subjects)
   level         String    @default("tertiary")
+  /// 0: modules, 1: deadline, 2: daily goal, 3: complete
+  onboardingStep Int       @default(0)
+  dailyGoal      Int?
   streakDays    Int       @default(0)
   lastVisitDate DateTime?
   createdAt     DateTime  @default(now())

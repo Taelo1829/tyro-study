@@ -39,6 +39,7 @@ export default withAuth(
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/onboarding/:path*",
     "/modules/:path*",
     "/timetable/:path*",
     "/flashcards/:path*",
@@ -49,4 +50,4 @@ export const config = {
     "/feedback/:path*",
     "/admin/:path*",
   ],
-}
+}

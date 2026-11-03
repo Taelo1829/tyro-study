@@ -7,6 +7,7 @@ import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { moduleProgress } from "@/lib/quiz-stats"
+import { getOnboardingState } from "@/lib/onboarding"
 import { getTopicUpNext } from "@/lib/topic-up-next"
 import { moduleSteps } from "@/lib/progress-steps"
 import { recordDailyVisit } from "@/lib/streak"
@@ -92,11 +93,14 @@ export default async function DashboardPage() {
   const ofLevel = (moduleId: string) => (levels.get(moduleId) ?? "tertiary") === level
   const t = termsFor(level as StudyLevel)
 
-  const [studyProgressPercent, currentStreakDays, topicUpNext, timetable] = await Promise.all([
+  const dayStart = startOfTodaySA()
+  const [studyProgressPercent, currentStreakDays, topicUpNext, timetable, setup, answeredToday] = await Promise.all([
     getStudyProgressPercent(userId, ofLevel),
     getCurrentStreakDays(userId),
     getTopicUpNext(userId, ofLevel),
     getTimetableSummary(userId),
+    getOnboardingState(userId),
+    prisma.questionAttempt.count({ where: { quizAttempt: { userId }, status: "ANSWERED", answeredAt: { gte: dayStart, lt: new Date(dayStart.getTime() + 86_400_000) } } }),
   ])
 
   return (
@@ -168,6 +172,14 @@ export default async function DashboardPage() {
             </div>
           </div>
         </DashboardWidget>
+
+        {setup.dailyGoal && (
+          <DashboardWidget title="Daily goal" description="Quiz questions answered today" tone="slate">
+            <p className="text-3xl font-semibold">{answeredToday}<span className="text-lg font-normal text-muted-foreground"> / {setup.dailyGoal}</span></p>
+            <progress aria-label="Daily question goal" className="mt-4 h-2 w-full accent-black" max={setup.dailyGoal} value={Math.min(answeredToday, setup.dailyGoal)} />
+            <p className="mt-2 text-sm text-muted-foreground">{answeredToday >= setup.dailyGoal ? "Daily goal reached. Nicely done!" : `${setup.dailyGoal - answeredToday} more to reach your goal.`}</p>
+          </DashboardWidget>
+        )}
 
         <DashboardWidget
           title="Today&apos;s Study Plan"

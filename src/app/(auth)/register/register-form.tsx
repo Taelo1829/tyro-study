@@ -60,8 +60,8 @@ export function RegisterForm({ allowHighSchool = true }: { allowHighSchool?: boo
 
     const signInResult = await signIn("credentials", { email: pending.email, password, redirect: false })
     if (signInResult?.error) return "Your account is ready but signing in failed. Try logging in."
-    // Full page load so the dashboard starts with the new session cookie
-    window.location.assign("/dashboard")
+    // Full page load so onboarding starts with the new session cookie
+    window.location.assign("/onboarding")
     return null
   }
 

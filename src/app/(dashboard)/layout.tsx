@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
+import { getOnboardingState } from "@/lib/onboarding"
 import { authOptions } from "@/lib/auth"
 import { recordDailyVisit } from "@/lib/streak"
 import { TopNav } from "@/components/layout/top-nav"
@@ -20,6 +21,7 @@ export default async function DashboardLayout({
   }
 
   const isAdmin = session.user.role === "ADMIN"
+  if (!isAdmin && (await getOnboardingState(session.user.id)).onboardingStep < 3) redirect("/onboarding")
 
   // Count today's visit on any page of the app (not only the dashboard), so
   // studying straight from a module, quiz or chat link keeps the streak going.
