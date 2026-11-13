@@ -1,3 +1,4 @@
+import { questionFormats } from "@/lib/written-quizzes"
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
@@ -30,7 +31,8 @@ export async function POST(request: Request) {
   if (!attempt) return NextResponse.json({ error: "Quiz not found" }, { status: 404 })
 
   // Wrong or unanswered
-  const missed = attempt.questionAttempts.filter(qa => qa.status !== "ANSWERED" || !qa.isCorrect).map(qa => qa.questionId)
+  const formats = await questionFormats(attempt.questionAttempts.map(q => q.questionId))
+  const missed = attempt.questionAttempts.filter(qa => formats.get(qa.questionId)?.kind !== "written" && (qa.status !== "ANSWERED" || !qa.isCorrect)).map(qa => qa.questionId)
   if (missed.length === 0) return NextResponse.json({ notes: [] })
 
   try {

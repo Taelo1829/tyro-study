@@ -1,3 +1,4 @@
+import { publicQuestion, questionFormats } from "@/lib/written-quizzes"
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { requireAuth } from "@/lib/auth-session"
@@ -42,8 +43,9 @@ export async function GET(_request: Request, { params }: Params) {
     : new Map()
 
   // Type-the-answer questions: their answers are the accepted answers, so only admins see them
+  const formats = await questionFormats([...chapter.questions, ...chapter.topics.flatMap(t => t.questions)].map(q => q.id))
   const blanks = isAdmin ? new Set<string>() : await blankQuestionIds([...chapter.questions, ...chapter.topics.flatMap(t => t.questions)].map(q => q.id))
-  const hideBlankAnswers = <Q extends { id: string; answers: unknown[] }>(list: Q[]) => list.map(q => (blanks.has(q.id) ? { ...q, answers: [] } : q))
+  const hideBlankAnswers = <Q extends { id: string; answers: unknown[] }>(list: Q[]) => list.map(q => ({ ...publicQuestion(q, isAdmin), answers: !isAdmin && (blanks.has(q.id) || formats.get(q.id)?.kind === "written") ? [] : q.answers }))
 
   return NextResponse.json({
     ...chapter,

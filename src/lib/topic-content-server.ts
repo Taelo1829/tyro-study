@@ -40,13 +40,18 @@ const OPTIONS: sanitizeHtml.IOptions = {
   nonTextTags: ["style", "script", "textarea", "option", "noscript", "title"],
 }
 
-export function renderTopicContentServer(content: string | null | undefined): string {
+/** Clean stored lesson HTML while retaining graph markers for the renderer. */
+export function sanitizeTopicContentServer(content: string | null | undefined): string {
   if (!content?.trim()) return ""
   const html = looksLikeHtml(content) ? content : legacyToHtml(content)
-  // Graph markers are drawn after cleaning (their SVG is ours, not user HTML)
-  return renderGraphMarkersInHtml(sanitizeHtml(html, OPTIONS))
+  return sanitizeHtml(html, OPTIONS)
     .replace(/<p>(\s|&nbsp;|<br \/>|<br>)*<\/p>/g, "")
     .trim()
+}
+
+export function renderTopicContentServer(content: string | null | undefined): string {
+  // Graph markers are drawn after cleaning (their SVG is ours, not user HTML).
+  return renderGraphMarkersInHtml(sanitizeTopicContentServer(content))
 }
 
 /** Plain-text summary of a lesson (for meta descriptions) */

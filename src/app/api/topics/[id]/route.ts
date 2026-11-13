@@ -1,3 +1,5 @@
+import { getModuleAssessments } from "@/lib/module-assessments"
+import { publicQuestion, questionFormats } from "@/lib/written-quizzes"
 import { NextResponse } from "next/server"
 import { orFallback } from "@/lib/db-safe"
 import { requireAdmin } from "@/lib/admin"
@@ -55,6 +57,10 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({ error: "Topic not found" }, { status: 404 })
   }
 
+  const assessment = await getModuleAssessments(topic.chapter.module.id)
+  const retired = new Set(assessment?.retiredQuestionIds ?? [])
+  const activeQuestions = topic.questions.filter(q => !retired.has(q.id))
+
   const currentIndex = topic.chapter.topics.findIndex(
     (t) => t.id === topic.id
   )
@@ -72,13 +78,14 @@ export async function GET(_request: Request, { params }: Params) {
     : []
   const papers = new Map(paperRows.map(r => [r.id, r.paper]))
   // Type-the-answer questions: their answers are the accepted answers, so only admins see them
+  const formats = await questionFormats(topic.questions.map(q => q.id))
   const blanks = await blankQuestionIds(topic.questions.map(q => q.id))
 
   return NextResponse.json({
     ...topic,
-    questions: topic.questions.map(q => {
-      const kind = blanks.has(q.id) ? "blank" : "mcq"
-      return { ...q, kind, answers: kind === "blank" && !isAdmin ? [] : q.answers, paper: papers.get(q.id) ?? null }
+    questions: activeQuestions.map(q => {
+      const kind = formats.get(q.id)?.kind ?? (blanks.has(q.id) ? "blank" : "mcq")
+      return { ...publicQuestion(q, isAdmin), kind, answers: kind !== "mcq" && !isAdmin ? [] : q.answers, paper: papers.get(q.id) ?? null }
     }),
     locked: (await getLockedFlags([topic.id])).has(topic.id),
     published: isAdmin ? await isTopicPublished(topic.id) : undefined,

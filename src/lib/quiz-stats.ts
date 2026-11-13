@@ -1,3 +1,4 @@
+import { getModuleAssessments, type SavedExam } from "@/lib/module-assessments"
 import { prisma } from "@/lib/prisma"
 
 /**
@@ -13,7 +14,6 @@ import { prisma } from "@/lib/prisma"
 export const TOPIC_QUIZ_SIZE = 20
 export const CHAPTER_QUIZ_SIZE = 20
 export const DEFAULT_SECONDS_PER_QUESTION = 60
-export const MOCK_EXAM_MAX_SECONDS = 3 * 60 * 60
 export const MOCK_EXAM_PASS_MARK = 50
 const DEFAULT_PASS_MARK = 70
 /** A quiz left open for ages says nothing about pace: count at most this per question */
@@ -48,6 +48,11 @@ export interface ChapterProgress {
 }
 
 export interface MockExamPlan {
+  sourceName?: string
+  version?: string
+  totalMarks?: number
+  instructions?: string
+  sections?: { title: string; instructions: string; questions: number; marks: number }[]
   /** Questions per chapter, in chapter order */
   perChapter: { chapterId: string; questions: number; seconds: number }[]
   totalQuestions: number
@@ -60,7 +65,7 @@ export interface ModuleProgress {
   moduleId: string
   title: string
   chapters: ChapterProgress[]
-  mock: { stats: QuizStats; plan: MockExamPlan | null; passMark: number }
+  mock: { stats: QuizStats; plan: MockExamPlan | null; passMark: number; unavailableReason?: string }
   summary: {
     topicsWithQuiz: number
     topicsPassed: number
@@ -166,6 +171,14 @@ export async function moduleProgress(userId: string, moduleId: string): Promise<
   })
   if (!mod) return null
 
+  const assessments = await getModuleAssessments(moduleId)
+  if (assessments?.retiredQuestionIds?.length) {
+    const retired = await prisma.question.findMany({ where: { id: { in: assessments.retiredQuestionIds } }, select: { topicId: true, chapterId: true } })
+    for (const chapter of mod.chapters) {
+      chapter._count.questions -= retired.filter(q => q.chapterId === chapter.id).length
+      for (const topic of chapter.topics) topic._count.questions -= retired.filter(q => q.topicId === topic.id).length
+    }
+  }
   const topicIds = mod.chapters.flatMap(c => c.topics.map(t => t.id))
   const chapterIds = mod.chapters.map(c => c.id)
   const raw = await prisma.quizAttempt.findMany({
@@ -196,8 +209,8 @@ export async function moduleProgress(userId: string, moduleId: string): Promise<
   const modulePace = paceOf(mine) ?? (await modulePaceForEveryone(topicIds, moduleId)) ?? DEFAULT_SECONDS_PER_QUESTION
 
   const chapters: ChapterProgress[] = mod.chapters.map(ch => {
-    const topics = ch.topics.map(t => ({ id: t.id, title: t.title, questions: t._count.questions, stats: statsOf(items(`topic:${t.id}`)) }))
-    const pool = ch._count.questions + ch.topics.reduce((n, t) => n + t._count.questions, 0)
+    const topics = ch.topics.map(t => ({ id: t.id, title: t.title, questions: assessments?.retiredQuestionIds ? t._count.questions : assessments?.topicPools[t.id]?.length ?? t._count.questions, stats: statsOf(items(`topic:${t.id}`)) }))
+    const pool = assessments?.retiredQuestionIds ? ch._count.questions + topics.reduce((n, t) => n + t.questions, 0) : assessments?.chapterPools[ch.id]?.length ?? (ch._count.questions + topics.reduce((n, t) => n + t.questions, 0))
     const quizSize = Math.min(CHAPTER_QUIZ_SIZE, pool)
     // The chapter's own pace: its chapter quizzes, else its topic quizzes, else the module's
     const chapterPace =
@@ -213,7 +226,10 @@ export async function moduleProgress(userId: string, moduleId: string): Promise<
     }
   })
 
-  const plan = mockExamPlan(chapters)
+  const exam = assessments?.mock
+  const examIds = exam?.sections.flatMap(s => s.questions.map(q => q.id)) ?? []
+  const completeExam = exam && examIds.length === exam.totalQuestions && (await prisma.question.count({ where: { id: { in: examIds } } })) === exam.totalQuestions
+  const plan = mockExamPlan(completeExam ? exam : null)
   const all = [...byKey.values()].flat()
   const topicsWithQuiz = chapters.flatMap(c => c.topics).filter(t => t.questions > 0)
   const passedTopic = (t: TopicProgress) => t.stats.passed > 0
@@ -221,7 +237,7 @@ export async function moduleProgress(userId: string, moduleId: string): Promise<
     moduleId: mod.id,
     title: mod.title,
     chapters,
-    mock: { stats: statsOf(items(`module:${mod.id}`)), plan, passMark: MOCK_EXAM_PASS_MARK },
+    mock: { stats: statsOf(items(`module:${mod.id}`)), plan, passMark: MOCK_EXAM_PASS_MARK, unavailableReason: plan ? undefined : assessments?.mockReason || "A reviewed previous-exam structure is required before a mock exam is available." },
     summary: {
       topicsWithQuiz: topicsWithQuiz.length,
       topicsPassed: topicsWithQuiz.filter(passedTopic).length,
@@ -235,25 +251,16 @@ export async function moduleProgress(userId: string, moduleId: string): Promise<
   }
 }
 
-/**
- * The mock exam: each chapter gets its chapter quiz's number of questions and
- * its chapter quiz time. If that adds up to more than 3 hours, every chapter's
- * share shrinks by the same factor so the exam fits in 3 hours.
- */
-export function mockExamPlan(chapters: Pick<ChapterProgress, "id" | "quizSize" | "estimateSeconds">[]): MockExamPlan | null {
-  const parts = chapters.filter(c => c.quizSize > 0).map(c => ({ chapterId: c.id, questions: c.quizSize, pace: c.estimateSeconds / c.quizSize }))
-  if (parts.length === 0) return null
-  const fullSeconds = parts.reduce((n, p) => n + p.questions * p.pace, 0)
-  const capped = fullSeconds > MOCK_EXAM_MAX_SECONDS
-  const factor = capped ? MOCK_EXAM_MAX_SECONDS / fullSeconds : 1
-  const perChapter = parts.map(p => {
-    const questions = Math.max(1, Math.floor(p.questions * factor))
-    return { chapterId: p.chapterId, questions, seconds: Math.round(questions * p.pace) }
-  })
-  const total = perChapter.reduce((n, p) => n + p.seconds, 0)
-  // Whole 5 minutes, at least 10 minutes, at most 3 hours
-  const timeLimitSeconds = Math.min(MOCK_EXAM_MAX_SECONDS, Math.max(600, Math.ceil(total / 300) * 300))
-  return { perChapter, totalQuestions: perChapter.reduce((n, p) => n + p.questions, 0), timeLimitSeconds, capped }
+/** No inferred fallback: a plan exists only for a reviewed, intact source exam. */
+export function mockExamPlan(exam: SavedExam | null | undefined): MockExamPlan | null {
+  if (!exam) return null
+  const questions = exam.sections.flatMap(s => s.questions)
+  if (!questions.length || questions.length !== exam.totalQuestions || new Set(questions.map(q => q.id)).size !== questions.length || questions.reduce((n, q) => n + q.marks, 0) !== exam.totalMarks) return null
+  return {
+    perChapter: [], totalQuestions: exam.totalQuestions, timeLimitSeconds: exam.durationMinutes * 60, capped: false,
+    sourceName: exam.sourceName, version: exam.version, totalMarks: exam.totalMarks, instructions: exam.instructions,
+    sections: exam.sections.map(s => ({ title: s.title, instructions: s.instructions, questions: s.questions.length, marks: s.questions.reduce((n, q) => n + q.marks, 0) })),
+  }
 }
 
 /** The chapter quiz's estimated time for a student (seconds) */

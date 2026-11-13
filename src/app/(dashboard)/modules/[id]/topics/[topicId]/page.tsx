@@ -1,5 +1,7 @@
 "use client"
 
+import { QuizRunner } from "@/components/quiz/quiz-runner"
+import { ASSIGNMENT_CHECKPOINT, ASSIGNMENT_QUIZ } from "@/lib/module-recreation-input"
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
@@ -236,6 +238,10 @@ export default function TopicPage() {
         )
     }
 
+    const isUploadedQuiz = topic.title.startsWith(ASSIGNMENT_QUIZ)
+    const quizQuestionCount = isUploadedQuiz ? topic.questions.length : Math.min(topic.questions.length, 20)
+    const isAssignment = topic.title.startsWith(ASSIGNMENT_CHECKPOINT)
+    const assignmentReady = !isAssignment || (topic.questions.length === 1 && topic.questions[0].kind === "written")
     const hasQuestions = topic.questions?.length > 0
     const hasFlashcards = topic.flashcards?.length > 0
     const hasPdfs = topic.pdfs?.length > 0
@@ -244,7 +250,7 @@ export default function TopicPage() {
     const hasVideo = videos.length > 0
     const hasLesson = lessonHtml.replace(/<[^>]+>/g, "").trim().length > 0 || /<img/i.test(lessonHtml)
     const hasProjects = projects.length > 0
-    const tabCount = 1 + Number(hasVideo) + Number(hasPdfs) + Number(hasFlashcards) + Number(hasQuestions) + Number(hasProjects)
+    const tabCount = 1 + Number(hasVideo) + Number(hasPdfs) + Number(hasFlashcards) + Number(hasQuestions && !isAssignment) + Number(hasProjects)
     const isAdmin = session?.user?.role === "ADMIN"
 
     // The "take the quiz" card, shown at the end of the lesson and under the video
@@ -253,10 +259,10 @@ export default function TopicPage() {
             <div className="px-5 pb-4 pt-5">
                 <p className="flex items-start gap-2 text-lg font-semibold">
                     <Trophy className="mt-1 h-5 w-5 shrink-0" />
-                    {heading}
+                    {isAssignment ? "Submit your assignment" : heading}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    {Math.min(topic.questions.length, 20)} questions · pass mark 70% · no time limit
+                    {isAssignment ? "Upload your complete assignment as a PDF or photos · rubric marking with partial credit" : `${quizQuestionCount} questions · pass mark 70% · no time limit`}
                 </p>
                 {!!progress && progress.quizAttempts > 0 && (
                     <p className="mt-2 text-sm">
@@ -294,7 +300,7 @@ export default function TopicPage() {
                 ) : (
                     <>
                         <PlayCircle className="h-4 w-4" />
-                        {progress && progress.quizAttempts > 0 ? "Take the quiz again" : "Start quiz"}
+                        {topic.title.startsWith(ASSIGNMENT_CHECKPOINT) ? "Start assignment" : progress && progress.quizAttempts > 0 ? "Take the quiz again" : "Start quiz"}
                     </>
                 )}
             </button>
@@ -422,10 +428,10 @@ export default function TopicPage() {
                                 <span>Projects</span>
                             </TabsTrigger>
                         )}
-                        {hasQuestions && (
+                        {hasQuestions && !isAssignment && (
                             <TabsTrigger value="quiz-prep" className="gap-2 px-2">
                                 <PlayCircle className="hidden h-4 w-4 sm:block" />
-                                <span>Quiz Prep</span>
+                                <span>{topic.title.startsWith(ASSIGNMENT_CHECKPOINT) ? "Assignment" : "Quiz Prep"}</span>
                             </TabsTrigger>
                         )}
                     </TabsList>
@@ -463,7 +469,7 @@ export default function TopicPage() {
                             {/* Coding modules: fill-in-the-blanks practice right after the lesson */}
                             <TryItYourself topicId={topic.id} />
 
-                            {topic.questions.some(q => q.kind !== "blank") && (
+                            {!isAssignment && topic.questions.some(q => q.kind !== "blank") && (
                                 <Section title="Key takeaways" description="What you should know before taking the quiz.">
                                     <ul className="space-y-2">
                                         {topic.questions.filter(q => q.kind !== "blank").slice(0, 5).map((question) => (
@@ -477,7 +483,9 @@ export default function TopicPage() {
                             )}
 
                             {/* Done reading? The quiz is right here (it's also in the Quiz Prep tab) */}
-                            {hasQuestions && quizCard("Finished the lesson? Take the quiz")}
+                            {hasQuestions && (isAssignment
+                                ? assignmentReady ? <QuizRunner embeddedAssignment source={{ topicId: topic.id }} title={topic.title} backHref={`/modules/${params.id}/topics/${topic.id}`} backLabel="Back to assignment" /> : <p className="mt-8 rounded-xl bg-muted p-4">This checkpoint needs to be regenerated as a document-submission assignment before it can accept uploads.</p>
+                                : quizCard("Finished the lesson? Take the quiz"))}
                         </Sheet>
                     </TabsContent>
 
@@ -532,7 +540,7 @@ export default function TopicPage() {
                         <Sheet>
                             <SheetHeading
                                 title="Ready to test your knowledge?"
-                                description={hasQuestions
+                                description={isUploadedQuiz ? `Complete all ${topic.questions.length} original assignment questions in order.` : isAssignment ? "Upload your complete work as a PDF or photos. You will receive marks, a rubric breakdown and feedback." : hasQuestions
                                         ? topic.questions.length > 20
                                             ? `Each quiz picks 20 of this topic's ${topic.questions.length} questions at random, so every attempt is different.`
                                             : `This quiz contains ${topic.questions.length} questions covering all the key concepts.`
@@ -542,13 +550,13 @@ export default function TopicPage() {
                                 {hasQuestions && (
                                     <>
                                         <div className="bg-muted/50 rounded-lg p-4">
-                                            <h3 className="font-semibold mb-2">Quiz Information:</h3>
+                                            <h3 className="font-semibold mb-2">{topic.title.startsWith(ASSIGNMENT_CHECKPOINT) ? "Assignment information:" : "Quiz information:"}</h3>
                                             <ul className="space-y-2 text-sm">
                                                 <li className="flex items-center gap-2">
                                                     <FileQuestion className="h-4 w-4 text-primary" />
                                                     <span>
-                                                        {Math.min(topic.questions.length, 20)}{" "}
-                                                        {topic.questions.some(q => q.kind === "blank") ? "questions per quiz: pick the answer or type it into the code" : "multiple-choice questions per quiz"}
+                                                        {isAssignment ? "One document submission" : quizQuestionCount}{" "}
+                                                        {isAssignment ? "covering this chapter’s preceding topics" : topic.questions.some(q => q.kind === "written") ? "questions: upload photos or PDFs for written answers" : topic.questions.some(q => q.kind === "blank") ? "questions per quiz: pick the answer or type it into the code" : "multiple-choice questions per quiz"}
                                                     </span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
@@ -595,7 +603,7 @@ export default function TopicPage() {
                                                 ) : (
                                                     <>
                                                         <PlayCircle className="mr-2 h-4 w-4" />
-                                                        Attempt Quiz Now
+                                                        {topic.title.startsWith(ASSIGNMENT_CHECKPOINT) ? "Start assignment" : "Attempt Quiz Now"}
                                                     </>
                                                 )}
                                             </Button>

@@ -1,3 +1,5 @@
+import { ASSIGNMENT_CHECKPOINT, ASSIGNMENT_QUIZ } from "@/lib/module-recreation-input"
+import { questionFormats, writtenResults, quizMarkTotal } from "@/lib/written-quizzes"
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
@@ -6,6 +8,7 @@ import { orFallback } from "@/lib/db-safe"
 import { blankQuestionIds, saveTypedAnswer, typedAnswers } from "@/lib/question-kinds"
 import { matchingAnswer } from "@/lib/code-blanks"
 import { getTopicLock, lockedResponseBody } from "@/lib/topic-locks"
+import { getModuleAssessments, examQuestionMeta } from "@/lib/module-assessments"
 import { MOCK_EXAM_PASS_MARK, moduleProgress } from "@/lib/quiz-stats"
 import type { Prisma } from "@/prisma/client"
 import { track } from "@/lib/analytics"
@@ -71,13 +74,13 @@ function questionTopic(q: PoolQuestion) {
  * (as saved when it started), and the original start time so the stopwatch
  * carries on. Older unfinished attempts are closed as abandoned.
  */
-async function resumeAttempt(userId: string, source: string) {
+async function resumeAttempt(userId: string, source: string, examVersion?: string, retiredIds: string[] = []) {
     const open = await prisma.quizAttempt.findMany({
         where: { userId, status: "IN_PROGRESS", settings: { contains: `"source":"${source}"` } },
         orderBy: { startedAt: "desc" },
         include: { questionAttempts: { orderBy: { order: "asc" } } },
     })
-    const fresh = open.find(a => Date.now() - a.startedAt.getTime() < RESUME_WINDOW_MS)
+    const fresh = open.find(a => Date.now() - a.startedAt.getTime() < RESUME_WINDOW_MS && (!examVersion || JSON.parse(a.settings).examTemplateVersion === examVersion))
     const stale = open.filter(a => a !== fresh).map(a => a.id)
     if (stale.length) {
         await prisma.quizAttempt.updateMany({ where: { id: { in: stale } }, data: { status: "ABANDONED" } })
@@ -88,21 +91,28 @@ async function resumeAttempt(userId: string, source: string) {
     const pool = await prisma.question.findMany({ where: { id: { in: saved.map(q => q.id) } }, include: questionInclude })
     const byId = new Map(pool.map(q => [q.id, q]))
     // A question deleted since the quiz started can't be shown again: start over instead
-    if (saved.some(q => !byId.has(q.id))) {
+    if (saved.some(q => !byId.has(q.id) || retiredIds.includes(q.id))) {
         await prisma.quizAttempt.update({ where: { id: fresh.id }, data: { status: "ABANDONED" } })
         return null
     }
 
+    if (saved.some(q => byId.get(q.id)?.topic?.title.startsWith(ASSIGNMENT_CHECKPOINT)) && (saved.length !== 1 || saved[0].kind !== "written")) {
+        await prisma.quizAttempt.update({ where: { id: fresh.id }, data: { status: "ABANDONED" } })
+        return null
+    }
     const blanks = await blankQuestionIds(saved.map(q => q.id))
+    const formats = await questionFormats(saved.map(q => q.id))
+    const written = await writtenResults(fresh.id)
     const typed = await typedAnswers(fresh.id)
     const answered = fresh.questionAttempts
-        .filter(qa => qa.status === "ANSWERED" && (qa.selectedAnswerId || typed.has(qa.questionId)))
+        .filter(qa => qa.status === "ANSWERED" && (qa.selectedAnswerId || typed.has(qa.questionId) || written.has(qa.questionId)))
         .map(qa => {
             const correct = byId.get(qa.questionId)!.answers.find(a => a.isCorrect)
             return {
                 questionId: qa.questionId,
                 selectedAnswerId: qa.selectedAnswerId,
                 typedAnswer: typed.get(qa.questionId) ?? null,
+                written: written.get(qa.questionId) ?? null,
                 isCorrect: !!qa.isCorrect,
                 correctAnswerId: correct?.id ?? null,
                 correctAnswerText: blanks.has(qa.questionId) ? correct?.answer ?? null : null,
@@ -117,10 +127,12 @@ async function resumeAttempt(userId: string, source: string) {
         questions: saved.map(q => ({
             id: q.id,
             text: q.question,
+            exam: settings.examQuestions?.find((meta: { id: string }) => meta.id === q.id) ?? null,
             difficulty: q.difficulty,
-            kind: blanks.has(q.id) ? "blank" : "mcq",
+            kind: formats.get(q.id)?.kind ?? (blanks.has(q.id) ? "blank" : "mcq"),
+            maxMarks: formats.get(q.id)?.maxMarks ?? 1,
             // A type-the-answer question's answers are the right ones: never sent before it's answered
-            options: blanks.has(q.id) ? [] : q.answers.map(a => ({ id: a.id, text: a.answer })),
+            options: blanks.has(q.id) || formats.get(q.id)?.kind === "written" ? [] : q.answers.map(a => ({ id: a.id, text: a.answer })),
             topic: questionTopic(byId.get(q.id)!),
             paper: papers.get(q.id) ?? null,
         })),
@@ -175,10 +187,23 @@ export async function POST(req: NextRequest) {
             if (lock) return NextResponse.json(lockedResponseBody(lock), { status: 403 })
         }
 
+        if (moduleId && (topicId || chapterId || questionIds?.length)) {
+            return NextResponse.json({ error: "Start a mock exam using its module only." }, { status: 400 })
+        }
+        const scopeModuleId = moduleId
+            ?? (topicId ? (await prisma.topic.findUnique({ where: { id: topicId }, select: { chapter: { select: { moduleId: true } } } }))?.chapter.moduleId : null)
+            ?? (chapterId ? (await prisma.chapter.findUnique({ where: { id: chapterId }, select: { moduleId: true } }))?.moduleId : null)
+        const assessments = scopeModuleId ? await getModuleAssessments(scopeModuleId) : null
+        const exam = moduleId ? assessments?.mock ?? null : null
+        if (moduleId && !exam) {
+            return NextResponse.json({ error: "Mock exam unavailable: a reviewed previous-exam structure is required." }, { status: 409 })
+        }
+        const examMeta = exam ? examQuestionMeta(exam) : []
+
         // Refreshed or came back: carry on with the unfinished attempt at this quiz
         const source = questionIds?.length ? null : sourceKeyOf({ topicId, chapterId, moduleId })
         if (source && body.fresh !== true) {
-            const resumed = await resumeAttempt(user.id, source)
+            const resumed = await resumeAttempt(user.id, source, exam?.version, assessments?.retiredQuestionIds ?? [])
             if (resumed) return NextResponse.json({ success: true, data: resumed })
         }
 
@@ -203,10 +228,10 @@ export async function POST(req: NextRequest) {
             })
             quizTopicId = topicId
         } else if (moduleId) {
-            // Mock exam: every question in the module (topics' and chapters' own)
+            // Mock exam: exactly the questions saved for the reviewed source paper.
             questions = await prisma.question.findMany({
                 where: {
-                    OR: [{ topic: { chapter: { moduleId } } }, { chapter: { moduleId } }],
+                    id: { in: examMeta.map(q => q.id) },
                 },
                 include: questionInclude,
             })
@@ -222,6 +247,17 @@ export async function POST(req: NextRequest) {
             })
         }
 
+        if (chapterId) questions = questions.filter(q => !q.topic?.title.startsWith(ASSIGNMENT_CHECKPOINT))
+
+        const pool = topicId ? assessments?.topicPools[topicId] : chapterId ? assessments?.chapterPools[chapterId] : null
+        if (!exam && assessments?.retiredQuestionIds) {
+            const retired = new Set(assessments.retiredQuestionIds)
+            questions = questions.filter(q => !retired.has(q.id))
+        } else if (pool) questions = questions.filter(q => pool.includes(q.id))
+        if (exam && (questions.length !== exam.totalQuestions || examMeta.length !== exam.totalQuestions)) {
+            return NextResponse.json({ error: "Mock exam unavailable: its questions no longer match the previous exam. Recreate and review it again." }, { status: 409 })
+        }
+
         if (questions.length === 0) {
             return NextResponse.json(
                 { error: "No questions found for this quiz" },
@@ -231,36 +267,40 @@ export async function POST(req: NextRequest) {
 
         // How many questions go into one quiz. Sensible defaults per quiz type,
         // capped by how many questions exist. Callers may pass a number.
+        const uploadedQuiz = !!topicId && questions.some(q => q.topic?.title.startsWith(ASSIGNMENT_QUIZ))
         const defaultQuizSize = questionIds?.length
             ? questions.length
             : topicId || chapterId ? 20 : 25
         const requestedSize = Number(settings?.questionsPerQuiz)
-        const questionsPerQuiz = Math.min(
+        const questionsPerQuiz = uploadedQuiz ? questions.length : Math.min(
             questions.length,
             Number.isFinite(requestedSize) && requestedSize >= 1
                 ? Math.floor(requestedSize)
                 : defaultQuizSize
         )
 
-        // Mock exam: questions shared out by chapter, timed from the student's
-        // chapter quiz times (at most 3 hours). Chapter quiz: an estimated time.
-        const progress = moduleId || chapterId
+        // Mock timing comes only from the source paper. Chapter quizzes retain pace estimates.
+        const progress = chapterId
             ? await moduleProgress(user.id, moduleId ?? (await prisma.chapter.findUnique({ where: { id: chapterId }, select: { moduleId: true } }))?.moduleId ?? "")
             : null
-        const mockPlan = moduleId && !questionIds?.length ? progress?.mock.plan ?? null : null
+        const mockPlan = exam ? { timeLimitSeconds: exam.durationMinutes * 60 } : null
         const chapterEstimateSeconds = chapterId ? progress?.chapters.find(c => c.id === chapterId)?.estimateSeconds ?? null : null
 
         // Apply quiz settings
         const quizSettings = {
-            randomizeQuestions: settings?.randomizeQuestions ?? true,
-            randomizeOptions: settings?.randomizeOptions ?? true,
+            randomizeQuestions: exam || uploadedQuiz ? false : settings?.randomizeQuestions ?? true,
+            randomizeOptions: exam || uploadedQuiz ? false : settings?.randomizeOptions ?? true,
             questionsPerQuiz,
             // No time limit by default - the quiz is timed (stopwatch), not limited
             timeLimit: mockPlan ? mockPlan.timeLimitSeconds / 60 : settings?.timeLimit ?? null,
             passingScore: mockPlan ? MOCK_EXAM_PASS_MARK : settings?.passingScore ?? 70,
             // Shown before and during a chapter quiz (not enforced)
             estimatedSeconds: chapterEstimateSeconds,
-            mockExam: !!mockPlan,
+            mockExam: !!exam,
+            examTemplateVersion: exam?.version,
+            examQuestions: examMeta,
+            examInstructions: exam?.instructions,
+            examSourceName: exam?.sourceName,
             allowRetry: settings?.allowRetry ?? true,
             // Lets a refresh find this attempt again
             source,
@@ -269,33 +309,26 @@ export async function POST(req: NextRequest) {
         // ── Pick questions at random ────────────────────────────────────────
         // Every quiz draws a fresh random set from the whole pool, in random
         // order. (No rotation: a question can come up again in the next quiz.)
-        let finalQuestions = shuffleArray(questions).slice(0, questionsPerQuiz)
-        if (mockPlan) {
-            // Past-paper questions this student hasn't answered in a mock exam yet come first
-            const poolIds = questions.map(q => q.id)
-            const paperRows = await orFallback(
-                () => prisma.$queryRaw<{ id: string }[]>`
-                    SELECT "id" FROM "questions" WHERE "paper" IS NOT NULL AND "id" = ANY(${poolIds}::text[])`,
-                []
-            )
-            const seenRows = paperRows.length
-                ? await prisma.$queryRaw<{ questionId: string }[]>`
-                    SELECT DISTINCT qa."questionId" FROM "question_attempts" qa
-                    JOIN "quiz_attempts" a ON a."id" = qa."quizAttemptId"
-                    WHERE a."userId" = ${user.id} AND qa."status" = 'ANSWERED'
-                      AND a."settings" LIKE ${`%"source":"module:${moduleId}"%`}`
-                : []
-            const seen = new Set(seenRows.map(r => r.questionId))
-            const firstChoice = new Set(paperRows.map(r => r.id).filter(id => !seen.has(id)))
-
-            // Each chapter's share: unseen past-paper questions first, then the rest, each at random
-            const chapterOf = (q: PoolQuestion) => q.topic?.chapter.id ?? q.chapterId
-            finalQuestions = shuffleArray(
-                mockPlan.perChapter.flatMap(part => {
-                    const inChapter = shuffleArray(questions.filter(q => chapterOf(q) === part.chapterId))
-                    return [...inChapter.filter(q => firstChoice.has(q.id)), ...inChapter.filter(q => !firstChoice.has(q.id))].slice(0, part.questions)
-                })
-            )
+        const formats = await questionFormats(questions.map(q => q.id))
+        if (topicId && questions.some(q => q.topic?.title.startsWith(ASSIGNMENT_CHECKPOINT)) && (questions.length !== 1 || formats.get(questions[0].id)?.kind !== "written")) {
+            return NextResponse.json({ error: "This assignment needs to be regenerated as a document submission before it can accept uploads." }, { status: 409 })
+        }
+        let finalQuestions = uploadedQuiz ? [...questions].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id)).map(q => ({ ...q, answers: [...q.answers].sort((a, b) => a.id.localeCompare(b.id)) })) : shuffleArray(questions).slice(0, questionsPerQuiz)
+        if (!exam && !uploadedQuiz && questionsPerQuiz >= 2) {
+            for (const kind of ["mcq", "written"] as const) {
+                const candidate = questions.find(q => (formats.get(q.id)?.kind ?? "mcq") === kind)
+                if (candidate && !finalQuestions.some(q => (formats.get(q.id)?.kind ?? "mcq") === kind)) finalQuestions[finalQuestions.length - 1] = candidate
+            }
+        }
+        if (exam) {
+            const byId = new Map(questions.map(q => [q.id, q]))
+            // Exact paper order and count; no random chapter fallback or shortening.
+            finalQuestions = examMeta.map(meta => {
+                const q = byId.get(meta.id)!
+                const options = new Map(q.answers.map(a => [a.id, a]))
+                if (!meta.optionIds || meta.optionIds.length !== q.answers.length || meta.optionIds.some(id => !options.has(id))) throw new Error("The mock exam options no longer match its source template")
+                return { ...q, answers: meta.optionIds.map(id => options.get(id)!) }
+            })
         }
         quizSettings.questionsPerQuiz = finalQuestions.length
         const blanks = await blankQuestionIds(finalQuestions.map(q => q.id))
@@ -319,7 +352,8 @@ export async function POST(req: NextRequest) {
                     id: q.id,
                     question: q.question,
                     difficulty: q.difficulty,
-                    kind: blanks.has(q.id) ? "blank" : "mcq",
+                    kind: formats.get(q.id)?.kind ?? (blanks.has(q.id) ? "blank" : "mcq"),
+                    maxMarks: examMeta.find(meta => meta.id === q.id)?.marks ?? formats.get(q.id)?.maxMarks ?? 1,
                     answers: q.answers.map(a => ({
                         id: a.id,
                         answer: a.answer,
@@ -362,10 +396,12 @@ export async function POST(req: NextRequest) {
                 questions: finalQuestions.map(q => ({
                     id: q.id,
                     text: q.question,
+                    exam: examMeta.find(meta => meta.id === q.id) ?? null,
                     difficulty: q.difficulty,
-                    kind: blanks.has(q.id) ? "blank" : "mcq",
+                    kind: formats.get(q.id)?.kind ?? (blanks.has(q.id) ? "blank" : "mcq"),
+                    maxMarks: examMeta.find(meta => meta.id === q.id)?.marks ?? formats.get(q.id)?.maxMarks ?? 1,
                     // A type-the-answer question's answers are the right ones: never sent to the browser
-                    options: blanks.has(q.id) ? [] : q.answers.map(a => ({
+                    options: blanks.has(q.id) || formats.get(q.id)?.kind === "written" ? [] : q.answers.map(a => ({
                         id: a.id,
                         text: a.answer,
                     })),
@@ -456,6 +492,8 @@ export async function GET(req: NextRequest) {
         const settings = JSON.parse(quizAttempt.settings)
         const blanks = await blankQuestionIds(quizAttempt.questionAttempts.map(qa => qa.questionId))
         const typed = blanks.size ? await typedAnswers(quizAttempt.id) : new Map<string, string>()
+        const formats = await questionFormats(quizAttempt.questionAttempts.map(q => q.questionId))
+        const written = await writtenResults(quizAttempt.id)
         const finished = quizAttempt.status === "COMPLETED"
         const isExpired = settings.timeLimit &&
             quizAttempt.startedAt &&
@@ -476,14 +514,16 @@ export async function GET(req: NextRequest) {
                     id: qa.question.id,
                     text: qa.question.question,
                     difficulty: qa.question.difficulty,
-                    kind: blanks.has(qa.questionId) ? "blank" : "mcq",
+                    kind: formats.get(qa.questionId)?.kind ?? (blanks.has(qa.questionId) ? "blank" : "mcq"),
+                    maxMarks: formats.get(qa.questionId)?.maxMarks ?? 1,
                     // (type-the-answer questions: the accepted answers, once the quiz is over)
-                    options: blanks.has(qa.questionId) && !finished ? [] : qa.question.answers.map(a => ({
+                    options: formats.get(qa.questionId)?.kind === "written" || (blanks.has(qa.questionId) && !finished) ? [] : qa.question.answers.map(a => ({
                         id: a.id,
                         text: a.answer,
                     })),
                     userAnswer: qa.selectedAnswerId,
                     typedAnswer: typed.get(qa.questionId) ?? null,
+                    written: written.get(qa.questionId) ?? null,
                     isCorrect: qa.isCorrect,
                     status: qa.status,
                     order: qa.order,
@@ -541,7 +581,7 @@ export async function PUT(req: NextRequest) {
         }
         const typedAnswer = typeof body.typedAnswer === "string" ? body.typedAnswer.slice(0, 500) : undefined
 
-        if (!attemptId || (!finish && (!questionId || (!selectedAnswerId && typedAnswer === undefined)))) {
+        if (!attemptId || (!finish && (!questionId || (!selectedAnswerId && typedAnswer === undefined && body.writtenAnswer !== true)))) {
             return NextResponse.json(
                 { error: "Missing required fields" },
                 { status: 400 }
@@ -579,16 +619,24 @@ export async function PUT(req: NextRequest) {
         let isCorrect: boolean | null = null
         let correctAnswerId: string | null = null
         let correctAnswerText: string | null = null
+        const written = await writtenResults(attemptId)
+        const isWritten = !!questionId && (await questionFormats([questionId])).get(questionId)?.kind === "written"
         const isBlank = !!questionId && (await blankQuestionIds([questionId])).has(questionId)
 
-        if (questionId && !timeIsUp && (isBlank ? typedAnswer === undefined : !selectedAnswerId)) {
+        if (questionId && !isWritten && !timeIsUp && (isBlank ? typedAnswer === undefined : !selectedAnswerId)) {
             return NextResponse.json(
                 { error: isBlank ? "Type your answer" : "Pick an answer" },
                 { status: 400 }
             )
         }
 
-        if (questionId && isBlank && typedAnswer !== undefined && !timeIsUp) {
+        if (questionId && isWritten && !timeIsUp) {
+            const grade = written.get(questionId)
+            if (body.writtenAnswer !== true || !grade) return NextResponse.json({ error: "Upload your written answer for marking first." }, { status: 400 })
+            isCorrect = grade.earnedMarks >= grade.maxMarks
+        } else if (body.writtenAnswer === true && !isWritten) {
+            return NextResponse.json({ error: "This question does not accept a written submission." }, { status: 400 })
+        } else if (questionId && isBlank && typedAnswer !== undefined && !timeIsUp) {
             // Type-the-answer: right when it matches any accepted answer (spacing aside)
             const inQuiz = await prisma.questionAttempt.findUnique({
                 where: { quizAttemptId_questionId: { quizAttemptId: attemptId, questionId } },
@@ -669,7 +717,7 @@ export async function PUT(req: NextRequest) {
 
             const answered = allQuestionAttempts.filter(qa => qa.status === "ANSWERED")
             const correctCount = answered.filter(qa => qa.isCorrect).length
-            const score = Math.round((correctCount / quizAttempt.totalQuestions) * 100)
+            const { score, earnedMarks, totalMarks } = quizMarkTotal(JSON.parse(quizAttempt.questionsData), allQuestionAttempts, written)
 
             const completedAt = new Date()
             await prisma.quizAttempt.update({
@@ -709,12 +757,12 @@ export async function PUT(req: NextRequest) {
             await saveFinalAnswers(
                 user.id,
                 answered
-                    .filter(qa => qa.selectedAnswerId || typed.has(qa.questionId))
+                    .filter(qa => qa.selectedAnswerId || typed.has(qa.questionId) || written.has(qa.questionId))
                     .map(qa => ({
                         questionId: qa.questionId,
                         selectedAnswerId: qa.selectedAnswerId,
                         isCorrect: qa.isCorrect || false,
-                        typed: typed.get(qa.questionId),
+                        typed: typed.get(qa.questionId) ?? written.get(qa.questionId)?.transcription,
                     }))
             )
 
@@ -746,7 +794,8 @@ export async function PUT(req: NextRequest) {
                 isCorrect,
                 correctAnswerId,
                 correctAnswerText,
-                score,
+                score, earnedMarks, totalMarks,
+                written: questionId ? written.get(questionId) ?? null : null,
                 totalQuestions: quizAttempt.totalQuestions,
                 correctCount,
                 answeredCount: answered.length,
@@ -759,6 +808,7 @@ export async function PUT(req: NextRequest) {
                         isCorrect: qa.status === "ANSWERED" && !!qa.isCorrect,
                         selectedAnswerId: qa.status === "ANSWERED" ? qa.selectedAnswerId : null,
                         typedAnswer: typed.get(qa.questionId) ?? null,
+                        written: written.get(qa.questionId) ?? null,
                         correctAnswerId: correct?.id ?? null,
                         correctAnswerText: blankIds.has(qa.questionId) ? correct?.answer ?? null : null,
                     }
@@ -773,6 +823,7 @@ export async function PUT(req: NextRequest) {
             isCorrect,
             correctAnswerId,
             correctAnswerText,
+            written: questionId ? written.get(questionId) ?? null : null,
             message: "Answer saved successfully",
             progress: {
                 answered: allQuestionAttempts.filter(qa => qa.status === "ANSWERED").length,

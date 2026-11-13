@@ -3,9 +3,10 @@
 import { toPlainText } from "@/lib/plain-text"
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
-import { ChevronRight, Plus } from "lucide-react"
+import { ChevronRight, Plus, Search } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ModuleBuilder } from "@/components/admin/module-builder"
@@ -28,6 +29,7 @@ export default function AdminModulesPage() {
   const [courseTitles, setCourseTitles] = useState<Map<string, string>>(new Map())
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<LevelFilter>("all")
   const [newLevel, setNewLevel] = useState<StudyLevel>("tertiary")
 
@@ -45,6 +47,13 @@ export default function AdminModulesPage() {
   useEffect(() => {
     queueMicrotask(load)
   }, [load])
+
+  const terms = search.trim().toLowerCase().split(/\s+/).filter(Boolean)
+  const visibleModules = modules.filter(m => {
+    if (filter !== "all" && (m.level ?? "tertiary") !== filter) return false
+    const text = [m.title, toPlainText(m.description), ...(m.courseIds ?? []).map(id => courseTitles.get(id) ?? "")].join(" ").toLowerCase()
+    return terms.every(term => text.includes(term))
+  })
 
   return (
     <>
@@ -69,6 +78,18 @@ export default function AdminModulesPage() {
             New (empty)
           </Button>
         </div>
+      </div>
+
+      <div className="mb-4 space-y-2">
+        <label htmlFor="admin-module-search" className="block text-sm font-medium">Search modules and subjects</label>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input id="admin-module-search" type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, module code, description or course…" className="pl-10" />
+          </div>
+          {search && <Button type="button" variant="ghost" size="sm" onClick={() => setSearch("")}>Clear</Button>}
+        </div>
+        {!loading && <p role="status" className="text-xs text-muted-foreground">{visibleModules.length} of {modules.length} modules and subjects shown</p>}
       </div>
 
       <div role="tablist" aria-label="Level" className="mb-4 flex flex-wrap gap-2">
@@ -149,9 +170,16 @@ export default function AdminModulesPage() {
             No modules yet. Create your first module above.
           </CardContent>
         </Card>
+      ) : visibleModules.length === 0 ? (
+        <Card>
+          <CardContent className="space-y-3 py-8 text-center text-sm text-muted-foreground">
+            <p>No modules match your search and level filter.</p>
+            <Button type="button" variant="ghost" onClick={() => { setSearch(""); setFilter("all") }}>Clear filters</Button>
+          </CardContent>
+        </Card>
       ) : (
         <ul className="space-y-3">
-          {modules.filter(m => filter === "all" || (m.level ?? "tertiary") === filter).map((m) => (
+          {visibleModules.map((m) => (
             <li key={m.id}>
               <Link href={`/admin/modules/${m.id}`}>
                 <Card className="flex items-center justify-between transition-transform hover:scale-[1.01]">

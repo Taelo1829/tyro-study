@@ -6,7 +6,7 @@ export type Length = "short" | "standard" | "detailed"
 
 export const LENGTH_GUIDE: Record<Length, string> = {
   short: "about 400–600 words",
-  standard: "about 900–1,300 words",
+  standard: "approximately 2,500 readable characters, counting spaces but excluding HTML markup; cover the topic’s essential concepts and worked examples concisely, and finish every explanation without truncation",
   detailed: "about 3,500–4,500 words",
 }
 

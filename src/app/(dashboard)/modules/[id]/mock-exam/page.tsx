@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button"
 import { formatDuration, type ModuleProgressData } from "@/components/progress/progress-report"
 
 /**
- * The mock exam (module quiz): questions from every chapter with a real time
- * limit worked out from the student's chapter quiz times (at most 3 hours).
+ * The mock exam follows a reviewed previous paper, including its time limit.
  * The clock starts when they press Start; an unfinished exam carries on.
  */
 export default function MockExamPage() {
@@ -55,24 +54,23 @@ export default function MockExamPage() {
             <p className="mt-1 text-muted-foreground">{data.title}</p>
           </div>
           {!plan ? (
-            <p className="text-sm text-muted-foreground">This module has no quiz questions yet.</p>
+            <p className="text-sm text-muted-foreground">{data.mock.unavailableReason ?? "A reviewed previous exam is required before this mock exam can be created."}</p>
           ) : (
             <>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
-                  <FileQuestion className="h-4 w-4" /> {plan.totalQuestions} questions from all {plan.perChapter.length} chapters
+                  <FileQuestion className="h-4 w-4" /> {plan.totalQuestions} questions · {plan.totalMarks} marks
                 </li>
                 <li className="flex items-center gap-2">
                   <Clock className="h-4 w-4" /> {formatDuration(plan.timeLimitSeconds)} time limit
                 </li>
                 <li className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4" /> Pass mark {data.mock.passMark}%
+                  <Trophy className="h-4 w-4" /> Practice target {data.mock.passMark}%
                 </li>
               </ul>
-              <p className="text-sm text-muted-foreground">
-                Each chapter gets as many questions as its chapter quiz, and as much time as your chapter quizzes take
-                {plan.capped ? ". Together that came to more than 3 hours, so every chapter's share was shortened to fit 3 hours" : ""}.
-              </p>
+              <p className="text-sm text-muted-foreground">Based on {plan.sourceName}. Question order, sections, marks and duration follow this previous exam.</p>
+              <p className="whitespace-pre-wrap text-sm">{plan.instructions}</p>
+              <ul className="space-y-2 text-sm">{plan.sections?.map((section, i) => <li key={i}><strong>{section.title || "Questions"}</strong>: {section.questions} questions · {section.marks} marks<p>{section.instructions}</p></li>)}</ul>
               <p className="flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 The clock starts when you press Start and keeps running if you leave the page. When time runs out, the exam is handed

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <ProsePage title="Privacy Policy" updated="29 October 2026">
+    <ProsePage title="Privacy Policy" updated="4 November 2026">
       <p>
         This policy explains what information {SITE_NAME} (&ldquo;we&rdquo;) collects, how we use it and the choices you
         have. We process personal information in line with South Africa&apos;s Protection of Personal Information Act
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         <li><strong>Account details:</strong> your name, email address and password (stored only in encrypted, hashed form).</li>
         <li><strong>Study activity:</strong> the modules you join, quiz answers and scores, your study streak, and the sessions and due dates you add to your timetable.</li>
         <li><strong>Chat:</strong> messages, images and voice notes you send, your friends list, and your online status and when you were last active.</li>
-        <li><strong>Assignments:</strong> code files you submit for automatic feedback.</li>
+        <li><strong>Assignments:</strong> code files and written answers you submit for automatic feedback. Written quiz submissions may include photos or PDFs; we save the transcribed answer, marks and feedback, rather than the original quiz upload.</li>
         <li><strong>Usage information:</strong> which pages you open and what you do in the app (for example joining a module, opening a lesson, starting or finishing a quiz, and your score), the website that sent you to us, and a random visitor ID stored in a cookie. We record this ourselves, in our own database.</li>
         <li><strong>Notifications:</strong> if you turn on notifications, a browser push subscription so we can alert you to new messages.</li>
         <li><strong>Technical information:</strong> like most websites, our hosting provider records basic request logs (such as IP address, browser type and pages requested) to keep the service secure and working.</li>
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
         <li><strong>Our database provider</strong>: stores account and study data.</li>
         <li><strong>Pusher</strong>: delivers chat messages and online status in real time.</li>
         <li><strong>Resend</strong>: sends account emails such as password resets.</li>
-        <li><strong>OpenAI</strong>: generates automatic feedback on assignment submissions (the code you submit is sent for this), and helps our team draft study material.</li>
+        <li><strong>OpenAI</strong>: generates automatic feedback on assignment submissions (submitted code and images of written answer pages are sent for this), and helps our team draft study material.</li>
         <li><strong>Google AdSense</strong>: shows advertising (see below).</li>
       </ul>
       <p>Some of these providers store data outside South Africa, with safeguards required by POPIA.</p>

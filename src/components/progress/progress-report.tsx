@@ -149,11 +149,10 @@ export function MockExamCard({ data, moduleHref, readOnly = false }: { data: Mod
         {plan ? (
           <>
             <p className="mt-1 text-sm text-muted-foreground">
-              {plan.totalQuestions} questions from every chapter · {formatDuration(plan.timeLimitSeconds)} time limit · pass mark {passMark}%
+              {plan.totalQuestions} questions · {plan.totalMarks} marks · {formatDuration(plan.timeLimitSeconds)} time limit · practice target {passMark}%
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              The time comes from how long your chapter quizzes take
-              {plan.capped ? ", shortened to the 3 hour maximum" : ""}. When time runs out the exam is handed in.
+              Structure and time limit follow {plan.sourceName}. When time runs out the exam is handed in.
             </p>
             {stats.attempts > 0 && (
               <p className="mt-2 text-sm">
@@ -165,7 +164,7 @@ export function MockExamCard({ data, moduleHref, readOnly = false }: { data: Mod
             )}
           </>
         ) : (
-          <p className="mt-1 text-sm text-muted-foreground">Available once this module has quiz questions.</p>
+          <p className="mt-1 text-sm text-muted-foreground">{data.mock.unavailableReason ?? "A reviewed previous exam is required."}</p>
         )}
       </div>
       {plan && !readOnly && (

@@ -1,6 +1,9 @@
 "use client"
 
+import { DocumentUpload } from "@/components/ui/document-upload"
 import { useEffect, useRef, useState } from "react"
+import { readPaperFile } from "./read-paper-file"
+import { parsePaperSources, MAX_PAPER_FILES, MAX_PAPER_BYTES, type PaperSource } from "@/lib/module-recreation-input"
 import Link from "next/link"
 import { CheckCircle2, Loader2, RotateCcw, Sparkles, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -54,6 +57,10 @@ export function ModuleBuilder({
   const [level, setLevel] = useState<StudyLevel>(defaultLevel)
   const [name, setName] = useState("")
   const [grade, setGrade] = useState<number>(defaultGrade)
+  const [files, setFiles] = useState<File[]>([])
+  const [paperTypes, setPaperTypes] = useState<Record<number, "assignment" | "exam">>({})
+  const [material, setMaterial] = useState<PaperSource[] | null>(null)
+  const [reading, setReading] = useState("")
   const [notes, setNotes] = useState("")
   const [questions, setQuestions] = useState(20)
   const [flashcards, setFlashcards] = useState(true)
@@ -82,11 +89,15 @@ export function ModuleBuilder({
     setBuilt(null)
     setName("")
     setNotes("")
+    setFiles([])
+    setPaperTypes({})
+    setMaterial(null)
+    setReading("")
   }
 
   const setTask = (id: string, patch: Partial<Task>) => setTasks(prev => prev.map(t => (t.id === id ? { ...t, ...patch } : t)))
 
-  async function writeAll(list: Task[]) {
+  async function writeAll(list: Task[], documents = material, moduleId = built?.moduleId) {
     setStep("writing")
     stop.current = false
     setStopping(false)
@@ -96,6 +107,11 @@ export function ModuleBuilder({
         const task = queue.shift()!
         setTask(task.id, { status: "working", note: undefined })
         try {
+          if (documents && moduleId) {
+            const r = await postJson<{ note: string }>("/api/modules/build/topic", { moduleId, topicId: task.id, sources: documents })
+            setTask(task.id, { status: "done", note: r.note })
+            continue
+          }
           const r = await postJson<{ wroteLesson: boolean; questionsAdded: number; flashcardsAdded?: number; exercisesAdded?: number }>(
             "/api/admin/textbooks/generate-topic",
             { topicId: task.id, length: "standard", questionCount: questions, flashcards: flashcards && task.theory ? FLASHCARDS : 0, projects: task.theory ? 1 : 2 }
@@ -112,7 +128,7 @@ export function ModuleBuilder({
         }
       }
     }
-    await Promise.all(Array.from({ length: CONCURRENCY }, worker))
+    await Promise.all(Array.from({ length: documents ? 1 : CONCURRENCY }, worker))
     setStep("done")
     onAdded()
   }
@@ -124,17 +140,29 @@ export function ModuleBuilder({
     setExistingId(null)
     setStep("planning")
     try {
+      let documents: PaperSource[] | null = null
+      if (files.length) {
+        documents = []
+        for (const [index, file] of files.entries()) {
+          documents.push({ ...await readPaperFile(file, setReading), kind: paperTypes[index] ?? "assignment", format: "auto" })
+          parsePaperSources(documents)
+        }
+        documents = parsePaperSources(documents)
+        setMaterial(documents)
+        setReading("Planning chapters, topics and assignment checkpoints from your documents…")
+      }
       const r = await postJson<{ moduleId: string; title: string; topics: Omit<Task, "status">[] }>("/api/modules/build", {
         level,
         name: name.trim(),
         grade: level === "highschool" ? grade : undefined,
         notes: notes.trim() || undefined,
+        sources: documents ?? undefined,
       })
       setBuilt({ moduleId: r.moduleId, title: r.title })
       onAdded()
       const list = r.topics.map(t => ({ ...t, status: "waiting" as const }))
       setTasks(list)
-      await writeAll(list)
+      await writeAll(list, documents, r.moduleId)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't plan it")
       const data = (err as { data?: { moduleId?: string } }).data
@@ -151,7 +179,7 @@ export function ModuleBuilder({
     <>
       <Button size="sm" variant="primary" onClick={() => setOpen(true)}>
         <Sparkles className="h-4 w-4" />
-        Build from a name
+        Build a module
       </Button>
 
       <Modal open={open} onClose={close} size="lg" persistent={busy}>
@@ -167,8 +195,7 @@ export function ModuleBuilder({
             {step === "form" && (
               <>
                 <p className="text-sm text-muted-foreground">
-                  Type the name to generate a chapter and topic plan from the syllabus (CAPS for high school subjects, the
-                  UNISA module for university modules), then writes each topic&apos;s lesson and quiz.
+                  Upload documents to build chapters and topics from their content, with quizzes and cumulative assignment checkpoints after the relevant lessons. Without documents, the builder uses the syllabus for the name you enter.
                 </p>
                 <LevelPicker value={level} onChange={setLevel} name="build-level" />
                 <div className={cn("grid gap-3", level === "highschool" && "sm:grid-cols-[1fr_9rem]")}>
@@ -215,7 +242,17 @@ export function ModuleBuilder({
                     placeholder={level === "highschool" ? "e.g. Paper 2 topics only" : "e.g. part of the BSc Computing"}
                   />
                 </div>
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                <div className="space-y-3">
+                  <label htmlFor="build-documents" className="block text-sm font-medium">Source documents (optional)</label>
+                  <DocumentUpload id="build-documents" accept="application/pdf,.pdf" multiple files={files} showFiles={false} hint="Up to 20 PDFs · 10 MB per file" buttonLabel={files.length ? "Replace documents" : "Choose documents"} onSelect={selected => {
+                    if (selected.length > MAX_PAPER_FILES || selected.some(f => !/\.pdf$/i.test(f.name) || f.size > MAX_PAPER_BYTES)) { setError("Choose up to 20 PDFs, at most 10 MB each."); return }
+                    setFiles(selected); setPaperTypes({}); setMaterial(null); setError("")
+                  }} />
+                  <p className="text-xs text-muted-foreground">Up to 20 PDFs, 10 MB each. Assignments determine quiz format; previous exams inform lessons. No mock exam is created here. If format detection fails, recognizable choices produce MCQs, document-submission instructions produce written questions, otherwise lessons are created on their own.</p>
+                  {files.map((file, i) => <div key={`${file.name}:${i}`} className="flex items-center justify-between gap-2 text-sm"><span>{file.name}</span><select aria-label={`Document type for ${file.name}`} value={paperTypes[i] ?? "assignment"} onChange={e => setPaperTypes(prev => ({ ...prev, [i]: e.target.value as "assignment" | "exam" }))} className="rounded-lg border p-2"><option value="assignment">Assignment / study material</option><option value="exam">Previous exam</option></select></div>)}
+                  {!!files.length && <p className="text-sm">The document format determines assessment types and question counts. Written assessments accept photos and PDFs. Review the generated content before sharing it with students.</p>}
+                </div>
+                {!files.length && <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
                   <label className="flex items-center gap-2">
                     Questions per topic
                     <select value={questions} onChange={e => setQuestions(Number(e.target.value))} className="rounded-full border border-border bg-white px-3 py-1.5">
@@ -230,7 +267,7 @@ export function ModuleBuilder({
                     <input type="checkbox" className="h-4 w-4 accent-black" checked={flashcards} onChange={e => setFlashcards(e.target.checked)} />
                     Flashcards for theory topics
                   </label>
-                </div>
+                </div>}
                 {error && (
                   <p className="text-sm text-red-600" role="alert">
                     {error}{" "}
@@ -247,7 +284,7 @@ export function ModuleBuilder({
             {step === "planning" && (
               <p className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Planning the chapters and topics from the {level === "highschool" ? `Grade ${grade} CAPS syllabus` : "module's syllabus"}…
+                {reading || `Planning chapters and topics from the ${level === "highschool" ? `Grade ${grade} CAPS syllabus` : "module syllabus"}…`}
               </p>
             )}
 
@@ -258,7 +295,7 @@ export function ModuleBuilder({
                     ? `Writing lessons and quizzes: ${done} of ${tasks.length} topics done. Keep this window open; it takes a while.`
                     : failed.length
                       ? `${done} of ${tasks.length} topics written. ${failed.length} failed: try them again.`
-                      : `All ${tasks.length} topics written. Students can join the ${word} now.`}
+                      : tasks.some(t => t.status !== "done") ? `${done} of ${tasks.length} topics written. Continue when ready.` : `All ${tasks.length} topics processed. Review the lessons and assessments in the ${word}.`}
                 </p>
                 <ul className="max-h-[22rem] space-y-1 overflow-y-auto text-sm">
                   {tasks.map(t => (

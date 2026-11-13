@@ -1,5 +1,9 @@
 "use client"
 
+import { DocumentUpload } from "@/components/ui/document-upload"
+import { prepareWrittenPages, WrittenFeedbackView } from "./written-submission"
+import type { WrittenFeedback } from "@/lib/written-quiz-types"
+import { ASSIGNMENT_CHECKPOINT } from "@/lib/module-recreation-input"
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { ArrowLeft } from "lucide-react"
@@ -27,11 +31,13 @@ interface QuizOption {
 }
 
 interface QuizQuestion {
+    exam?: { section: string; instructions: string; label: string; marks: number } | null
     id: string
     text: string
     difficulty: string
     /** "blank": type the answer into the blank (____) instead of picking an option */
-    kind?: "mcq" | "blank"
+    kind?: "mcq" | "blank" | "written"
+    maxMarks?: number
     options: QuizOption[]
     topic: { id: string; title: string; moduleId?: string } | null
     /** The past exam/assignment paper it comes from */
@@ -39,6 +45,7 @@ interface QuizQuestion {
 }
 
 interface AnswerResult {
+    written?: WrittenFeedback | null
     isCorrect: boolean
     correctAnswerId: string | null
     /** Type-the-answer questions: the expected answer */
@@ -57,6 +64,8 @@ function splitBlankQuestion(text: string): { prompt: string; code: string } {
 }
 
 interface FinalResult {
+    earnedMarks?: number
+    totalMarks?: number
     score: number
     correctCount: number
     totalQuestions: number
@@ -95,6 +104,7 @@ function formatClock(ms: number) {
 }
 
 interface QuizRunnerProps {
+    embeddedAssignment?: boolean
     /** Body for POST /api/quiz/attempt, e.g. { topicId } or { chapterId } */
     source: { topicId: string } | { chapterId: string } | { moduleId: string }
     /** Heading; defaults to the first question's topic title */
@@ -105,12 +115,13 @@ interface QuizRunnerProps {
 
 type Phase = "loading" | "error" | "answering" | "results"
 
-export function QuizRunner({ source, title: titleProp, backHref, backLabel }: QuizRunnerProps) {
+export function QuizRunner({ source, title: titleProp, backHref, backLabel, embeddedAssignment = false }: QuizRunnerProps) {
     const [phase, setPhase] = useState<Phase>("loading")
     const [error, setError] = useState("")
     const [attemptId, setAttemptId] = useState<string | null>(null)
     const [questions, setQuestions] = useState<QuizQuestion[]>([])
     const [index, setIndex] = useState(0)
+    const [uploads, setUploads] = useState<Record<string, File[]>>({})
     const [selected, setSelected] = useState<Record<string, string>>({})
     const [results, setResults] = useState<Record<string, AnswerResult>>({})
     const [checking, setChecking] = useState(false)
@@ -136,6 +147,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         setPhase("loading")
         setError("")
         setSelected({})
+        setUploads({})
         setResults({})
         setFinal(null)
         setNextStep(null)
@@ -169,6 +181,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                 answered?: {
                     questionId: string
                     selectedAnswerId: string | null
+                    written?: WrittenFeedback | null
                     typedAnswer?: string | null
                     isCorrect: boolean
                     correctAnswerId: string | null
@@ -187,7 +200,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
             setSelected(Object.fromEntries(answered.map(a => [a.questionId, a.typedAnswer ?? a.selectedAnswerId ?? ""])))
             setResults(Object.fromEntries(answered.map(a => [
                 a.questionId,
-                { isCorrect: a.isCorrect, correctAnswerId: a.correctAnswerId, correctAnswerText: a.correctAnswerText ?? null },
+                { written: a.written, isCorrect: a.isCorrect, correctAnswerId: a.correctAnswerId, correctAnswerText: a.correctAnswerText ?? null },
             ])))
             const done = new Set(answered.map(a => a.questionId))
             const firstOpen = attempt.questions.findIndex(q => !done.has(q.id))
@@ -238,7 +251,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     }, [final?.passed, nextQuery])
 
     // Finished with mistakes: fetch (or have the AI write, once ever per question) notes on them
-    const missedCount = final ? final.totalQuestions - final.correctCount : 0
+    const missedCount = final ? questions.filter(q => q.kind !== "written" && !results[q.id]?.isCorrect).length : 0
     useEffect(() => {
         if (!final || missedCount <= 0 || !attemptId) return
         let live = true
@@ -287,6 +300,8 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
 
     function readFinal(data: Record<string, unknown>): FinalResult {
         return {
+            earnedMarks: typeof data.earnedMarks === "number" ? data.earnedMarks : undefined,
+            totalMarks: typeof data.totalMarks === "number" ? data.totalMarks : undefined,
             score: Number(data.score),
             correctCount: Number(data.correctCount),
             totalQuestions: Number(data.totalQuestions),
@@ -314,15 +329,22 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         const question = questions[index]
         const choice = selected[question.id]
         const typed = question.kind === "blank"
-        if (!attemptId || !choice?.trim() || results[question.id] || checking) return
+        if (!attemptId || (question.kind === "written" ? !uploads[question.id]?.length : !choice?.trim()) || results[question.id] || checking) return
 
         setChecking(true)
         setError("")
         try {
-            const data = await put(typed ? { questionId: question.id, typedAnswer: choice } : { questionId: question.id, selectedAnswerId: choice })
+            if (question.kind === "written") {
+                const pages = await prepareWrittenPages(uploads[question.id])
+                const response = await fetch("/api/quiz/written", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attemptId, questionId: question.id, pages }) })
+                const marked = await response.json().catch(() => ({}))
+                if (!response.ok) throw new Error(marked.error ?? "Could not mark your answer. Please retry.")
+            }
+            const data = await put(question.kind === "written" ? { questionId: question.id, writtenAnswer: true } : typed ? { questionId: question.id, typedAnswer: choice } : { questionId: question.id, selectedAnswerId: choice })
             setResults(prev => ({
                 ...prev,
                 [question.id]: {
+                    written: data.written as WrittenFeedback | null,
                     isCorrect: !!data.isCorrect,
                     correctAnswerId: (data.correctAnswerId as string | null) ?? null,
                     correctAnswerText: (data.correctAnswerText as string | null) ?? null,
@@ -360,6 +382,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     }
 
     const title = titleProp ?? questions[0]?.topic?.title ?? "Quiz"
+    const isAssignment = title.startsWith(ASSIGNMENT_CHECKPOINT)
 
     // Stays pinned just under the fixed top bar while scrolling through the quiz
     const backLink = (
@@ -391,7 +414,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     if (phase === "error") {
         return (
             <div className="mx-auto max-w-3xl px-4 py-12">
-                {backLink}
+                {!embeddedAssignment && backLink}
                 <div className="neo-flat p-8 text-center">
                     <p className="text-muted-foreground">{error}</p>
                     <button
@@ -410,7 +433,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
         const correct = final?.correctCount ?? Object.values(results).filter(r => r.isCorrect).length
         const percentage = final?.score ?? Math.round((correct / Math.max(total, 1)) * 100)
 
-        let message = "Keep studying! Review the material and take the quiz again! 📖"
+        let message = isAssignment ? "Review the marking feedback and revise your work before submitting a new attempt." : "Keep studying! Review the material and take the quiz again! 📖"
         let messageColor = "text-red-600"
         if (percentage >= 80) {
             message = "Excellent! You've mastered this! 🎉"
@@ -452,7 +475,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             <div className="neo-pressed mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full">
                                 <span className="text-4xl">📊</span>
                             </div>
-                            <h1 className="mb-2 text-3xl font-bold text-foreground">Quiz Results</h1>
+                            <h1 className="mb-2 text-3xl font-bold text-foreground">{isAssignment ? "Assignment results" : "Quiz Results"}</h1>
                             {timedOut && (
                                 <p className="mb-2 text-sm font-medium text-orange-700">
                                     Time ran out, so the exam was handed in. Questions you hadn&apos;t answered count as wrong.
@@ -466,7 +489,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                             <p className="mb-6 text-muted-foreground">{title}</p>
 
                             <div className="mb-2 text-6xl font-bold text-primary">
-                                {correct}/{total}
+                                {isAssignment ? `${final?.earnedMarks ?? results[questions[0]?.id]?.written?.earnedMarks ?? 0}/${final?.totalMarks ?? questions[0]?.maxMarks ?? 0} marks` : `${correct}/${total}`}
                             </div>
                             <p className="mb-4 text-sm text-muted-foreground">
                                 {percentage}%{final ? ` · ${final.passed ? "Passed" : `Pass mark ${final.passingScore}%`}` : ""}
@@ -520,7 +543,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                             : primaryButton
                                     }
                                 >
-                                    Take Quiz Again
+                                    {isAssignment ? "Submit a new assignment attempt" : "Take Quiz Again"}
                                 </button>
                                 <Link
                                     href={backHref}
@@ -630,7 +653,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                                         {idx + 1}. <MathText text={question.text} />
                                                     </p>
                                                     <div className="text-sm text-muted-foreground">
-                                                        <p>Your answer: {result && yourAnswer ? typed ? <code className="font-mono text-foreground">{yourAnswer.text}</code> : <MathText text={yourAnswer.text} /> : "Not answered"}</p>
+                                                        {result?.written ? <WrittenFeedbackView feedback={result.written} /> : <p>Your answer: {result && yourAnswer ? typed ? <code className="font-mono text-foreground">{yourAnswer.text}</code> : <MathText text={yourAnswer.text} /> : "Not answered"}</p>}
                                                         {!isCorrect && correctAnswer && (
                                                             <p className="mt-1 font-medium text-green-700">
                                                                 Correct answer: {typed ? <code className="font-mono">{correctAnswer.text}</code> : <MathText text={correctAnswer.text} />}
@@ -639,7 +662,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                                     </div>
                                                 </div>
                                             </div>
-                                            {result && attemptId && <AnswerExplanation attemptId={attemptId} questionId={question.id} />}
+                                            {result && !result.isCorrect && question.kind !== "written" && attemptId && <AnswerExplanation attemptId={attemptId} questionId={question.id} />}
                                         </div>
                                     )
                                 })}
@@ -656,22 +679,23 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
     const result = results[current.id]
     const answered = !!result
     const isTyped = current.kind === "blank"
-    const hasSelected = !!selected[current.id]?.trim()
+    const isWritten = current.kind === "written"
+    const hasSelected = isWritten ? !!uploads[current.id]?.length : !!selected[current.id]?.trim()
     const blankParts = isTyped ? splitBlankQuestion(current.text) : null
     const isLast = index === questions.length - 1
     const answeredCount = Object.keys(results).length
 
     return (
-        <div className="-mt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:mt-0 sm:px-4 sm:pt-4">
+        <div className={embeddedAssignment ? "mt-8 border-t border-border pt-6" : "-mt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:mt-0 sm:px-4 sm:pt-4"}>
             <div className="mx-auto max-w-4xl">
-                {backLink}
+                {!embeddedAssignment && backLink}
                 <div className="mb-2 sm:mb-8">
                     <div className="neo-flat px-0 pb-4 pt-1 sm:p-6">
                         <div className="mb-3 flex items-center justify-between gap-4 sm:mb-4">
-                            <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+                            <h1 className="text-2xl font-bold text-foreground">{embeddedAssignment ? "Upload your assignment" : title}</h1>
                             <div className="flex shrink-0 items-center gap-3">
                                 <span className="text-sm text-muted-foreground">
-                                    Question {index + 1} of {questions.length}
+                                    {isAssignment ? "Document submission" : `Question ${index + 1} of ${questions.length}`}
                                 </span>
                                 {leftMs !== null ? (
                                     <span
@@ -717,6 +741,12 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 </span>
                             )}
                         </div>
+                        {current.exam && (
+                            <div className="mb-4 rounded-xl bg-muted p-3 text-sm">
+                                <p className="font-semibold">{current.exam.section ? `${current.exam.section} · ` : ""}Question {current.exam.label} · {current.exam.marks} marks</p>
+                                {current.exam.instructions && <p className="mt-1">{current.exam.instructions}</p>}
+                            </div>
+                        )}
                         {current.paper && (
                             <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Past paper · {current.paper}</p>
                         )}
@@ -728,10 +758,17 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 <p className="mt-1 text-sm text-muted-foreground">Type your answer in the blank{answered ? "" : ", then press Check answer"}.</p>
                             </>
                         ) : (
-                            <h2 className="whitespace-pre-wrap text-xl font-semibold text-foreground"><MathText text={current.text} /></h2>
+                            !embeddedAssignment && <h2 className="whitespace-pre-wrap text-xl font-semibold text-foreground"><MathText text={current.text} /></h2>
                         )}
                     </div>
 
+                    {isWritten && !answered && <div className="mb-4 space-y-3">
+                        <p className="text-sm">{isAssignment ? "Assignment" : "Written answer"} · {current.maxMarks ?? 1} marks. Show your working, then upload photos or a PDF (up to 8 pages, 10 MB per file).</p>
+                        <label className="block font-medium" htmlFor="written-answer">Your answer files</label>
+                        <DocumentUpload id="written-answer" key={current.id} accept="image/jpeg,image/png,image/webp,application/pdf" multiple disabled={checking} files={uploads[current.id] ?? []} hint="PDF, JPG, PNG or WebP · Up to 8 pages, 10 MB per file" buttonLabel="Choose PDF or photos" onSelect={files => setUploads(prev => ({ ...prev, [current.id]: [...(prev[current.id] ?? []), ...files].filter((file, index, all) => all.findIndex(f => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified) === index) }))} onRemove={index => setUploads(prev => ({ ...prev, [current.id]: (prev[current.id] ?? []).filter((_, i) => i !== index) }))} />
+                        <p className="text-xs text-muted-foreground">Only include your answer. The pages are processed for marking; your transcribed answer and feedback are saved.</p>
+                    </div>}
+                    {result?.written && <WrittenFeedbackView feedback={result.written} />}
                     {blankParts && (
                         <CodeWithBlanks
                             key={current.id}
@@ -779,7 +816,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                         })}
                     </div>
 
-                    {answered && (
+                    {answered && !isWritten && (
                         <div
                             role="status"
                             className={`mt-6 rounded-2xl border p-4 font-semibold ${result.isCorrect ? "border-green-200 bg-tint-mint text-green-800" : "border-red-200 bg-red-50 text-red-700"}`}
@@ -798,11 +835,11 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                     )}
                 </div>
 
-                {answered && attemptId && <AnswerExplanation key={`${attemptId}:${current.id}`} attemptId={attemptId} questionId={current.id} />}
+                {answered && !result.isCorrect && !isWritten && attemptId && <AnswerExplanation key={`${attemptId}:${current.id}`} attemptId={attemptId} questionId={current.id} />}
 
                 {error && <p className="mb-4 text-center text-sm text-red-600" role="alert">{error}</p>}
 
-                <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6">
+                <div className={embeddedAssignment ? "mt-4 flex justify-end" : "fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6"}>
                     <div className="mx-auto flex max-w-4xl justify-end [&>button]:min-h-12 [&>button]:w-full sm:[&>button]:w-auto sm:[&>button]:min-w-48">
                         {!answered ? (
                             <button
@@ -810,7 +847,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                                 disabled={!hasSelected || checking}
                                 className={hasSelected && !checking ? primaryButton : disabledButton}
                             >
-                                {checking ? "Checking…" : "Check answer"}
+                                {checking ? (isAssignment ? "Marking assignment…" : "Checking…") : isAssignment ? "Submit assignment" : "Check answer"}
                             </button>
                         ) : (
                             <button
@@ -825,12 +862,12 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel }: Qu
                 </div>
 
                 <div className="mt-6 text-center text-sm text-muted-foreground">
-                    {answeredCount} of {questions.length} questions answered
+                    {isAssignment ? answered ? "Assignment marked" : "Upload your complete assignment before submitting." : `${answeredCount} of ${questions.length} questions answered`}
                 </div>
             </div>
 
             {/* Floating scrap paper - keyed to the attempt so a new quiz starts blank */}
-            <ScratchPad key={attemptId ?? "pad"} />
+            {!embeddedAssignment && <ScratchPad key={attemptId ?? "pad"} />}
         </div>
     )
 }

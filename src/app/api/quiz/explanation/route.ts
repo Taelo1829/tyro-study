@@ -16,17 +16,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "attemptId and questionId are required" }, { status: 400 })
   }
   try {
-    // Never reveal an explanation for an unmarked answer or someone else's quiz.
+    // Generate explanations only for this student’s marked, incorrect answers.
     const marked = await prisma.questionAttempt.findFirst({
       where: {
         quizAttemptId: body.attemptId,
         questionId: body.questionId,
         status: "ANSWERED",
+        isCorrect: false,
         quizAttempt: { userId: session.user.id },
       },
-      select: { questionId: true },
+      select: { questionId: true, isCorrect: true },
     })
-    if (!marked) return NextResponse.json({ error: "Marked answer not found" }, { status: 404 })
+    if (!marked || marked.isCorrect !== false) return NextResponse.json({ error: "Incorrect marked answer not found" }, { status: 404 })
     const [note] = await notesForQuestions([marked.questionId], { appendToLesson: false })
     if (!note) return NextResponse.json({ error: "The explanation is unavailable right now. Please try again." }, { status: 503 })
     return NextResponse.json({ html: note.html }, { headers: { "Cache-Control": "no-store" } })

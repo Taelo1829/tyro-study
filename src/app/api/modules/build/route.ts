@@ -1,3 +1,5 @@
+import { outlineDocumentModule } from "@/lib/document-module"
+import { parsePaperSources, RecreationInputError } from "@/lib/module-recreation-input"
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
@@ -23,14 +25,18 @@ import { captureError } from "@/lib/monitoring"
  */
 
 export const runtime = "nodejs"
-export const maxDuration = 120
+export const maxDuration = 300
 
 export async function POST(request: Request) {
   try {
     const { error } = await requireAdmin()
     if (error) return error
 
-    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>
+    const raw = await request.text()
+    if (new TextEncoder().encode(raw).length > 1_000_000) return NextResponse.json({ error: "Use fewer or shorter documents." }, { status: 413 })
+    const body = JSON.parse(raw) as Record<string, unknown>
+    if (!body || typeof body !== "object") throw new RecreationInputError("Invalid request.")
+    const sources = body.sources === undefined ? null : parsePaperSources(body.sources)
     const level = isStudyLevel(body.level) ? body.level : null
     const name = String(body.name ?? "").replace(/\s+/g, " ").trim().slice(0, 150)
     const notes = String(body.notes ?? "").trim().slice(0, 1000)
@@ -50,7 +56,7 @@ export async function POST(request: Request) {
       if (!HIGH_SCHOOL_GRADES.includes(grade as (typeof HIGH_SCHOOL_GRADES)[number])) {
         return NextResponse.json({ error: "Choose Grade 11 or 12" }, { status: 400 })
       }
-      const planned = await outlineSubject({ name, grade, notes })
+      const planned = sources ? { ...await outlineDocumentModule(name, notes, sources), subject: name } : await outlineSubject({ name, grade, notes })
       title = `${planned.subject} - Grade ${grade}`
       outline = planned
       courseId = await gradeCourseId(grade)
@@ -62,7 +68,7 @@ export async function POST(request: Request) {
       if (existing) {
         return NextResponse.json({ error: `${existing.title} is already in Tyro`, moduleId: existing.id }, { status: 409 })
       }
-      outline = await outlineModule({
+      outline = sources ? await outlineDocumentModule(name, notes, sources) : await outlineModule({
         code: code?.code ?? "",
         title: rest || name,
         year: code?.year ?? 1,
@@ -99,6 +105,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ moduleId: mod.id, title: mod.title, chapters: outline.chapters.length, topics }, { status: 201 })
   } catch (err) {
+    if (err instanceof RecreationInputError || err instanceof SyntaxError) return NextResponse.json({ error: err.message }, { status: 400 })
     captureError("Build module error", err, "/api/modules/build")
     let message = err instanceof Error ? err.message : "Couldn't plan it"
     if (/column .*level|"level"/i.test(message)) message = "High school subjects need the latest database update: run `npx prisma migrate deploy`."

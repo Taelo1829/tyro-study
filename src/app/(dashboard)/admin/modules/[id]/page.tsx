@@ -10,6 +10,9 @@ import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { TextbookUploader } from "@/components/admin/textbook-uploader"
 import { PaperUploader } from "@/components/admin/paper-uploader"
+import { UploadedAssignmentList } from "@/components/admin/uploaded-assignment-list"
+import { UploadModuleAssignment } from "@/components/admin/upload-module-assignment"
+import { ModuleContentRecreator } from "@/components/admin/module-content-recreator"
 import { ModuleExerciseBuilder } from "@/components/admin/module-exercise-builder"
 import { EditModuleButton } from "@/components/admin/edit-module-button"
 import { DeleteModuleButton } from "@/components/admin/delete-module-button"
@@ -18,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface ChapterRow {
+  assignmentCheckpoints?: { id: string; title: string }[]
   id: string
   title: string
   order: number
@@ -97,6 +101,8 @@ export default function AdminModuleDetailPage() {
           />
           <TextbookUploader moduleId={id} onUploaded={load} />
           <PaperUploader moduleId={id} onAdded={load} />
+          <ModuleContentRecreator moduleId={id} onSaved={load} />
+          <UploadModuleAssignment moduleId={id} onSaved={load} />
           {mod.coding?.language && <ModuleExerciseBuilder moduleId={id} />}
           <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}>
             <Plus className="h-4 w-4" />
@@ -111,6 +117,7 @@ export default function AdminModuleDetailPage() {
       </div>
 
       <ModulePublishControl moduleId={id} />
+      <UploadedAssignmentList moduleId={id} onDeleted={load} assignments={mod.chapters.flatMap(ch => (ch.assignmentCheckpoints ?? []).filter(a => /^assignment-[a-f0-9]{40}$/.test(a.id)).map(a => ({ ...a, chapter: ch.title })))} />
 
       {showForm && (
         <Card className="mb-6">

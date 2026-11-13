@@ -56,6 +56,8 @@ model QuizAttempt {
 }
 
 model QuestionAttempt {
+  earnedMarks     Float?
+  writtenFeedback String? @db.Text
   id               String       @id @default(cuid())
   quizAttemptId    String
   questionId       String
@@ -164,6 +166,8 @@ model VerificationToken {
 }
 
 model Module {
+  /// Regenerated quiz pools and a reviewed, source-faithful mock exam template
+  assessmentConfig String? @db.Text
   id          String   @id @default(cuid())
   title       String
   description String?
@@ -292,6 +296,9 @@ model Assignment_Attempt {
 }
 
 model Question {
+  maxMarks      Int     @default(1)
+  writtenRubric String? @db.Text
+  modelAnswer   String? @db.Text
   id         String   @id @default(cuid())
   topicId    String?
   chapterId  String?

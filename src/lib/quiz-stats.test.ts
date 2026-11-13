@@ -1,35 +1,24 @@
 import { describe, expect, it } from "vitest"
-import { MOCK_EXAM_MAX_SECONDS, mockExamPlan } from "./quiz-stats"
-
-const chapter = (id: string, quizSize: number, estimateSeconds: number) => ({ id, quizSize, estimateSeconds })
-
-describe("mock exam plan (BR-23)", () => {
-  it("is null when no chapter has questions", () => {
-    expect(mockExamPlan([chapter("a", 0, 0)])).toBeNull()
-    expect(mockExamPlan([])).toBeNull()
+import { mockExamPlan } from "./quiz-stats"
+import type { SavedExam } from "./module-assessments"
+const exam: SavedExam = { version: "v1", sourceName: "Exam.pdf", durationMinutes: 240, totalQuestions: 2, totalMarks: 4, instructions: "Answer all questions", sections: [
+  { title: "Section A", instructions: "", questions: [{ id: "a", label: "1", marks: 2, optionIds: ["a1", "a2"] }] },
+  { title: "Section B", instructions: "", questions: [{ id: "b", label: "2", marks: 2, optionIds: ["b1", "b2"] }] },
+] }
+describe("strict source mock plan", () => {
+  it("has no fallback when a source exam is absent", () => {
+    expect(mockExamPlan(null)).toBeNull()
+    expect(mockExamPlan(undefined)).toBeNull()
   })
-
-  it("gives each chapter its chapter-quiz share and time, rounded up to whole 5 minutes", () => {
-    const plan = mockExamPlan([chapter("a", 20, 20 * 60), chapter("b", 10, 10 * 90)])!
-    expect(plan.perChapter).toEqual([
-      { chapterId: "a", questions: 20, seconds: 1200 },
-      { chapterId: "b", questions: 10, seconds: 900 },
-    ])
-    expect(plan.totalQuestions).toBe(30)
-    expect(plan.timeLimitSeconds).toBe(2100) // 35 min, already a multiple of 5
+  it("preserves source duration without the old three-hour cap", () => {
+    const plan = mockExamPlan(exam)!
+    expect(plan.timeLimitSeconds).toBe(240 * 60)
     expect(plan.capped).toBe(false)
+    expect(plan.totalMarks).toBe(4)
+    expect(plan.sections?.map(s => s.title)).toEqual(["Section A", "Section B"])
   })
-
-  it("never allows less than 10 minutes", () => {
-    expect(mockExamPlan([chapter("a", 2, 60)])!.timeLimitSeconds).toBe(600)
-  })
-
-  it("shrinks every chapter by the same factor to fit 3 hours", () => {
-    const plan = mockExamPlan(Array.from({ length: 10 }, (_, i) => chapter(`c${i}`, 20, 20 * 120)))! // 400 min in full
-    expect(plan.capped).toBe(true)
-    expect(plan.timeLimitSeconds).toBeLessThanOrEqual(MOCK_EXAM_MAX_SECONDS)
-    const shares = new Set(plan.perChapter.map(p => p.questions))
-    expect(shares.size).toBe(1) // same share for equal chapters
-    expect(plan.perChapter.every(p => p.questions >= 1)).toBe(true)
+  it("rejects incomplete counts and mark totals", () => {
+    expect(mockExamPlan({ ...exam, totalQuestions: 3 })).toBeNull()
+    expect(mockExamPlan({ ...exam, totalMarks: 10 })).toBeNull()
   })
 })

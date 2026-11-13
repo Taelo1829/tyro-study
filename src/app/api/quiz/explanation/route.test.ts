@@ -12,7 +12,7 @@ const request = (body: unknown = { attemptId: "attempt", questionId: "question" 
 beforeEach(() => {
   vi.resetAllMocks()
   mocks.session.mockResolvedValue({ user: { id: "student" } })
-  mocks.find.mockResolvedValue({ questionId: "question" })
+  mocks.find.mockResolvedValue({ questionId: "question", isCorrect: false })
   mocks.notes.mockResolvedValue([{ html: "<p>The reasoning.</p>" }])
 })
 
@@ -27,18 +27,23 @@ describe("answer explanations", () => {
     expect((await POST(request({ attemptId: "attempt" }))).status).toBe(400)
     expect(mocks.notes).not.toHaveBeenCalled()
   })
-  it("requires a marked answer owned by the current student, regardless of correctness", async () => {
+  it("requires an incorrect marked answer owned by the current student", async () => {
     const response = await POST(request())
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ html: "<p>The reasoning.</p>" })
     expect(mocks.find).toHaveBeenCalledWith({
-      where: { quizAttemptId: "attempt", questionId: "question", status: "ANSWERED", quizAttempt: { userId: "student" } },
-      select: { questionId: true },
+      where: { quizAttemptId: "attempt", questionId: "question", status: "ANSWERED", isCorrect: false, quizAttempt: { userId: "student" } },
+      select: { questionId: true, isCorrect: true },
     })
     expect(mocks.notes).toHaveBeenCalledWith(["question"], { appendToLesson: false })
   })
   it("does not generate or reveal explanations for inaccessible or unmarked answers", async () => {
     mocks.find.mockResolvedValue(null)
+    expect((await POST(request())).status).toBe(404)
+    expect(mocks.notes).not.toHaveBeenCalled()
+  })
+  it("does not call the explanation generator for a correct answer", async () => {
+    mocks.find.mockResolvedValue({ questionId: "question", isCorrect: true })
     expect((await POST(request())).status).toBe(404)
     expect(mocks.notes).not.toHaveBeenCalled()
   })

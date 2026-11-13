@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
 interface ChapterRow {
+  assignmentCheckpoints?: { id: string; title: string }[]
   id: string
   title: string
   order: number
@@ -147,6 +148,9 @@ export default function StudentModulePage() {
                   </CardContent>
                 </Link>
               </Card>
+              {!!ch.assignmentCheckpoints?.length && <ul className="ml-4 mt-3 space-y-2 border-l-2 border-foreground pl-4" aria-label={`Assignments after ${ch.title}`}>
+                {ch.assignmentCheckpoints.map(assignment => <li key={assignment.id}><Link href={`/modules/${id}/topics/${assignment.id}`} className="flex items-center justify-between gap-3 rounded-xl bg-foreground p-4 text-background"><div><p className="text-xs opacity-75">{assignment.title.startsWith("Assignment quiz: ") ? "Assignment quiz" : "Assignment checkpoint"}</p><p className="font-semibold">{assignment.title.replace(/^Assignment (?:checkpoint|quiz): /, "")}</p><p className="mt-1 text-xs opacity-75">{assignment.title.startsWith("Assignment quiz: ") ? "Answer the assignment questions as a quiz" : "Upload your completed answers for marking"}</p></div><ChevronRight className="h-5 w-5 shrink-0" /></Link></li>)}
+              </ul>}
             </li>
             )
           })}

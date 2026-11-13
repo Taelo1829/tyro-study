@@ -24,10 +24,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   // An unfinished mock exam (it can be continued; the clock keeps running)
   const open = await prisma.quizAttempt.findFirst({
     where: { userId, status: "IN_PROGRESS", settings: { contains: `"source":"module:${progress.moduleId}"` } },
-    select: { startedAt: true },
+    select: { startedAt: true, settings: true },
     orderBy: { startedAt: "desc" },
   })
   const student = asked ? await prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true } }) : null
 
-  return NextResponse.json({ ...progress, mockInProgress: open ? { startedAt: open.startedAt } : null, student })
+  return NextResponse.json({ ...progress, mockInProgress: open && progress.mock.plan?.version && JSON.parse(open.settings).examTemplateVersion === progress.mock.plan.version ? { startedAt: open.startedAt } : null, student })
 }

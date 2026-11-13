@@ -1,3 +1,4 @@
+import { ASSIGNMENT_CHECKPOINT, ASSIGNMENT_QUIZ } from "@/lib/module-recreation-input"
 import { NextResponse } from "next/server"
 import { del } from "@vercel/blob"
 import { requireAdmin } from "@/lib/admin"
@@ -19,8 +20,8 @@ export async function GET(_request: Request, { params }: Params) {
     where: { id },
     include: {
       chapters: {
-        orderBy: { order: "asc" },
-        include: { _count: { select: { topics: true } } },
+        orderBy: [{ order: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+        include: { _count: { select: { topics: true } }, topics: { where: { OR: [{ id: { startsWith: "assignment-" } }, { title: { startsWith: ASSIGNMENT_CHECKPOINT } }, { title: { startsWith: ASSIGNMENT_QUIZ } }] }, orderBy: { order: "asc" }, select: { id: true, title: true } } },
       },
       ...(userId && {
         enrollments: {
@@ -71,7 +72,7 @@ export async function GET(_request: Request, { params }: Params) {
     courses: courseRows,
     coding,
     level,
-    chapters: rest.chapters.map(ch => ({ ...ch, topicsWithoutContent: emptyByChapter.get(ch.id) ?? 0 })),
+    chapters: rest.chapters.map(({ topics, ...ch }) => ({ ...ch, assignmentCheckpoints: topics, topicsWithoutContent: emptyByChapter.get(ch.id) ?? 0 })),
     isEnrolled: Boolean(enrollment),
     enrolledAt: enrollment?.enrolledAt ?? null,
   })
