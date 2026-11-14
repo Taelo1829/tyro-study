@@ -41,7 +41,9 @@ it("releases a failed marking claim for retry", async () => {
  m.grade.mockRejectedValue(new Error("Unavailable"))
  expect((await POST(req())).status).toBe(503)
  expect(m.save).not.toHaveBeenCalled()
- expect(m.claim.mock.calls.at(-1)[0].data.status).toBe("PENDING")
+ expect(m.claim).toHaveBeenLastCalledWith(expect.objectContaining({
+  data: expect.objectContaining({ status: "PENDING" }),
+ }))
 })
 it("does not grade a completed or concurrently marking answer", async () => {
  m.attempt.mockResolvedValue({ id: "a", status: "COMPLETED", startedAt: new Date(), settings: "{}" })
