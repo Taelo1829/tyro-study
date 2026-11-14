@@ -2,13 +2,27 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { superuserIds } from "@/lib/superuser"
+import type { Prisma } from "@/prisma/client"
 
-// GET /api/admin/users?q=… - admin only. Lists users, newest first.
+// Sorting happens before the result limit, including when searching.
 export async function GET(request: Request) {
   const { error, user: me } = await requireAdmin()
   if (error) return error
 
-  const q = new URL(request.url).searchParams.get("q")?.trim()
+  const params = new URL(request.url).searchParams
+  const q = params.get("q")?.trim()
+  const direction = params.get("direction") === "asc" ? "asc" : "desc"
+  let orderBy: Prisma.UserOrderByWithRelationInput[]
+  switch (params.get("sort")) {
+    case "name":
+      orderBy = [{ name: { sort: direction, nulls: "last" } }, { email: "asc" }, { id: "asc" }]
+      break
+    case "lastVisitDate":
+      orderBy = [{ lastVisitDate: { sort: direction, nulls: "last" } }, { id: "asc" }]
+      break
+    default:
+      orderBy = [{ createdAt: direction }, { id: "asc" }]
+  }
 
   const users = await prisma.user.findMany({
     where: q
@@ -19,7 +33,7 @@ export async function GET(request: Request) {
           ],
         }
       : undefined,
-    orderBy: { createdAt: "desc" },
+    orderBy,
     take: 500,
     select: {
       id: true,

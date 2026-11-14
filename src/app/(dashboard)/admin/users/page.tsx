@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useSession } from "next-auth/react"
 import { BarChart3, Crown, KeyRound, Search, Shield, ShieldOff, Trash2, Users } from "lucide-react"
 import { Header } from "@/components/layout/header"
@@ -39,30 +39,41 @@ export default function AdminUsersPage() {
   const [superusers, setSuperusers] = useState(0)
   const [viewer, setViewer] = useState<Viewer>({ isSuperuser: false, canManageAdmins: false })
   const [query, setQuery] = useState("")
+  const [sort, setSort] = useState("createdAt:desc")
+  const requestId = useRef(0)
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = useCallback(async (q: string) => {
+    const currentRequest = ++requestId.current
+    setLoading(true)
     try {
-      const res = await fetch(`/api/admin/users${q ? `?q=${encodeURIComponent(q)}` : ""}`)
+      const [field, direction] = sort.split(":")
+      const params = new URLSearchParams({ q, sort: field, direction })
+      const res = await fetch(`/api/admin/users?${params}`)
       if (!res.ok) throw new Error("Could not load users")
       const data = await res.json()
+      if (currentRequest !== requestId.current) return
       setUsers(data.users)
       setTotal(data.total)
       setAdmins(data.admins)
       setSuperusers(data.superusers ?? 0)
       if (data.me) setViewer(data.me)
     } catch (err) {
+      if (currentRequest !== requestId.current) return
       toast.error("Error", err instanceof Error ? err.message : "Could not load users")
     } finally {
-      setLoading(false)
+      if (currentRequest === requestId.current) setLoading(false)
     }
-  }, [])
+  }, [sort])
 
   // Search as you type (debounced)
   useEffect(() => {
     const timer = setTimeout(() => void load(query.trim()), 250)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      requestId.current++
+    }
   }, [query, load])
 
   async function act(user: AdminUser, request: () => Promise<Response>, success: string) {
@@ -151,15 +162,33 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <div className="relative mb-4">
-        <Search className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search by name or email…"
-          className="h-12 bg-card pl-12"
-          aria-label="Search users"
-        />
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search by name or email…"
+            className="h-12 bg-card pl-12"
+            aria-label="Search users"
+          />
+        </div>
+        <div className="sm:w-64">
+          <label htmlFor="user-sort" className="mb-1 block text-xs font-medium text-muted-foreground">Sort by</label>
+          <select
+            id="user-sort"
+            value={sort}
+            onChange={e => setSort(e.target.value)}
+            className="h-12 w-full rounded-xl border border-input bg-card px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="name:asc">Name: A–Z</option>
+            <option value="name:desc">Name: Z–A</option>
+            <option value="createdAt:desc">Date joined: newest first</option>
+            <option value="createdAt:asc">Date joined: oldest first</option>
+            <option value="lastVisitDate:desc">Last visit: most recent first</option>
+            <option value="lastVisitDate:asc">Last visit: oldest first</option>
+          </select>
+        </div>
       </div>
 
       {loading ? (
