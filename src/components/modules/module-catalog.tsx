@@ -60,21 +60,28 @@ export function ModuleCatalog({
   // Joined modules: how far through each one the student is
   const [progress, setProgress] = useState<Record<string, { done: number; total: number; percent: number }>>({})
   const [course, setCourseState] = useState<CourseChoice>("all")
+  const [loadError, setLoadError] = useState(false)
   const [loading, setLoading] = useState(true)
   const [actionId, setActionId] = useState<string | null>(null)
   const { reload, toggleReload } = useModuleStore()
   const load = useCallback(async () => {
-    const [res, courseRes] = await Promise.all([fetch("/api/modules?scope=mine"), fetch("/api/courses?scope=mine")])
-    if (res.ok) {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      const [res, courseRes] = await Promise.all([fetch("/api/modules?scope=mine"), fetch("/api/courses?scope=mine").catch(() => null)])
+      if (!res.ok) throw new Error("Could not load modules")
       const mods: ModuleItem[] = await res.json()
       setModules(mods)
       onCount?.(mods.filter(m => (showEnrolledOnly ? m.isEnrolled : showAvailableOnly ? !m.isEnrolled : true)).length)
-    }
-    if (courseRes.ok) setCourses(await courseRes.json())
-    setLoading(false)
-    if (showEnrolledOnly) {
-      const prog = await fetch("/api/progress/modules").catch(() => null)
-      if (prog?.ok) setProgress(await prog.json())
+      if (courseRes?.ok) setCourses(await courseRes.json().catch(() => []))
+      if (showEnrolledOnly) {
+        const prog = await fetch("/api/progress/modules").catch(() => null)
+        if (prog?.ok) setProgress(await prog.json().catch(() => ({})))
+      }
+    } catch {
+      setLoadError(true)
+    } finally {
+      setLoading(false)
     }
   }, [onCount, showEnrolledOnly, showAvailableOnly])
 
@@ -196,6 +203,13 @@ export function ModuleCatalog({
 
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading {t.modules}…</p>
+  }
+
+  if (loadError) {
+    return <Card><CardContent className="py-8 text-center">
+      <p role="alert" className="text-sm text-muted-foreground">Couldn’t load your {t.modules}. Please try again.</p>
+      <button type="button" onClick={() => void load()} className="mt-3 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background">Retry</button>
+    </CardContent></Card>
   }
 
   const chip = (active: boolean) =>

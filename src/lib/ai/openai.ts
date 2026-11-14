@@ -34,19 +34,21 @@ export async function chatJson<T>({
   temperature = 0.4,
   maxTokens = 8000,
   attempts = 3,
+  model = process.env.OPENAI_MODEL ?? "gpt-4o-mini",
 }: {
   system: string
   user: string
   temperature?: number
   maxTokens?: number
   attempts?: number
+  model?: string
 }): Promise<T> {
   const openai = getOpenAIClient()
   let lastProblem = ""
   for (let attempt = 1; attempt <= attempts; attempt++) {
     const retrying = attempt > 1
     const response = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+      model,
       // A little steadier on a retry
       temperature: retrying ? Math.max(0, temperature - 0.2) : temperature,
       max_tokens: maxTokens,

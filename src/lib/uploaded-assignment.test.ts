@@ -1,15 +1,16 @@
 import { beforeEach, expect, it, vi } from "vitest"
 import { lessonVersion } from "./module-recreation"
-import { assignmentPlacement, assignmentQuizQuestions, saveUploadedAssignment, assignmentPassages, resolveAssignmentMatches, draftUploadedAssignment } from "./uploaded-assignment"
+import { assignmentPlacement, assignmentQuizQuestions, saveUploadedAssignment, draftUploadedAssignment } from "./uploaded-assignment"
 const m = vi.hoisted(() => ({ chat: vi.fn(), transaction: vi.fn(), query: vi.fn(), existing: vi.fn(), chapters: vi.fn(), createTopic: vi.fn(), createQuestion: vi.fn(), createAnswers: vi.fn(), updateTopic: vi.fn(), oldQuestions: vi.fn(), execute: vi.fn(), findTopic: vi.fn(), updateContent: vi.fn() }))
 vi.mock("@/lib/ai/openai", () => ({ chatJson: m.chat }))
 vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: m.transaction } }))
 const chapters = [{ id: "ch1", title: "Basics", topics: [{ id: "t1", title: "Functions", order: 0 }] }, { id: "ch2", title: "Loops", topics: [{ id: "t2", title: "Iteration", order: 2 }] }, { id: "ch3", title: "Later", topics: [{ id: "t3", title: "Objects", order: 0 }] }]
-const source = { name: "Assignment 1.pdf", text: "Write a function. Repeat its calculation using a loop." }
-const matches = [{ topicId: "t2", evidence: "using a loop" }, { topicId: "t1", evidence: "Write a function" }]
+const source = { name: "Assignment 1.pdf", text: "Choose a function. Write a function. Repeat its calculation using a loop." }
+const matches = [{ topicId: "t2", evidence: "using a loop", questionNumbers: [2], learningGoals: ["Iteration"] }, { topicId: "t1", evidence: "Write a function", questionNumbers: [1], learningGoals: ["Functions"] }]
 const questions = [{ kind: "mcq", question: "Choose a function", difficulty: "medium", marks: 1, options: ["First", "Second"], correctOption: "Second" }, { kind: "written", question: "Write a function", difficulty: "medium", marks: 20, rubric: [{ criterion: "Function", marks: 20 }], modelAnswer: "Private solution" }]
 beforeEach(() => {
  vi.resetAllMocks()
+ m.chat.mockResolvedValue({ corrections: [] })
  m.query.mockResolvedValue([{ id: "mod" }]); m.existing.mockResolvedValue(null); m.chapters.mockResolvedValue(chapters); m.createQuestion.mockResolvedValue({ count: 2 }); m.oldQuestions.mockResolvedValue([{ id: "old" }])
  m.transaction.mockImplementation((fn: (tx: unknown) => unknown) => fn({ $queryRaw: m.query, topic: { findUnique: m.existing, create: m.createTopic, update: m.updateTopic, findFirst: m.findTopic, updateMany: m.updateContent }, chapter: { findMany: m.chapters }, question: { createMany: m.createQuestion, findMany: m.oldQuestions }, answer: { createMany: m.createAnswers }, $executeRaw: m.execute }))
 })
@@ -49,31 +50,17 @@ it("revalidates chapter matches at save time", async () => {
  expect(m.createTopic).not.toHaveBeenCalled()
 })
 
-it("resolves passage references to original source text without generated quotes", () => {
- const resolved = resolveAssignmentMatches([{ topicId: "t1", passageId: "passage-1", evidence: "incorrect paraphrase" }], source, chapters)
- expect(resolved.matches).toEqual([{ topicId: "t1", evidence: source.text }])
- expect(assignmentPlacement(resolved.matches, source, chapters).afterChapterId).toBe("ch1")
-})
-it("omits unsupported references without discarding valid matches", () => {
- expect(resolveAssignmentMatches([{ topicId: "t1", passageId: "passage-1" }, { topicId: "outside", passageId: "passage-1" }, { topicId: "t2", passageId: "made-up" }, null], source, chapters)).toMatchObject({ matches: [{ topicId: "t1", evidence: source.text }], omitted: 3 })
-})
-it("all passage text comes directly from the supplied document", () => {
- const text = source.text.repeat(40)
- const passages = assignmentPassages(text)
- expect(passages.length).toBeGreaterThan(1)
- for (const passage of passages) expect(text.includes(passage.text)).toBe(true)
-})
-it("drafts with grounded references and returns verified evidence for saving", async () => {
- m.chat.mockResolvedValue({ title: "Assignment", questions, matches: [{ topicId: "t2", passageId: "passage-1" }] })
+it("compares the full chapter outline for each question rather than accepting one broad introductory match", async () => {
+ m.chat.mockResolvedValueOnce({ title: "Assignment", questions })
+  .mockResolvedValueOnce({ matches: [
+   { topicId: "t1", questionNumber: 1, assessedConcept: "Functions", learningGoals: ["Functions"] },
+   { topicId: "t2", questionNumber: 2, assessedConcept: "Iteration", learningGoals: ["Iteration"] },
+  ] })
  const result = await draftUploadedAssignment(source, chapters)
  expect(result.placement.afterChapterId).toBe("ch2")
- expect(result.matches).toEqual([{ topicId: "t2", evidence: source.text }])
- expect(m.chat).toHaveBeenCalledTimes(1)
-})
-it("repairs invalid references once without regenerating the marking guide", async () => {
- m.chat.mockResolvedValueOnce({ title: "Assignment", questions, matches: [{ topicId: "t2", passageId: "wrong" }] }).mockResolvedValueOnce({ matches: [{ topicId: "t2", passageId: "passage-1" }] })
- expect((await draftUploadedAssignment(source, chapters)).placement.afterChapterId).toBe("ch2")
- expect(m.chat).toHaveBeenCalledTimes(2)
+ expect(result.coverage.map(c => c.topicId)).toEqual(["t1", "t2"])
+ expect(JSON.parse(m.chat.mock.calls[1][0].user).chapters).toHaveLength(3)
+ expect(m.chat).toHaveBeenCalledTimes(3)
 })
 
 it("converts a previous document checkpoint into a quiz while retaining answer history", async () => {
@@ -133,4 +120,24 @@ it("moves a re-uploaded quiz after the last related chapter without recreating q
  expect(result).toMatchObject({ chapterId: "ch2", alreadyAdded: true })
  expect(m.updateTopic).toHaveBeenCalledWith({ where: { id: "already" }, data: { chapterId: "ch2", order: 3 } })
  expect(m.createQuestion).not.toHaveBeenCalled()
+})
+
+it("extracts long numbered papers in batches without losing duplicates or marks", async () => {
+ const paper = { name: "Long.pdf", text: Array.from({ length: 60 }, (_, i) => `Question ${i + 1}\nMarked out of 2.00\nChoose a function.\n`).join("") }
+ m.chat.mockImplementation(async ({ user }: { user: string }) => {
+  const input = JSON.parse(user)
+  if (input.proposedMatches) return { corrections: [] }
+  if (input.requestedQuestions) return { title: "Long assignment", questions: input.requestedQuestions.map((q: { number: number }) => ({ ...questions[0], marks: 2, sourceNumber: q.number })) }
+  return { matches: input.questions.map((q: { number: number }) => ({ topicId: "t1", questionNumber: q.number, assessedConcept: "Functions", learningGoals: ["Functions"] })) }
+ })
+ const result = await draftUploadedAssignment(paper, chapters)
+ expect(result.questions).toHaveLength(60)
+ expect(result.questions.reduce((sum, q) => sum + q.marks!, 0)).toBe(120)
+ expect(m.chat.mock.calls.filter(([call]) => JSON.parse(call.user).requestedQuestions)).toHaveLength(6)
+})
+it("refuses a partial extraction rather than saving an incomplete quiz", async () => {
+ const paper = { name: "a.pdf", text: "Question 1\nMarked out of 2.00\nChoose a function.\nQuestion 2\nMarked out of 2.00\nChoose another function." }
+ m.chat.mockResolvedValue({ title: "Incomplete", questions: [{ ...questions[0], marks: 2, sourceNumber: 1 }] })
+ await expect(draftUploadedAssignment(paper, chapters)).rejects.toThrow("question numbers or marks")
+ expect(m.createTopic).not.toHaveBeenCalled()
 })

@@ -7,6 +7,7 @@ import { courseIdsByModule, setModuleCourses } from "@/lib/courses"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { getUserLevel, moduleLevels, setModuleLevel } from "@/lib/levels-server"
+import { orFallback } from "@/lib/db-safe"
 import { isStudyLevel } from "@/lib/levels"
 
 /**
@@ -33,9 +34,9 @@ export async function GET(request: Request) {
     },
   })
 
-  const openedRows = userId ? await prisma.$queryRaw<{ moduleId: string; lastOpenedAt: Date | null }[]>`
+  const openedRows = userId ? await orFallback(() => prisma.$queryRaw<{ moduleId: string; lastOpenedAt: Date | null }[]>`
     SELECT "moduleId", "lastOpenedAt" FROM "module_enrollments" WHERE "userId" = ${userId}
-  ` : []
+  `, []) : []
   const opened = new Map(openedRows.map(row => [row.moduleId, row.lastOpenedAt]))
 
   const coursesOf = await courseIdsByModule()

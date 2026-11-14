@@ -9,7 +9,7 @@ vi.mock("@/lib/monitoring", () => ({ captureError: vi.fn() }))
 const source = { name: "a.pdf", text: "Write a function. Repeat its calculation using a loop." }
 const request = (body: unknown) => new Request("http://localhost", { method: "POST", body: JSON.stringify(body) })
 const ctx = { params: Promise.resolve({ id: "mod" }) }
-beforeEach(() => { vi.resetAllMocks(); m.auth.mockResolvedValue({ error: null }); m.chapters.mockResolvedValue([{ id: "ch" }]); m.draft.mockResolvedValue({ title: "A" }) })
+beforeEach(() => { vi.resetAllMocks(); m.auth.mockResolvedValue({ error: null }); m.chapters.mockResolvedValue([{ id: "ch", topics: [] }]); m.draft.mockResolvedValue({ title: "A" }) })
 it("allows only admins to draft or save assignments", async () => {
  m.auth.mockResolvedValue({ error: NextResponse.json({}, { status: 403 }) })
  expect((await POST(request({ action: "draft", source }), ctx)).status).toBe(403)

@@ -10,7 +10,7 @@ import { readPaperFile } from "./read-paper-file"
 import type { PaperSource, RecreatedQuestion, LessonReplacement } from "@/lib/module-recreation-input"
 
 type LessonDraft = LessonReplacement & { title: string }
-type Draft = { warnings?: string[]; title: string; matches: { topicId: string; evidence: string }[]; questions: RecreatedQuestion[]; placement: { afterChapterId: string; chapters: { id: string; title: string }[] } }
+type Draft = { sourceQuestionCount?: number | null; coverage: { chapterTitle: string; topicTitle: string; topicId: string; questionNumbers: number[]; learningGoals: string[] }[]; warnings?: string[]; title: string; matches: { topicId: string; evidence: string; questionNumbers: number[]; learningGoals: string[] }[]; questions: RecreatedQuestion[]; placement: { afterChapterId: string; chapters: { id: string; title: string }[] } }
 export function UploadModuleAssignment({ moduleId, onSaved }: { moduleId: string; onSaved: () => void }) {
   const [open, setOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
@@ -52,7 +52,7 @@ export function UploadModuleAssignment({ moduleId, onSaved }: { moduleId: string
     try {
       const paper = await readPaperFile(file, setMessage)
       setSource(paper)
-      setMessage("Matching the assignment to this module’s chapters and extracting its quiz questions…")
+      setMessage("Extracting all questions and marks, then reviewing every chapter for assessment coverage…")
       const result = await post<Draft>({ action: "draft", source: paper })
       setDraft(result); setReviewed(false); setLessons([])
       await draftLessons(paper, result, [])
@@ -79,10 +79,10 @@ export function UploadModuleAssignment({ moduleId, onSaved }: { moduleId: string
         {draft && !savedId && <>
           <label className="block text-sm font-medium" htmlFor="uploaded-assignment-title">Assignment title</label>
           <Input id="uploaded-assignment-title" maxLength={150} value={draft.title} disabled={busy} onChange={e => setDraft({ ...draft, title: e.target.value })} />
-          <div className="rounded-xl bg-muted p-4 text-sm"><p className="font-semibold">Place after: {draft.placement.chapters.at(-1)?.title}</p><p className="mt-1">Related chapters: {draft.placement.chapters.map(c => c.title).join(", ")}</p><p className="mt-1">{draft.questions.length} quiz questions · {draft.questions.reduce((n, q) => n + (q.marks ?? 1), 0)} marks</p></div>
+          <div className="rounded-xl bg-muted p-4 text-sm"><p className="font-semibold">Place after: {draft.placement.chapters.at(-1)?.title}</p><p className="mt-1">Related chapters: {draft.placement.chapters.map(c => c.title).join(", ")}</p><p className="mt-1">{draft.questions.length}{draft.sourceQuestionCount ? ` of ${draft.sourceQuestionCount} source` : ""} quiz questions · {draft.questions.reduce((n, q) => n + (q.marks ?? 1), 0)} marks</p></div>
           {draft.warnings?.map(warning => <p key={warning} role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{warning}</p>)}
           <details open><summary className="cursor-pointer font-medium">Review the extracted assignment</summary><pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap rounded-xl border p-3 text-sm font-sans">{source?.text}</pre></details>
-          <details><summary className="cursor-pointer font-medium">Review chapter matches</summary><ul className="mt-2 space-y-2 text-sm">{draft.matches.map((m, i) => <li key={i}>{m.evidence}</li>)}</ul></details>
+          <details><summary className="cursor-pointer font-medium">Review question coverage by topic</summary><ul className="mt-2 space-y-3 text-sm">{draft.coverage.map(item => <li key={item.topicId} className="rounded-xl border p-3"><p className="font-medium">{item.chapterTitle} → {item.topicTitle}</p><p className="mt-1">Questions: {item.questionNumbers.join(", ")}</p><ul className="mt-2 list-disc pl-5">{item.learningGoals.map(goal => <li key={goal}>{goal}</li>)}</ul></li>)}</ul></details>
           <details open><summary className="cursor-pointer font-medium">Review quiz questions and answers</summary><ol className="mt-3 space-y-4">{draft.questions.map((q, i) => <li key={i} className="rounded-xl border p-3 text-sm"><p className="whitespace-pre-wrap font-medium">{i + 1}. {q.question}</p><p>{q.kind === "written" ? "Written" : "Multiple choice"} · {q.marks} marks</p>{q.options.map((option, j) => <p key={j}>{String.fromCharCode(65 + j)}. {option}{option === q.correctOption ? " ✓" : ""}</p>)}{q.kind === "written" && <details><summary>Private marking guide</summary><p className="whitespace-pre-wrap">{q.modelAnswer}</p>{q.rubric?.map((r, j) => <p key={j}>{r.criterion}: {r.marks}</p>)}</details>}</li>)}</ol></details>
           <section className="space-y-3">
             <h3 className="font-semibold">Updated topic lessons ({lessons.length}/{topicIds.length})</h3>
@@ -99,7 +99,7 @@ export function UploadModuleAssignment({ moduleId, onSaved }: { moduleId: string
       <ModalFooter>
         <Button variant="ghost" disabled={busy} onClick={close}>Close</Button>
         {draft && !savedId && <Button disabled={busy} variant="ghost" onClick={() => { setDraft(null); setLessons([]); setReviewed(false) }}>Choose another file</Button>}
-        {!draft && !savedId && <Button disabled={busy || !file} onClick={() => void prepare()}>Match chapters</Button>}
+        {!draft && !savedId && <Button disabled={busy || !file} onClick={() => void prepare()}>Review assignment coverage</Button>}
         {draft && !savedId && <Button disabled={busy || !reviewed || !lessonsReady || !draft.title.trim()} onClick={() => void save()}>Save quiz and lesson updates</Button>}
       </ModalFooter>
     </Modal>

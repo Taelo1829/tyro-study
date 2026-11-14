@@ -1,6 +1,7 @@
 "use client"
 
 import { MAX_PAPER_BYTES, type PaperSource } from "@/lib/module-recreation-input"
+import { paperPageText } from "@/lib/paper-page-text"
 import { ocrScannedPdf } from "./pdf-ocr"
 
 export async function readPaperFile(file: File, onProgress: (message: string) => void): Promise<PaperSource> {
@@ -16,7 +17,7 @@ export async function readPaperFile(file: File, onProgress: (message: string) =>
       onProgress(`Reading ${file.name}: page ${n} of ${doc.numPages}`)
       const page = await doc.getPage(n)
       const content = await page.getTextContent()
-      const text = content.items.map(item => "str" in item ? item.str + (item.hasEOL ? "\n" : " ") : "").join("").trim()
+      const text = paperPageText(content.items.filter((item): item is Extract<typeof item, { str: string }> => "str" in item))
       if (text.length < 30) needsOcr = true
       pages.push(text)
       page.cleanup()

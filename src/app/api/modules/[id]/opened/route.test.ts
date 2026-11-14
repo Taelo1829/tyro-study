@@ -26,3 +26,10 @@ it("rejects signed-out requests before writing", async () => {
   expect((await POST(request(), ctx)).status).toBe(401)
   expect(m.update).not.toHaveBeenCalled()
 })
+
+it("does not break navigation when the tracking column is unavailable", async () => {
+ m.update.mockRejectedValue(new Error('column "lastOpenedAt" does not exist'))
+ const response = await POST(request(), ctx)
+ expect(response.status).toBe(200)
+ expect(await response.json()).toEqual({ recorded: false })
+})
