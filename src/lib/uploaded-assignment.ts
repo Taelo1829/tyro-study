@@ -1,6 +1,9 @@
 import { createHash, randomUUID } from "node:crypto"
 import { chatJson } from "@/lib/ai/openai"
 import { prisma } from "@/lib/prisma"
+import { draftModuleLesson, lessonVersion } from "./module-recreation"
+import { lessonSummary, sanitizeTopicContentServer } from "./topic-content-server"
+import { parseReplacements, type LessonReplacement } from "./module-recreation-input"
 import { normalizeDocumentEvidence } from "./document-module"
 import { ASSIGNMENT_CHECKPOINT, ASSIGNMENT_QUIZ, RecreationInputError, parseQuizDraft, type PaperSource } from "./module-recreation-input"
 
@@ -66,16 +69,42 @@ export async function draftUploadedAssignment(source: PaperSource, chapters: Ass
   return { ...draft, questions, matches: resolved.matches, placement, warnings: resolved.omitted ? ["Some proposed topic matches were omitted because their references could not be verified. Check the related chapters before adding this checkpoint."] : [] }
 }
 
-export async function saveUploadedAssignment(moduleId: string, source: PaperSource, title: string, matches: unknown, questionDrafts: unknown) {
+export async function draftAssignmentLesson(moduleId: string, source: PaperSource, matches: unknown, topicId: string) {
+  const chapters = await prisma.chapter.findMany({ where: { moduleId }, include: { topics: { select: { id: true, title: true } } } })
+  assignmentPlacement(matches, source, chapters)
+  if (!(matches as { topicId: string }[]).some(m => m.topicId === topicId)) throw new RecreationInputError("This topic is not targeted by the assignment.")
+  const draft = await draftModuleLesson(moduleId, topicId, [source], null, [], "Rewrite the existing lesson as ONE cohesive replacement that prepares students for this uploaded assessment's questions targeting this topic. Integrate assessed concepts into the relevant explanations and worked examples throughout the lesson. Revise, reorder, merge and replace existing paragraphs as needed; retain useful foundations, not their exact wording. Do not keep the old lesson and append new content. Do not add an assessment supplement, assignment-specific section, update notes or before/after commentary. Remove repeated definitions, examples and headings. Use one consistent teaching voice, descriptive headings and smooth transitions, progressing from foundations to application. Teach assessed skills with worked examples using different values or scenarios, without revealing assessment answers or the marking guide. Return only the complete rewritten lesson HTML. Aim for approximately 2,500 readable characters for the ENTIRE replacement, not 2,500 additional characters. Keep the existing chapter and topic structure.")
+  if (draft.skipped) throw new RecreationInputError("The assessment's coverage of this topic could not be confirmed. Review its match and retry.")
+  const title = chapters.flatMap(c => c.topics).find(t => t.id === topicId)!.title
+  return { topicId, title, version: draft.version, html: sanitizeTopicContentServer(draft.html) }
+}
+
+export async function saveUploadedAssignment(moduleId: string, source: PaperSource, title: string, matches: unknown, questionDrafts: unknown, lessonDrafts?: LessonReplacement[]) {
   const questions = assignmentQuizQuestions(questionDrafts)
+  const lessons = lessonDrafts === undefined ? [] : parseReplacements(lessonDrafts)
   const id = "assignment-" + createHash("sha256").update(moduleId + "\n" + normalizeDocumentEvidence(source.text)).digest("hex").slice(0, 40)
   return prisma.$transaction(async tx => {
     const rows = await tx.$queryRaw<{ id: string; assessmentConfig: string | null }[]>`SELECT "id", "assessmentConfig" FROM "modules" WHERE "id" = ${moduleId} FOR UPDATE`
     if (!rows.length) throw new RecreationInputError("Module not found.")
     const existing = await tx.topic.findUnique({ where: { id }, select: { id: true, chapterId: true, title: true } })
-    if (existing?.title.startsWith(ASSIGNMENT_QUIZ)) return { topicId: existing.id, chapterId: existing.chapterId, alreadyAdded: true }
+    if (existing?.title.startsWith(ASSIGNMENT_QUIZ) && lessonDrafts === undefined) return { topicId: existing.id, chapterId: existing.chapterId, alreadyAdded: true }
     const chapters = await tx.chapter.findMany({ where: { moduleId }, orderBy: [{ order: "asc" }, { createdAt: "asc" }, { id: "asc" }], include: { topics: { select: { id: true, title: true, order: true } } } })
     const placement = assignmentPlacement(matches, source, chapters)
+    if (lessonDrafts !== undefined) {
+      const targeted = new Set((matches as { topicId: string }[]).map(m => m.topicId))
+      if (lessons.length !== targeted.size || lessons.some(l => !targeted.has(l.topicId))) throw new RecreationInputError("Review a lesson update for every targeted topic before saving.")
+      for (const lesson of lessons) {
+        const topic = await tx.topic.findFirst({ where: { id: lesson.topicId, chapter: { moduleId } } })
+        if (!topic) throw new RecreationInputError("A targeted topic was removed. Generate fresh drafts.")
+        const html = sanitizeTopicContentServer(lesson.html)
+        if (!lessonSummary(html)) throw new RecreationInputError("A lesson update has no readable content.")
+        if (topic.content === html) continue
+        if (lessonVersion(topic) !== lesson.version) throw new RecreationInputError("A targeted topic changed after drafting. Nothing was saved. Generate fresh drafts.")
+        const result = await tx.topic.updateMany({ where: { id: topic.id, title: topic.title, chapterId: topic.chapterId, content: topic.content }, data: { content: html } })
+        if (result.count !== 1) throw new RecreationInputError("A topic changed while saving. Nothing was saved. Generate fresh drafts.")
+      }
+    }
+    if (existing?.title.startsWith(ASSIGNMENT_QUIZ)) return { topicId: existing.id, chapterId: existing.chapterId, alreadyAdded: true }
     const chapter = chapters.find(c => c.id === placement.afterChapterId)!
     const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
     const content = `<h2>Assignment quiz</h2><p>Source: ${escape(source.name)}</p><p>Related chapters: ${placement.chapters.map(c => escape(c.title)).join(", ")}</p><p>Complete all ${questions.length} questions below in the order of the uploaded assignment. ${questions.reduce((n, q) => n + (q.marks ?? 1), 0)} marks in total. Choose an answer for multiple-choice questions; upload your work for written questions.</p>`

@@ -1,6 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest"
+import { lessonVersion } from "./module-recreation"
 import { assignmentPlacement, assignmentQuizQuestions, saveUploadedAssignment, assignmentPassages, resolveAssignmentMatches, draftUploadedAssignment } from "./uploaded-assignment"
-const m = vi.hoisted(() => ({ chat: vi.fn(), transaction: vi.fn(), query: vi.fn(), existing: vi.fn(), chapters: vi.fn(), createTopic: vi.fn(), createQuestion: vi.fn(), createAnswers: vi.fn(), updateTopic: vi.fn(), oldQuestions: vi.fn(), execute: vi.fn() }))
+const m = vi.hoisted(() => ({ chat: vi.fn(), transaction: vi.fn(), query: vi.fn(), existing: vi.fn(), chapters: vi.fn(), createTopic: vi.fn(), createQuestion: vi.fn(), createAnswers: vi.fn(), updateTopic: vi.fn(), oldQuestions: vi.fn(), execute: vi.fn(), findTopic: vi.fn(), updateContent: vi.fn() }))
 vi.mock("@/lib/ai/openai", () => ({ chatJson: m.chat }))
 vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: m.transaction } }))
 const chapters = [{ id: "ch1", title: "Basics", topics: [{ id: "t1", title: "Functions", order: 0 }] }, { id: "ch2", title: "Loops", topics: [{ id: "t2", title: "Iteration", order: 2 }] }, { id: "ch3", title: "Later", topics: [{ id: "t3", title: "Objects", order: 0 }] }]
@@ -10,7 +11,7 @@ const questions = [{ kind: "mcq", question: "Choose a function", difficulty: "me
 beforeEach(() => {
  vi.resetAllMocks()
  m.query.mockResolvedValue([{ id: "mod" }]); m.existing.mockResolvedValue(null); m.chapters.mockResolvedValue(chapters); m.createQuestion.mockResolvedValue({ count: 2 }); m.oldQuestions.mockResolvedValue([{ id: "old" }])
- m.transaction.mockImplementation((fn: (tx: unknown) => unknown) => fn({ $queryRaw: m.query, topic: { findUnique: m.existing, create: m.createTopic, update: m.updateTopic }, chapter: { findMany: m.chapters }, question: { createMany: m.createQuestion, findMany: m.oldQuestions }, answer: { createMany: m.createAnswers }, $executeRaw: m.execute }))
+ m.transaction.mockImplementation((fn: (tx: unknown) => unknown) => fn({ $queryRaw: m.query, topic: { findUnique: m.existing, create: m.createTopic, update: m.updateTopic, findFirst: m.findTopic, updateMany: m.updateContent }, chapter: { findMany: m.chapters }, question: { createMany: m.createQuestion, findMany: m.oldQuestions }, answer: { createMany: m.createAnswers }, $executeRaw: m.execute }))
 })
 it("places one assignment after the last related chapter in module order", () => {
  expect(assignmentPlacement(matches, source, chapters)).toEqual({ afterChapterId: "ch2", chapters: [{ id: "ch1", title: "Basics" }, { id: "ch2", title: "Loops" }] })
@@ -82,4 +83,45 @@ it("converts a previous document checkpoint into a quiz while retaining answer h
  expect(m.updateTopic.mock.calls[0][0].data.title).toBe("Assignment quiz: Assignment 1")
  expect(JSON.parse(m.execute.mock.calls[0][1]).retiredQuestionIds).toContain("old")
  expect(m.createQuestion).toHaveBeenCalledOnce()
+})
+
+const topicSnapshots = [
+ { id: "t1", title: "Functions", chapterId: "ch1", content: "<p>Original functions lesson</p>" },
+ { id: "t2", title: "Iteration", chapterId: "ch2", content: "<p>Original loops lesson</p>" },
+]
+const lessonDrafts = topicSnapshots.map(t => ({ topicId: t.id, version: lessonVersion(t), html: "<p>Updated " + t.title + " lesson</p>" }))
+it("updates targeted lessons in the same transaction as the uploaded quiz", async () => {
+ m.findTopic.mockImplementation(({ where }: { where: { id: string } }) => Promise.resolve(topicSnapshots.find(t => t.id === where.id)))
+ m.updateContent.mockResolvedValue({ count: 1 })
+ await saveUploadedAssignment("mod", source, "Assignment", matches, questions, lessonDrafts)
+ expect(m.updateContent).toHaveBeenCalledTimes(2)
+ expect(m.updateContent).toHaveBeenCalledWith({ where: topicSnapshots[0], data: { content: lessonDrafts[0].html } })
+ expect(m.createTopic).toHaveBeenCalledOnce()
+ expect(m.transaction).toHaveBeenCalledOnce()
+})
+it("rejects missing or unrelated lesson replacements", async () => {
+ await expect(saveUploadedAssignment("mod", source, "Assignment", matches, questions, [lessonDrafts[0]])).rejects.toThrow("every targeted topic")
+ await expect(saveUploadedAssignment("mod", source, "Assignment", matches, questions, [lessonDrafts[0], { ...lessonDrafts[1], topicId: "t3" }])).rejects.toThrow("every targeted topic")
+ expect(m.createTopic).not.toHaveBeenCalled()
+ expect(m.updateContent).not.toHaveBeenCalled()
+})
+it("rejects stale lesson drafts before creating the quiz", async () => {
+ m.findTopic.mockResolvedValue({ ...topicSnapshots[0], content: "A newer edit" })
+ await expect(saveUploadedAssignment("mod", source, "Assignment", matches, questions, lessonDrafts)).rejects.toThrow("changed after drafting")
+ expect(m.createTopic).not.toHaveBeenCalled()
+ expect(m.updateContent).not.toHaveBeenCalled()
+})
+it("allows re-uploading an existing quiz to update its targeted lessons", async () => {
+ m.existing.mockResolvedValue({ id: "already", chapterId: "ch2", title: "Assignment quiz: Assignment" })
+ m.findTopic.mockImplementation(({ where }: { where: { id: string } }) => Promise.resolve(topicSnapshots.find(t => t.id === where.id)))
+ m.updateContent.mockResolvedValue({ count: 1 })
+ expect(await saveUploadedAssignment("mod", source, "Assignment", matches, questions, lessonDrafts)).toMatchObject({ alreadyAdded: true })
+ expect(m.updateContent).toHaveBeenCalledTimes(2)
+ expect(m.createQuestion).not.toHaveBeenCalled()
+})
+it("does not overwrite a concurrent lesson change", async () => {
+ m.findTopic.mockResolvedValue(topicSnapshots[0])
+ m.updateContent.mockResolvedValue({ count: 0 })
+ await expect(saveUploadedAssignment("mod", source, "Assignment", matches, questions, lessonDrafts)).rejects.toThrow("changed while saving")
+ expect(m.createTopic).not.toHaveBeenCalled()
 })
