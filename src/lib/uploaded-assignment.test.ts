@@ -125,3 +125,12 @@ it("does not overwrite a concurrent lesson change", async () => {
  await expect(saveUploadedAssignment("mod", source, "Assignment", matches, questions, lessonDrafts)).rejects.toThrow("changed while saving")
  expect(m.createTopic).not.toHaveBeenCalled()
 })
+
+
+it("moves a re-uploaded quiz after the last related chapter without recreating questions", async () => {
+ m.existing.mockResolvedValue({ id: "already", chapterId: "ch1", title: "Assignment quiz: Assignment 1" })
+ const result = await saveUploadedAssignment("mod", source, "Assignment 1", matches, questions)
+ expect(result).toMatchObject({ chapterId: "ch2", alreadyAdded: true })
+ expect(m.updateTopic).toHaveBeenCalledWith({ where: { id: "already" }, data: { chapterId: "ch2", order: 3 } })
+ expect(m.createQuestion).not.toHaveBeenCalled()
+})

@@ -60,7 +60,7 @@ export function ModulesTabs() {
 
       <TabsContent value="mine">
         <p className="mb-4 text-sm text-muted-foreground">{t.Modules} you have joined. Open one to start studying.</p>
-        <ModuleCatalog showEnrolledOnly onBrowse={() => choose("browse")} onCount={onMyCount} />
+        <ModuleCatalog showEnrolledOnly searchable onBrowse={() => choose("browse")} onCount={onMyCount} />
       </TabsContent>
 
       <TabsContent value="browse">

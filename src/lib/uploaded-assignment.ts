@@ -87,7 +87,6 @@ export async function saveUploadedAssignment(moduleId: string, source: PaperSour
     const rows = await tx.$queryRaw<{ id: string; assessmentConfig: string | null }[]>`SELECT "id", "assessmentConfig" FROM "modules" WHERE "id" = ${moduleId} FOR UPDATE`
     if (!rows.length) throw new RecreationInputError("Module not found.")
     const existing = await tx.topic.findUnique({ where: { id }, select: { id: true, chapterId: true, title: true } })
-    if (existing?.title.startsWith(ASSIGNMENT_QUIZ) && lessonDrafts === undefined) return { topicId: existing.id, chapterId: existing.chapterId, alreadyAdded: true }
     const chapters = await tx.chapter.findMany({ where: { moduleId }, orderBy: [{ order: "asc" }, { createdAt: "asc" }, { id: "asc" }], include: { topics: { select: { id: true, title: true, order: true } } } })
     const placement = assignmentPlacement(matches, source, chapters)
     if (lessonDrafts !== undefined) {
@@ -104,8 +103,14 @@ export async function saveUploadedAssignment(moduleId: string, source: PaperSour
         if (result.count !== 1) throw new RecreationInputError("A topic changed while saving. Nothing was saved. Generate fresh drafts.")
       }
     }
-    if (existing?.title.startsWith(ASSIGNMENT_QUIZ)) return { topicId: existing.id, chapterId: existing.chapterId, alreadyAdded: true }
     const chapter = chapters.find(c => c.id === placement.afterChapterId)!
+    if (existing?.title.startsWith(ASSIGNMENT_QUIZ)) {
+      await tx.topic.update({ where: { id: existing.id }, data: {
+        chapterId: chapter.id,
+        order: Math.max(-1, ...chapter.topics.filter(t => t.id !== existing.id).map(t => t.order)) + 1,
+      } })
+      return { topicId: existing.id, chapterId: chapter.id, alreadyAdded: true }
+    }
     const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
     const content = `<h2>Assignment quiz</h2><p>Source: ${escape(source.name)}</p><p>Related chapters: ${placement.chapters.map(c => escape(c.title)).join(", ")}</p><p>Complete all ${questions.length} questions below in the order of the uploaded assignment. ${questions.reduce((n, q) => n + (q.marks ?? 1), 0)} marks in total. Choose an answer for multiple-choice questions; upload your work for written questions.</p>`
     const data = { chapterId: chapter.id, title: ASSIGNMENT_QUIZ + title, content, order: existing?.chapterId === chapter.id ? undefined : Math.max(-1, ...chapter.topics.map(t => t.order)) + 1 }

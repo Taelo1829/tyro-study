@@ -14,6 +14,8 @@ interface ChapterDetail {
     module: { id: string; title: string }
     topics: { id: string; title: string; lockedBy?: { id: string; title: string } | null; _count: { questions: number } }[]
 }
+const isAssignmentQuiz = (topic: { title: string }) => topic.title.startsWith("Assignment quiz: ")
+
 const ChapterPage = () => {
     const [chapter, setChapter] = useState<ChapterDetail | null>(null)
     const [loading, setLoading] = useState(false)
@@ -43,6 +45,9 @@ const ChapterPage = () => {
     useEffect(() => {
         queueMicrotask(load)
     }, [load])
+
+    const lessons = chapter?.topics.filter(topic => !isAssignmentQuiz(topic)) ?? []
+    const assignments = chapter?.topics.filter(isAssignmentQuiz) ?? []
 
     if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>
     return (
@@ -84,16 +89,21 @@ const ChapterPage = () => {
                     </CardContent>
                 </Card>
             )}
-            {chapter?.topics.map((tp) => (
+            {chapter && [...lessons, ...assignments].map((tp, index) => (
+                <React.Fragment key={tp.id}>
+                {assignments.length > 0 && index === lessons.length && <div className="mb-3 mt-8 border-t pt-6">
+                    <h2 className="text-lg font-semibold">After studying: assignment quizzes</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Study this chapter and the earlier related chapters, then complete the assignment.</p>
+                </div>}
                 <div key={tp.id} className='my-3'>
-                    <Card>
+                    <Card className={isAssignmentQuiz(tp) ? "border-foreground bg-muted/40" : undefined}>
                         {tp.lockedBy ? (
                             // Locked until the previous topic's quiz is passed
                             <CardContent className="flex cursor-not-allowed items-center justify-between gap-3 py-4 opacity-55 grayscale" aria-disabled="true" title="Locked">
                                 <div className="min-w-0">
                                     <p className="flex items-center gap-2 font-semibold text-muted-foreground">
                                         <Lock className="h-4 w-4 shrink-0" />
-                                        {tp.title}
+                                        {isAssignmentQuiz(tp) ? tp.title.slice("Assignment quiz: ".length) : tp.title}
                                     </p>
                                     <p className="mt-0.5 text-xs text-muted-foreground">
                                         Pass the{" "}
@@ -108,13 +118,14 @@ const ChapterPage = () => {
                         ) : (
                             <CardContent onClick={() => router.push(`/modules/${chapter.module.id}/topics/${tp.id}`)} className="flex cursor-pointer items-center justify-between py-4">
                                 <div>
-                                    <p className="font-semibold">{tp.title}</p>
+                                    <p className="font-semibold">{isAssignmentQuiz(tp) ? tp.title.slice("Assignment quiz: ".length) : tp.title}</p>
                                 </div>
                                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
                             </CardContent>
                         )}
                     </Card>
                 </div>
+                </React.Fragment>
             ))}
         </>
     )

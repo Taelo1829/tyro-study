@@ -36,7 +36,7 @@ const COURSE_KEY = BROWSE_COURSE_KEY
 interface ModuleCatalogProps {
   showEnrolledOnly?: boolean
   showAvailableOnly?: boolean
-  /** Show course chips and a search box above the list */
+  /** Show search; browsing lists also include course chips */
   searchable?: boolean
   /** "Browse modules" button in the empty My modules message */
   onBrowse?: () => void
@@ -83,7 +83,7 @@ export function ModuleCatalog({
 
   // Remember the course a student was browsing (this browser only)
   useEffect(() => {
-    if (!searchable) return
+    if (!searchable || showEnrolledOnly) return
     queueMicrotask(() => {
       // A course crumb links to /modules?course=<id>; otherwise use the last one picked
       const fromLink = new URLSearchParams(window.location.search).get("course")
@@ -99,7 +99,7 @@ export function ModuleCatalog({
         if (saved) setCourseState(saved)
       } catch {}
     })
-  }, [searchable])
+  }, [searchable, showEnrolledOnly])
 
   function setCourse(choice: CourseChoice) {
     setCourseState(choice)
@@ -162,7 +162,7 @@ export function ModuleCatalog({
   // Only offer courses that have modules, and "Other modules" only if some module has no course
   const courseChips = courses.filter(c => c.moduleIds.length > 0)
   const hasLoose = modules.some(m => !m.courseIds?.length)
-  const showChips = searchable && courseChips.length > 0
+  const showChips = searchable && !showEnrolledOnly && courseChips.length > 0
   const activeCourse = courseChips.find(c => c.id === course)
   // A remembered course that no longer exists falls back to All
   const choice: CourseChoice =
