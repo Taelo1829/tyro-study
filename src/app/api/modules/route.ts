@@ -33,6 +33,11 @@ export async function GET(request: Request) {
     },
   })
 
+  const openedRows = userId ? await prisma.$queryRaw<{ moduleId: string; lastOpenedAt: Date | null }[]>`
+    SELECT "moduleId", "lastOpenedAt" FROM "module_enrollments" WHERE "userId" = ${userId}
+  ` : []
+  const opened = new Map(openedRows.map(row => [row.moduleId, row.lastOpenedAt]))
+
   const coursesOf = await courseIdsByModule()
   const levels = await moduleLevels()
   const userLevel = userId && mine ? await getUserLevel(userId) : null
@@ -47,6 +52,7 @@ export async function GET(request: Request) {
       ...mod,
       isEnrolled: Boolean(enrollment),
       enrolledAt: enrollment?.enrolledAt ?? null,
+      lastOpenedAt: opened.get(m.id) ?? null,
       courseIds: coursesOf.get(m.id) ?? [],
       level: levelOf(m.id),
     }

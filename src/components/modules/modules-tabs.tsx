@@ -59,7 +59,7 @@ export function ModulesTabs() {
       </TabsList>
 
       <TabsContent value="mine">
-        <p className="mb-4 text-sm text-muted-foreground">{t.Modules} you have joined. Open one to start studying.</p>
+        <p className="mb-4 text-sm text-muted-foreground">{t.Modules} you have joined, most recently opened first. Open one to start studying.</p>
         <ModuleCatalog showEnrolledOnly searchable onBrowse={() => choose("browse")} onCount={onMyCount} />
       </TabsContent>
 

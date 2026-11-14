@@ -16,6 +16,7 @@ export interface ModuleItem {
   description: string | null
   isEnrolled: boolean
   enrolledAt?: string | null
+  lastOpenedAt?: string | null
   _count: { chapters: number; enrollments?: number }
   /** Courses this module is part of (can be several, or none) */
   courseIds?: string[]
@@ -157,6 +158,15 @@ export function ModuleCatalog({
     if (showAvailableOnly) return !m.isEnrolled
     return true
   })
+
+  if (showEnrolledOnly) {
+    filtered.sort((a, b) => {
+      const opened = (b.lastOpenedAt ? Date.parse(b.lastOpenedAt) : 0) - (a.lastOpenedAt ? Date.parse(a.lastOpenedAt) : 0)
+      if (opened) return opened
+      const joined = (b.enrolledAt ? Date.parse(b.enrolledAt) : 0) - (a.enrolledAt ? Date.parse(a.enrolledAt) : 0)
+      return joined || a.title.localeCompare(b.title) || a.id.localeCompare(b.id)
+    })
+  }
 
   const courseTitle = new Map(courses.map(c => [c.id, c.title]))
   // Only offer courses that have modules, and "Other modules" only if some module has no course

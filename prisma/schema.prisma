@@ -221,6 +221,7 @@ model ModuleEnrollment {
   userId     String
   moduleId   String
   enrolledAt DateTime @default(now())
+  lastOpenedAt DateTime?
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
