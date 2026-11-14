@@ -163,7 +163,7 @@ export async function moduleProgress(userId: string, moduleId: string): Promise<
         select: {
           id: true,
           title: true,
-          _count: { select: { questions: true } },
+          _count: { select: { questions: { where: { topicId: null } } } },
           topics: { orderBy: { order: "asc" }, select: { id: true, title: true, _count: { select: { questions: true } } } },
         },
       },
@@ -175,7 +175,7 @@ export async function moduleProgress(userId: string, moduleId: string): Promise<
   if (assessments?.retiredQuestionIds?.length) {
     const retired = await prisma.question.findMany({ where: { id: { in: assessments.retiredQuestionIds } }, select: { topicId: true, chapterId: true } })
     for (const chapter of mod.chapters) {
-      chapter._count.questions -= retired.filter(q => q.chapterId === chapter.id).length
+      chapter._count.questions -= retired.filter(q => q.chapterId === chapter.id && q.topicId === null).length
       for (const topic of chapter.topics) topic._count.questions -= retired.filter(q => q.topicId === topic.id).length
     }
   }
@@ -210,7 +210,7 @@ export async function moduleProgress(userId: string, moduleId: string): Promise<
 
   const chapters: ChapterProgress[] = mod.chapters.map(ch => {
     const topics = ch.topics.map(t => ({ id: t.id, title: t.title, questions: assessments?.retiredQuestionIds ? t._count.questions : assessments?.topicPools[t.id]?.length ?? t._count.questions, stats: statsOf(items(`topic:${t.id}`)) }))
-    const pool = assessments?.retiredQuestionIds ? ch._count.questions + topics.reduce((n, t) => n + t.questions, 0) : assessments?.chapterPools[ch.id]?.length ?? (ch._count.questions + topics.reduce((n, t) => n + t.questions, 0))
+    const pool = Math.max(0, ch._count.questions)
     const quizSize = Math.min(CHAPTER_QUIZ_SIZE, pool)
     // The chapter's own pace: its chapter quizzes, else its topic quizzes, else the module's
     const chapterPace =

@@ -107,7 +107,7 @@ export async function POST(request: Request) {
       if (!chapter) return NextResponse.json({ error: "Chapter not found" }, { status: 404 })
 
       const chapterNo = chapter.module.chapters.findIndex(c => c.id === chapter.id) + 1
-      scope = `the chapter ${chapterNo} quiz (spread the questions across all its topics, including some that connect topics)`
+      scope = `the chapter ${chapterNo} quiz (spread the questions across all its topics, including some that connect topics; use new scenarios and reasoning tasks, never reuse or merely reword topic quiz questions)`
       contextLines = [
         ...moduleLines(chapter.module),
         `Chapter ${chapterNo}: ${chapter.title}`,

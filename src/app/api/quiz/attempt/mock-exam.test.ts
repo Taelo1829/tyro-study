@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { NextRequest } from "next/server"
 import { POST } from "./route"
-const mocks = vi.hoisted(() => ({ config: vi.fn(), questions: vi.fn(), create: vi.fn(), createMany: vi.fn(), raw: vi.fn() }))
+const mocks = vi.hoisted(() => ({ config: vi.fn(), questions: vi.fn(), create: vi.fn(), createMany: vi.fn(), raw: vi.fn(), open: vi.fn(), update: vi.fn() }))
 vi.mock("next-auth", () => ({ getServerSession: async () => ({ user: { id: "student", email: "student@example.test" } }) }))
 vi.mock("@/lib/auth", () => ({ authOptions: {} }))
-vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: async () => ({ id: "student", role: "STUDENT" }) }, topic: { findUnique: async () => ({ chapter: { moduleId: "module" } }) }, question: { findMany: mocks.questions }, quizAttempt: { create: mocks.create }, questionAttempt: { createMany: mocks.createMany }, $queryRaw: mocks.raw } }))
+vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: async () => ({ id: "student", role: "STUDENT" }) }, topic: { findUnique: async () => ({ chapter: { moduleId: "module" } }) }, chapter: { findUnique: async () => ({ moduleId: "module" }) }, question: { findMany: mocks.questions }, quizAttempt: { create: mocks.create, findMany: mocks.open, update: mocks.update }, questionAttempt: { createMany: mocks.createMany }, $queryRaw: mocks.raw } }))
 vi.mock("@/lib/module-assessments", async (importOriginal: <T>() => Promise<T>) => ({ ...await importOriginal<typeof import("@/lib/module-assessments")>(), getModuleAssessments: mocks.config }))
 vi.mock("@/lib/question-kinds", () => ({ blankQuestionIds: async () => new Set(), saveTypedAnswer: vi.fn(), typedAnswers: vi.fn() }))
 vi.mock("@/lib/topic-locks", () => ({ getTopicLock: async () => null, lockedResponseBody: vi.fn() }))
+vi.mock("@/lib/quiz-stats", () => ({ MOCK_EXAM_PASS_MARK: 80, moduleProgress: async () => ({ chapters: [{ id: "chapter", estimateSeconds: 60 }] }) }))
 vi.mock("@/lib/analytics", () => ({ track: vi.fn() }))
 vi.mock("@/lib/monitoring", () => ({ captureError: vi.fn() }))
 const request = (extra = {}) => new NextRequest("http://localhost/api/quiz/attempt", { method: "POST", body: JSON.stringify({ moduleId: "module", fresh: true, ...extra }) })
@@ -57,4 +58,36 @@ it("keeps every uploaded assignment question and source order despite quiz size 
  expect(data.questions.map((q: { id: string }) => q.id)).toEqual(Array.from({ length: 25 }, (_, i) => `q${i}`))
  expect(data.questions[0].options.map((o: { id: string }) => o.id)).toEqual(["q0-0", "q0-1"])
  expect(data.settings).toMatchObject({ randomizeQuestions: false, randomizeOptions: false, questionsPerQuiz: 25 })
+})
+
+
+describe("separate chapter quizzes", () => {
+ it("uses only dedicated chapter questions despite legacy topic pools", async () => {
+  mocks.config.mockResolvedValue({ topicPools: { topic: ["topic-q"] }, chapterPools: { chapter: ["topic-q"] } })
+  mocks.questions.mockResolvedValue([
+   { ...question("chapter-q", ["a", "b"]), chapterId: "chapter" },
+   { ...question("topic-q", ["c", "d"]), chapterId: "chapter", topicId: "topic" },
+  ])
+  const response = await POST(request({ moduleId: undefined, chapterId: "chapter" }))
+  expect(response.status).toBe(200)
+  expect((await response.json()).data.questions.map((q: { id: string }) => q.id)).toEqual(["chapter-q"])
+  expect(mocks.questions).toHaveBeenCalledWith(expect.objectContaining({ where: { chapterId: "chapter", topicId: null } }))
+ })
+ it("does not fall back to topic questions when no chapter questions exist", async () => {
+  mocks.questions.mockResolvedValue([])
+  const response = await POST(request({ moduleId: undefined, chapterId: "chapter" }))
+  expect(response.status).toBe(404)
+  expect(mocks.create).not.toHaveBeenCalled()
+ })
+ it("rejects a custom topic question list disguised as a chapter quiz", async () => {
+  expect((await POST(request({ moduleId: undefined, chapterId: "chapter", questionIds: ["topic-q"] }))).status).toBe(400)
+  expect(mocks.create).not.toHaveBeenCalled()
+ })
+ it("abandons an old mixed chapter attempt instead of resuming topic questions", async () => {
+  mocks.open.mockResolvedValue([{ id: "old", startedAt: new Date(), settings: "{}", questionsData: JSON.stringify([{ id: "topic-q" }]), questionAttempts: [] }])
+  mocks.questions.mockResolvedValueOnce([{ ...question("topic-q", ["a", "b"]), topicId: "topic", chapterId: "chapter" }]).mockResolvedValueOnce([])
+  const response = await POST(request({ moduleId: undefined, chapterId: "chapter", fresh: false }))
+  expect(response.status).toBe(404)
+  expect(mocks.update).toHaveBeenCalledWith({ where: { id: "old" }, data: { status: "ABANDONED" } })
+ })
 })

@@ -26,7 +26,7 @@ export async function saveAssessmentPools(tx: Prisma.TransactionClient, moduleId
   if (config.batchHash === batchHash) return
   const quizLessons = lessons.filter(l => l.questions?.length)
   const replacedTopics = quizLessons.map(l => l.topicId)
-  const retiring = replacedTopics.length ? await tx.question.findMany({ where: { OR: [{ topicId: { in: replacedTopics } }, { chapter: { topics: { some: { id: { in: replacedTopics } } } } }] }, select: { id: true } }) : []
+  const retiring = replacedTopics.length ? await tx.question.findMany({ where: { topicId: { in: replacedTopics } }, select: { id: true } }) : []
   config.retiredQuestionIds = [...new Set([...(config.retiredQuestionIds ?? []), ...retiring.map(q => q.id)])]
   for (const lesson of quizLessons) {
     if (!lesson.questions?.length) throw new Error("The regenerated quiz is missing")
@@ -40,11 +40,9 @@ export async function saveAssessmentPools(tx: Prisma.TransactionClient, moduleId
     const ids = questions.map(q => q.id)
     config.topicPools[lesson.topicId] = ids
   }
-  const chapters = await tx.chapter.findMany({ where: { moduleId }, select: { id: true, topics: { select: { id: true } } } })
-  for (const chapter of chapters) {
-    const ids = chapter.topics.flatMap(t => config.topicPools[t.id] ?? [])
-    if (ids.length) config.chapterPools[chapter.id] = ids
-  }
+  // Chapter questions are independently authored; topic recreation must neither
+  // retire them nor copy topic IDs into their pool.
+  config.chapterPools = {}
   config.mock = null
   config.mockReason = decision.reason
   if (decision.exam) {

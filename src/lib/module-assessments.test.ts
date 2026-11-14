@@ -22,7 +22,8 @@ describe("saving recreated assessments", () => {
     expect(config.mock).toBeNull()
     expect(config.mockReason).toBe("No exam supplied")
     expect(config.retiredQuestionIds).toContain("old-question")
-    expect(config.chapterPools.chapter).toEqual(config.topicPools.topic)
+    expect(config.chapterPools).toEqual({})
+    expect(tx.question.findMany).toHaveBeenCalledWith({ where: { topicId: { in: ["topic"] } }, select: { id: true } })
   })
   it("does not duplicate questions on a repeated save", async () => {
     const first = transaction()

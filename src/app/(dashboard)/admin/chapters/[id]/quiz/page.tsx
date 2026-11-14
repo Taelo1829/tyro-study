@@ -99,7 +99,7 @@ export default function AdminChapterQuizPage() {
         <TabsContent value="questions" forceMount className="data-[state=inactive]:hidden">
           <Section
             title={`Chapter questions (${chapter.questions.length})`}
-            description="The chapter quiz uses these together with all the topic questions in this chapter."
+            description="The chapter quiz uses only these questions. Generate or add separate questions that apply concepts across topics without repeating the topic quizzes."
           >
             {chapter.questions.length === 0 ? (
               <p className="text-sm text-muted-foreground">

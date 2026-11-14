@@ -69,7 +69,7 @@ const ChapterPage = () => {
                 </section>
             )}
 
-            {chapter && chapter.topics.some((topic) => topic._count.questions > 0) && (
+            {chapter && quizInfo && quizInfo.quizSize > 0 && (
                 <Card className="mb-6 border-primary/30 bg-primary/5">
                     <CardContent className="flex items-center justify-between py-4">
                         <div>

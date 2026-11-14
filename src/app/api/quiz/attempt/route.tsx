@@ -90,6 +90,10 @@ async function resumeAttempt(userId: string, source: string, examVersion?: strin
     const saved = JSON.parse(fresh.questionsData) as { id: string; question: string; difficulty: string; kind?: string; answers: { id: string; answer: string }[] }[]
     const pool = await prisma.question.findMany({ where: { id: { in: saved.map(q => q.id) } }, include: questionInclude })
     const byId = new Map(pool.map(q => [q.id, q]))
+    if (source.startsWith("chapter:") && pool.some(q => q.topicId !== null || q.chapterId !== source.slice("chapter:".length))) {
+        await prisma.quizAttempt.update({ where: { id: fresh.id }, data: { status: "ABANDONED" } })
+        return null
+    }
     // A question deleted since the quiz started can't be shown again: start over instead
     if (saved.some(q => !byId.has(q.id) || retiredIds.includes(q.id))) {
         await prisma.quizAttempt.update({ where: { id: fresh.id }, data: { status: "ABANDONED" } })
@@ -190,6 +194,9 @@ export async function POST(req: NextRequest) {
         if (moduleId && (topicId || chapterId || questionIds?.length)) {
             return NextResponse.json({ error: "Start a mock exam using its module only." }, { status: 400 })
         }
+        if (chapterId && (topicId || questionIds?.length)) {
+            return NextResponse.json({ error: "Start a chapter quiz using its chapter only." }, { status: 400 })
+        }
         const scopeModuleId = moduleId
             ?? (topicId ? (await prisma.topic.findUnique({ where: { id: topicId }, select: { chapter: { select: { moduleId: true } } } }))?.chapter.moduleId : null)
             ?? (chapterId ? (await prisma.chapter.findUnique({ where: { id: chapterId }, select: { moduleId: true } }))?.moduleId : null)
@@ -237,19 +244,18 @@ export async function POST(req: NextRequest) {
             })
             quizModuleId = moduleId
         } else if (chapterId) {
-            // Chapter quiz: questions added to the chapter itself plus every
-            // question from the chapter's topics
+            // Chapter quizzes have their own questions; never borrow topic questions.
             questions = await prisma.question.findMany({
                 where: {
-                    OR: [{ chapterId }, { topic: { chapterId } }],
+                    chapterId, topicId: null,
                 },
                 include: questionInclude,
             })
         }
 
-        if (chapterId) questions = questions.filter(q => !q.topic?.title.startsWith(ASSIGNMENT_CHECKPOINT))
+        if (chapterId) questions = questions.filter(q => q.chapterId === chapterId && q.topicId === null)
 
-        const pool = topicId ? assessments?.topicPools[topicId] : chapterId ? assessments?.chapterPools[chapterId] : null
+        const pool = topicId ? assessments?.topicPools[topicId] : null
         if (!exam && assessments?.retiredQuestionIds) {
             const retired = new Set(assessments.retiredQuestionIds)
             questions = questions.filter(q => !retired.has(q.id))
@@ -260,7 +266,7 @@ export async function POST(req: NextRequest) {
 
         if (questions.length === 0) {
             return NextResponse.json(
-                { error: "No questions found for this quiz" },
+                { error: chapterId ? "This chapter quiz is not ready yet. Separate chapter questions must be added first." : "No questions found for this quiz" },
                 { status: 404 }
             )
         }
