@@ -1,10 +1,12 @@
 import { beforeEach, expect, it, vi } from "vitest"
 import { savePaperQuestions } from "./paper-questions"
-const m = vi.hoisted(() => ({ transaction: vi.fn(), query: vi.fn(), topics: vi.fn(), questions: vi.fn(), answers: vi.fn(), execute: vi.fn() }))
-vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: m.transaction } }))
+const m = vi.hoisted(() => ({ transaction: vi.fn(), query: vi.fn(), topics: vi.fn(), questions: vi.fn(), answers: vi.fn(), execute: vi.fn(), chat: vi.fn() }))
+vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: m.transaction, $queryRaw: m.query, topic: { findMany: m.topics } } }))
+vi.mock("@/lib/ai/openai", () => ({ chatJson: m.chat }))
 const input = { topicId: "memory", question: "What does cache store?", options: ["Recently used data", "Only programs"], correctOption: "Recently used data", difficulty: "medium" }
 beforeEach(() => {
   vi.resetAllMocks()
+  m.chat.mockResolvedValue({ duplicates: [] })
   m.query.mockResolvedValue([{ assessmentConfig: JSON.stringify({ topicPools: { memory: ["existing"] }, chapterPools: { chapter: ["chapter-q"] }, mock: { version: "exam" }, mockReason: "" }) }])
   m.topics.mockResolvedValue([{ id: "memory", title: "Cache Memory", questions: [] }, { id: "assignment-abc", title: "Assignment quiz: 1", questions: [] }])
   m.transaction.mockImplementation(fn => fn({ $queryRaw: m.query, $executeRaw: m.execute, topic: { findMany: m.topics }, question: { createMany: m.questions }, answer: { createMany: m.answers } }))
@@ -31,6 +33,13 @@ it("deduplicates a batch and restores an existing question to the active pool on
 })
 it("does not confuse questions with different mathematical operators", async () => {
   expect(await savePaperQuestions("mod", "Paper", [{ ...input, question: "Solve x < 0" }, { ...input, question: "Solve x > 0" }])).toMatchObject({ added: 2 })
+})
+it("reuses a semantically equivalent question and labels it with the uploaded paper", async () => {
+  m.topics.mockResolvedValue([{ id: "memory", title: "Cache", questions: [{ id: "paper-q", question: input.question, answers: input.options.map(answer => ({ answer, isCorrect: answer === input.correctOption })) }] }])
+  m.chat.mockResolvedValue({ duplicates: [{ candidate: 1, reference: 0 }] })
+  expect(await savePaperQuestions("mod", "Paper", [{ ...input, question: "What information is kept in cache memory?" }])).toMatchObject({ added: 0, skipped: 1 })
+  expect(m.questions).not.toHaveBeenCalled()
+  expect(m.execute.mock.calls[0][2]).toEqual(["paper-q"])
 })
 it("creates a new question rather than reviving retired answer history", async () => {
   m.query.mockResolvedValue([{ assessmentConfig: JSON.stringify({ topicPools: { memory: [] }, chapterPools: {}, retiredQuestionIds: ["old"], mock: null }) }])

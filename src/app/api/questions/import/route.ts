@@ -10,8 +10,10 @@ import {
 } from "@/lib/bulk-import"
 import type { QuestionImportRow } from "@/lib/excel/questions"
 import { captureError } from "@/lib/monitoring"
+import { checkQuestionAdditions } from "@/lib/question-duplicates"
 
 export const runtime = "nodejs"
+export const maxDuration = 120
 
 function createQuestionsBatch(
   parent: { topicId?: string; chapterId?: string },
@@ -100,13 +102,16 @@ export async function POST(request: Request) {
       )
     }
 
-    const created = await runBatched(questions, BULK_BATCH_SIZE, (batch) =>
+    const duplicates = await checkQuestionAdditions(parent, questions)
+    const unique = questions.filter((_, index) => !duplicates.has(index))
+    const created = await runBatched(unique, BULK_BATCH_SIZE, (batch) =>
       createQuestionsBatch(parent, batch)
     )
 
     return NextResponse.json({
       count: created.length,
-      message: `Imported ${created.length} questions`,
+      skipped: duplicates.size,
+      message: `Imported ${created.length} questions${duplicates.size ? `; skipped ${duplicates.size} duplicates` : ""}`,
     })
   } catch (err) {
     captureError("Questions import error", err, "/api/questions/import")

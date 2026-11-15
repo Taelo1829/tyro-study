@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { prisma } from "@/lib/prisma"
 import { ASSIGNMENT_CHECKPOINT, ASSIGNMENT_QUIZ, RecreationInputError } from "./module-recreation-input"
 import type { AssessmentConfig } from "./module-assessments"
+import { questionDuplicates, type ComparableQuestion } from "./question-duplicates"
 
 export function isPaperLessonTopic(topic: { id: string; title: string }) {
   return !topic.id.startsWith("assignment-") && !topic.title.startsWith(ASSIGNMENT_CHECKPOINT) && !topic.title.startsWith(ASSIGNMENT_QUIZ)
@@ -13,6 +14,29 @@ function signature(question: string, answers: { answer: string; isCorrect: boole
 
 export async function savePaperQuestions(moduleId: string, paper: string, input: unknown) {
   if (!Array.isArray(input) || !input.length || input.length > 300) throw new RecreationInputError("Choose between 1 and 300 paper questions to save.")
+  // Semantic checks happen before opening the write transaction so network calls
+  // do not hold the module lock. The transaction still checks exact duplicates.
+  const [snapshot] = await prisma.$queryRaw<{ assessmentConfig: string | null }[]>`SELECT "assessmentConfig" FROM "modules" WHERE "id" = ${moduleId}`
+  if (!snapshot) throw new RecreationInputError("Module not found.")
+  const retiredIds = new Set<string>(snapshot.assessmentConfig ? JSON.parse(snapshot.assessmentConfig).retiredQuestionIds ?? [] : [])
+  const destinations = (await prisma.topic.findMany({ where: { chapter: { moduleId } }, select: { id: true, title: true, questions: { select: { id: true, question: true, answers: { select: { answer: true, isCorrect: true } } } } } })).filter(isPaperLessonTopic)
+  const checked = [...input]
+  for (const topic of destinations) {
+    const candidates: (ComparableQuestion & { index: number })[] = []
+    input.forEach((raw, index) => {
+      if (raw?.topicId !== topic.id || typeof raw.question !== "string" || !raw.question.trim() || raw.question.length > 10000 || !Array.isArray(raw.options) || raw.options.length < 2 || raw.options.length > 6 || !raw.options.every((o: unknown) => typeof o === "string" && o.trim() && o.length <= 3000) || typeof raw.correctOption !== "string") return
+      const options = raw.options.map((o: string) => o.trim()) as string[]
+      if (new Set(options).size !== options.length || !options.includes(raw.correctOption.trim())) return
+      candidates.push({ index, question: raw.question.trim(), options, correctOption: raw.correctOption.trim() })
+    })
+    if (!candidates.length) continue
+    const existing = topic.questions.filter(q => !retiredIds.has(q.id)).map(q => ({ question: q.question, options: q.answers.map(a => a.answer), correctOption: q.answers.find(a => a.isCorrect)?.answer ?? "" }))
+    const duplicates = await questionDuplicates(candidates, existing)
+    for (const [index, match] of duplicates) {
+      const position = candidates[index].index
+      checked[position] = { ...checked[position], question: match.question, options: match.options, correctOption: match.correctOption }
+    }
+  }
   return prisma.$transaction(async tx => {
     const [row] = await tx.$queryRaw<{ assessmentConfig: string | null }[]>`SELECT "assessmentConfig" FROM "modules" WHERE "id" = ${moduleId} FOR UPDATE`
     if (!row) throw new RecreationInputError("Module not found.")
@@ -25,7 +49,7 @@ export async function savePaperQuestions(moduleId: string, paper: string, input:
     const included = new Set<string>()
     const affected = new Set<string>()
     let skipped = 0
-    for (const raw of input) {
+    for (const raw of checked) {
       const topicId = typeof raw?.topicId === "string" ? raw.topicId : ""
       const question = typeof raw?.question === "string" ? raw.question.trim() : ""
       const options: string[] = Array.isArray(raw?.options) && raw.options.every((o: unknown) => typeof o === "string") ? raw.options.map((o: string) => o.trim()) : []

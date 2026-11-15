@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { validateExtractedQuestions } from "@/lib/validators/question"
 import type { ExtractedQuestion } from "@/lib/ai/question-generator"
+import { checkQuestionAdditions } from "@/lib/question-duplicates"
 import {
   BULK_BATCH_SIZE,
   BULK_TX_OPTIONS,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/bulk-import"
 
 const DIFFICULTIES = new Set(["easy", "medium", "hard"])
+export const maxDuration = 120
 
 function questionDifficulty(q: ExtractedQuestion): string | undefined {
   const value = (q as ExtractedQuestion & { difficulty?: unknown }).difficulty
@@ -39,6 +41,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Topic not found" }, { status: 404 })
   }
   if (chapterId && !(await prisma.chapter.findUnique({ where: { id: chapterId } }))) return NextResponse.json({ error: "Chapter not found" }, { status: 404 })
+
+  try {
+    const duplicates = await checkQuestionAdditions({ topicId, chapterId }, questions)
+    if (duplicates.size) {
+      return NextResponse.json({
+        error: `Duplicate questions detected at positions ${[...duplicates.keys()].map(i => i + 1).join(", ")}. Remove or revise them and save again. No questions were saved.`,
+        duplicates: [...duplicates].map(([index, match]) => ({ index, question: match.question })),
+      }, { status: 409 })
+    }
+  } catch {
+    return NextResponse.json({ error: "Could not check for duplicate questions. Please retry; no questions were saved." }, { status: 503 })
+  }
 
   const created = await runBatched(questions, BULK_BATCH_SIZE, (batch) =>
     prisma.$transaction(

@@ -53,7 +53,7 @@ const ChapterPage = () => {
 
     const lessons = chapter?.topics.filter(topic => !isAssignmentQuiz(topic)) ?? []
     const assignments = chapter?.topics.filter(isAssignmentQuiz) ?? []
-    const completedTopicIds = new Set(chapterProgress?.id === id ? chapterProgress.topics.filter(topic => topic.stats.passed > 0).map(topic => topic.id) : [])
+    const completedTopicIds = new Set(chapterProgress && chapterProgress.id === id ? chapterProgress.topics.filter(topic => topic.stats.passed > 0).map(topic => topic.id) : [])
 
     if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>
     return (
