@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from "vitest"
 import { createHash } from "node:crypto"
 import type { TutorialPlan } from "./tutorial-letter-types"
-import { explicitTutorialReading, tutorialCheckpointIndex } from "./tutorial-letter-types"
-import { applyTutorialLetter, draftTutorialTask, getTutorialGuide, outlineTutorialLetter, validateTutorialPlan, verifiedQuote } from "./tutorial-letter"
+import { explicitTutorialReading, tutorialAssessmentEvidence, tutorialCheckpointIndex } from "./tutorial-letter-types"
+import { applyTutorialLetter, draftTutorialTask, getTutorialGuide, outlineTutorialLetter, validateTutorialPlan, verifiedQuote, verifiedNoteEvidence } from "./tutorial-letter"
 
 const m = vi.hoisted(() => ({ chat: vi.fn(), writer: vi.fn(), query: vi.fn(), execute: vi.fn(), snapshot: vi.fn(), createChapter: vi.fn(), deleteChapters: vi.fn(), createTopic: vi.fn(), moveTopic: vi.fn(), createQuestions: vi.fn(), detachQuestions: vi.fn(), answers: vi.fn(), transaction: vi.fn() }))
 vi.mock("@/lib/prisma", () => ({ prisma: { $queryRaw: m.query, $executeRaw: m.execute, $transaction: m.transaction } }))
@@ -61,6 +61,85 @@ it("rejects fabricated quotes, out-of-syllabus chapters and forgotten uploaded a
   expect(verifiedQuote("Study binary numbers first.", "Study bi\nnary numbers first\n•")).toBe(true)
 })
 const q = { question: "Which value is binary?", options: ["10", "2"], correctOption: "10", kind: "mcq", difficulty: "medium", marks: 1 }
+
+// Relevant pdf-parse output from COS2626 TL101 (2026), pages 20–21.
+const assessmentSource = `To gain admission to the examination, you must obtain 40% SUB-MINIMUM for the YEAR
+MARK.
+• The assignment weighting for the module is 20%.
+
+-- 20 of 26 --
+
+COS2626/101/0/2026
+21
+• You will receive examination information via the myModules sites. Please watch out for
+announcements on how examinations for the modules for which you are registered will be
+conducted.
+• The examination will count 80% towards the final module mark.`
+const assessmentQuotes = [
+  "To gain admission to the examination, you must obtain 40% SUB-MINIMUM for the YEAR MARK.",
+  "The assignment weighting for the module is 20%.",
+  "The examination will count 80% towards the final module mark.",
+]
+const assessmentTable = `Assessment
+number
+Method of assessment Outcomes covered in
+assessment
+Weigh
+contribution of
+assessment
+1. Quiz 1 - 2 20%
+2. Quiz 3 - 4 20%
+3. Written 1 - 7 20%
+4. Quiz 5 - 6 20%
+5. Quiz (IRIS invigilation quiz) 1 - 7 20%
+9.3 Assessment/assignment due dates
+• No assessment/assignment due dates are included in this tutorial letter.`
+it("anchors each COS2626 assessment to its own exact table row", () => {
+  const rows = ["1. Quiz 1 - 2 20%", "2. Quiz 3 - 4 20%", "3. Written 1 - 7 20%", "4. Quiz 5 - 6 20%", "5. Quiz (IRIS invigilation quiz) 1 - 7 20%"]
+  for (const [i, row] of rows.entries()) {
+    const evidence = tutorialAssessmentEvidence(`Assignment 0${i + 1}`, assessmentTable)
+    expect(evidence).toBe(row)
+    expect(assessmentTable.includes(evidence!)).toBe(true)
+  }
+})
+it("repairs the rejected header-plus-row quote before validating Assignment 02", () => {
+  const draft = plan()
+  draft.guide.assessments[0].title = "Assignment 02"
+  draft.guide.assessments[0].evidence = "Assessment number Method of assessment Outcomes covered in assessment Weigh contribution of assessment 2. Quiz 3 - 4 20%"
+  expect(verifiedQuote(draft.guide.assessments[0].evidence, assessmentTable)).toBe(false)
+  const result = validateTutorialPlan(draft, { ...source, text: source.text + "\n" + assessmentTable }, catalog, [])
+  expect(result.guide.assessments[0].evidence).toBe("2. Quiz 3 - 4 20%")
+})
+it("handles wrapped table rows without borrowing another assessment's evidence", () => {
+  const wrapped = assessmentTable.replace("2. Quiz 3 - 4 20%", "2.\nQuiz\n3 - 4\n20%")
+  expect(tutorialAssessmentEvidence("Assessment 2", wrapped)).toBe("2.\nQuiz\n3 - 4\n20%")
+  expect(tutorialAssessmentEvidence("Assignment 06", assessmentTable)).toBeNull()
+  expect(tutorialAssessmentEvidence("Assignment 02", "2. Quiz 3 - 4 20%")).toBeNull()
+  expect(tutorialAssessmentEvidence("Assignment 02", assessmentTable + "\n" + assessmentTable)).toBeNull()
+  const draft = plan()
+  draft.guide.assessments[0].title = "Assignment 06"
+  draft.guide.assessments[0].evidence = "Invented supporting quote."
+  expect(() => validateTutorialPlan(draft, { ...source, text: source.text + "\n" + assessmentTable }, catalog, [])).toThrow("supporting quote")
+})
+it("verifies the COS2626 assessment note as separate excerpts across pages and intervening text", () => {
+  const evidence = assessmentQuotes.join(" ")
+  expect(verifiedQuote(evidence, assessmentSource)).toBe(false)
+  expect(verifiedNoteEvidence(evidence, assessmentSource)).toEqual(assessmentQuotes)
+  const draft = plan()
+  draft.guide.notes = [{ text: "Admission needs a 40% year mark; assignments count 20% and the examination 80%.", evidence }]
+  const result = validateTutorialPlan(draft, { ...source, text: `${source.text}\n${assessmentSource}` }, catalog, [])
+  expect(result.guide.notes[0].evidence).toEqual(assessmentQuotes)
+})
+it("accepts explicit excerpt arrays and existing single-quote notes", () => {
+  expect(verifiedNoteEvidence(assessmentQuotes, assessmentSource)).toEqual(assessmentQuotes)
+  expect(verifiedNoteEvidence(assessmentQuotes[0], assessmentSource)).toBe(assessmentQuotes[0])
+})
+it("rejects a note if any excerpt changes a fact, invents text, or stitches clauses", () => {
+  expect(verifiedNoteEvidence(assessmentQuotes.join(" ").replace("80%", "90%"), assessmentSource)).toBeNull()
+  expect(verifiedNoteEvidence([...assessmentQuotes, "No assignments are required."], assessmentSource)).toBeNull()
+  expect(verifiedNoteEvidence("To gain admission to the examination, the examination will count 80% towards the final module mark.", assessmentSource)).toBeNull()
+  expect(verifiedNoteEvidence([], assessmentSource)).toBeNull()
+})
 const topicQuestions = Array.from({ length: 20 }, (_, i) => ({ ...q, question: `Topic question ${i + 1}` }))
 function setupApply(options: { uploaded?: boolean; incomplete?: boolean; stale?: boolean; applied?: boolean; shortQuiz?: boolean } = {}) {
   const p = plan()
