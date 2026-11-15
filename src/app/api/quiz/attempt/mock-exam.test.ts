@@ -91,3 +91,65 @@ describe("separate chapter quizzes", () => {
   expect(mocks.update).toHaveBeenCalledWith({ where: { id: "old" }, data: { status: "ABANDONED" } })
  })
 })
+
+describe("practice question priorities", () => {
+ const topic = { id: "topic", title: "Topic", chapter: { title: "Chapter", moduleId: "module", module: { title: "Module" } } }
+ const pool = (prefix: string, count: number) => Array.from({ length: count }, (_, i) => ({ ...question(`${prefix}${i}`, [`${prefix}${i}-a`, `${prefix}${i}-b`]), topic, topicId: "topic" }))
+ function history(answered: string[], uploaded: string[], written: string[] = []) {
+  mocks.raw.mockImplementation(async (sql: TemplateStringsArray) => {
+   const text = sql.join("")
+   if (text.includes('JOIN "quiz_attempts"')) return answered.map(questionId => ({ questionId }))
+   if (text.includes('"paper" IS NOT NULL')) return uploaded.map(id => ({ id, paper: "Uploaded paper" }))
+   if (text.includes('"maxMarks"')) return written.map(id => ({ id, kind: "written", maxMarks: 5 }))
+   return []
+  })
+ }
+ async function start(scope: { topicId: string } | { chapterId: string }) {
+  const response = await POST(request({ moduleId: undefined, ...scope }))
+  expect(response.status).toBe(200)
+  const { data } = await response.json()
+  return data.questions.map((q: { id: string }) => q.id) as string[]
+ }
+ it("selects all unanswered chapter questions before any repeats, regardless of format", async () => {
+  const questions = [...pool("answered", 25), ...pool("new", 15)].map(q => ({ ...q, topic: null, topicId: null, chapterId: "chapter" }))
+  mocks.questions.mockResolvedValue(questions)
+  history(pool("answered", 25).map(q => q.id), [], ["answered0"])
+  const ids = await start({ chapterId: "chapter" })
+  expect(ids).toHaveLength(20)
+  expect(new Set(ids.slice(0, 15))).toEqual(new Set(pool("new", 15).map(q => q.id)))
+  expect(ids.slice(15).every(id => id.startsWith("answered"))).toBe(true)
+ })
+ it("excludes generated questions when 20 unanswered uploaded questions exist", async () => {
+  const uploaded = pool("uploaded", 25)
+  mocks.questions.mockResolvedValue([...pool("generated", 25), ...uploaded])
+  history([], uploaded.map(q => q.id), ["generated0"])
+  const ids = await start({ topicId: "topic" })
+  expect(ids).toHaveLength(20)
+  expect(ids.every(id => id.startsWith("uploaded"))).toBe(true)
+ })
+ it("fills the remaining places with generated questions after unanswered uploads", async () => {
+  const uploaded = pool("uploaded", 25)
+  mocks.questions.mockResolvedValue([...uploaded, ...pool("generated", 25)])
+  history(uploaded.slice(12).map(q => q.id), uploaded.map(q => q.id))
+  const ids = await start({ topicId: "topic" })
+  expect(ids).toHaveLength(20)
+  expect(new Set(ids.slice(0, 12))).toEqual(new Set(uploaded.slice(0, 12).map(q => q.id)))
+  expect(ids.slice(12).every(id => id.startsWith("generated"))).toBe(true)
+  expect(new Set(ids).size).toBe(20)
+ })
+ it("uses generated questions when every uploaded question has been answered", async () => {
+  const uploaded = pool("uploaded", 25)
+  mocks.questions.mockResolvedValue([...uploaded, ...pool("generated", 25)])
+  history(uploaded.map(q => q.id), uploaded.map(q => q.id))
+  expect((await start({ topicId: "topic" })).every(id => id.startsWith("generated"))).toBe(true)
+ })
+ it("reuses answered questions to fill a quiz and returns a smaller pool without duplicates", async () => {
+  const questions = [...pool("uploaded", 5), ...pool("generated", 8)]
+  mocks.questions.mockResolvedValue(questions)
+  history(questions.map(q => q.id), pool("uploaded", 5).map(q => q.id))
+  const ids = await start({ topicId: "topic" })
+  expect(ids).toHaveLength(13)
+  expect(new Set(ids).size).toBe(13)
+  expect(ids.slice(0, 5).every(id => id.startsWith("uploaded"))).toBe(true)
+ })
+})

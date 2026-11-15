@@ -2,7 +2,7 @@
 import { Breadcrumbs } from '@/components/layout/breadcrumbs'
 import { useCourseCrumb } from '@/components/modules/use-course-crumb'
 import { Card, CardContent } from '@/components/ui/card'
-import { ChevronRight, Lock, PlayCircle } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Lock, PlayCircle } from 'lucide-react'
 import NextLink from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useParams, useRouter } from 'next/navigation'
@@ -15,6 +15,11 @@ interface ChapterDetail {
     topics: { id: string; title: string; lockedBy?: { id: string; title: string } | null; _count: { questions: number } }[]
 }
 const isAssignmentQuiz = (topic: { title: string }) => topic.title.startsWith("Assignment quiz: ")
+function DoneBadge() {
+    return <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" title="You have passed this topic’s quiz">
+        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />Done
+    </span>
+}
 
 const ChapterPage = () => {
     const [chapter, setChapter] = useState<ChapterDetail | null>(null)
@@ -48,6 +53,7 @@ const ChapterPage = () => {
 
     const lessons = chapter?.topics.filter(topic => !isAssignmentQuiz(topic)) ?? []
     const assignments = chapter?.topics.filter(isAssignmentQuiz) ?? []
+    const completedTopicIds = new Set(chapterProgress?.id === id ? chapterProgress.topics.filter(topic => topic.stats.passed > 0).map(topic => topic.id) : [])
 
     if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>
     return (
@@ -66,6 +72,7 @@ const ChapterPage = () => {
                 <section className="mb-6 rounded-[1.5rem] border border-border bg-white px-5 py-4">
                     <p className="mb-2 text-sm font-semibold">Your progress in this chapter</p>
                     <ChapterProgressBar chapter={chapterProgress} />
+                    <p className="mt-2 text-xs text-muted-foreground">A topic is marked Done once you pass its quiz.</p>
                 </section>
             )}
 
@@ -105,6 +112,7 @@ const ChapterPage = () => {
                                         <Lock className="h-4 w-4 shrink-0" />
                                         {isAssignmentQuiz(tp) ? tp.title.slice("Assignment quiz: ".length) : tp.title}
                                     </p>
+                                    {completedTopicIds.has(tp.id) && <DoneBadge />}
                                     <p className="mt-0.5 text-xs text-muted-foreground">
                                         Pass the{" "}
                                         <NextLink href={`/modules/${chapter.module.id}/topics/${tp.lockedBy.id}`} className="font-medium text-foreground underline underline-offset-2">
@@ -119,6 +127,7 @@ const ChapterPage = () => {
                             <CardContent onClick={() => router.push(`/modules/${chapter.module.id}/topics/${tp.id}`)} className="flex cursor-pointer items-center justify-between py-4">
                                 <div>
                                     <p className="font-semibold">{isAssignmentQuiz(tp) ? tp.title.slice("Assignment quiz: ".length) : tp.title}</p>
+                                    {completedTopicIds.has(tp.id) && <DoneBadge />}
                                 </div>
                                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
                             </CardContent>

@@ -312,15 +312,37 @@ export async function POST(req: NextRequest) {
             source,
         }
 
-        // ── Pick questions at random ────────────────────────────────────────
-        // Every quiz draws a fresh random set from the whole pool, in random
-        // order. (No rotation: a question can come up again in the next quiz.)
+        // Practice quizzes rotate through unanswered questions before repeats.
         const formats = await questionFormats(questions.map(q => q.id))
         if (topicId && questions.some(q => q.topic?.title.startsWith(ASSIGNMENT_CHECKPOINT)) && (questions.length !== 1 || formats.get(questions[0].id)?.kind !== "written")) {
             return NextResponse.json({ error: "This assignment needs to be regenerated as a document submission before it can accept uploads." }, { status: 409 })
         }
         let finalQuestions = uploadedQuiz ? [...questions].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id)).map(q => ({ ...q, answers: [...q.answers].sort((a, b) => a.id.localeCompare(b.id)) })) : shuffleArray(questions).slice(0, questionsPerQuiz)
-        if (!exam && !uploadedQuiz && questionsPerQuiz >= 2) {
+        const prioritizePractice = !exam && !uploadedQuiz && !questionIds?.length && (topicId || chapterId)
+        if (prioritizePractice) {
+            const ids = questions.map(q => q.id)
+            // Include answers in unfinished attempts and older permanent history.
+            // Merely seeing or skipping a question does not count as answering it.
+            const answeredRows = await prisma.$queryRaw<{ questionId: string }[]>`
+                SELECT qa."questionId" FROM "question_attempts" qa
+                JOIN "quiz_attempts" a ON a."id" = qa."quizAttemptId"
+                WHERE a."userId" = ${user.id} AND qa."status" = 'ANSWERED'
+                  AND qa."questionId" = ANY(${ids}::text[])
+                UNION
+                SELECT "questionId" FROM "user_answers"
+                WHERE "userId" = ${user.id} AND "questionId" = ANY(${ids}::text[])
+                  AND ("selectedAnswerId" IS NOT NULL OR "typedAnswer" IS NOT NULL)`
+            const answered = new Set(answeredRows.map(row => row.questionId))
+            const papers = topicId ? await paperNames(ids) : new Map<string, string>()
+            const priority = (q: PoolQuestion) =>
+                (answered.has(q.id) ? 2 : 0) + (topicId && !papers.has(q.id) ? 1 : 0)
+            // Shuffle within each priority, keeping uploaded unanswered questions
+            // ahead of generated fillers, then reuse answered questions if needed.
+            finalQuestions = shuffleArray(questions)
+                .sort((a, b) => priority(a) - priority(b))
+                .slice(0, questionsPerQuiz)
+        }
+        if (!exam && !uploadedQuiz && !prioritizePractice && questionsPerQuiz >= 2) {
             for (const kind of ["mcq", "written"] as const) {
                 const candidate = questions.find(q => (formats.get(q.id)?.kind ?? "mcq") === kind)
                 if (candidate && !finalQuestions.some(q => (formats.get(q.id)?.kind ?? "mcq") === kind)) finalQuestions[finalQuestions.length - 1] = candidate
