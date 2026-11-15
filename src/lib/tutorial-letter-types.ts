@@ -52,17 +52,21 @@ export function explicitTutorialReading(title: string, source: string) {
 export function tutorialAssessmentEvidence(title: string, source: string): string | null {
   const heading = explicitTutorialReading(title, source).evidence
   if (heading) return heading
-  const number = title.match(/\b(?:assignment|assessment)\s+0*(\d+)\b/i)?.[1]
-  if (!number) return null
+  const identity = title.match(/\b(assignment|assessment|quiz|written|mcq|multiple[- ]choice|practical|project|portfolio|test)\s+(?:(?:assignment|assessment|quiz|test)\s+)?(?:no\.?\s*|#\s*)?0*(\d+)\b/i)
+  if (!identity) return null
+  const [, label, number] = identity
   const matches: string[] = []
   for (const header of source.matchAll(/Assessment\s+number\s+Method\s+of\s+assessment/gi)) {
     const start = header.index! + header[0].length
     const following = source.slice(start, start + 6000)
     const sectionEnd = following.search(/\n\s*\d+\.\d+\s+\S/)
     const table = sectionEnd < 0 ? following : following.slice(0, sectionEnd)
-    const rows = [...table.matchAll(/^\s*(\d+)[.)]\s+(?:Quiz|Written|MCQ|Multiple[- ]choice|Practical|Project|Portfolio|Test)\b/gim)]
+    const rows = [...table.matchAll(/^\s*(\d+)[.)]\s+(Quiz|Written|MCQ|Multiple[- ]choice|Practical|Project|Portfolio|Test)\b/gim)]
     for (let i = 0; i < rows.length; i++) {
       if (Number(rows[i][1]) !== Number(number)) continue
+      // A method-specific title must match that row's method as well as number.
+      const method = (value: string) => value.toLowerCase().replace(/-/g, " ")
+      if (!/^(assignment|assessment)$/i.test(label) && method(label) !== method(rows[i][2])) continue
       const row = table.slice(rows[i].index, rows[i + 1]?.index ?? table.length).trim()
       // Only recognize a complete weighted assessment row, not arbitrary lists.
       if (row.length <= 600 && /\d+(?:\.\d+)?\s*%\s*$/.test(row)) matches.push(row)

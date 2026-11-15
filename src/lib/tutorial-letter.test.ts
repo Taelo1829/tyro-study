@@ -110,6 +110,26 @@ it("repairs the rejected header-plus-row quote before validating Assignment 02",
   const result = validateTutorialPlan(draft, { ...source, text: source.text + "\n" + assessmentTable }, catalog, [])
   expect(result.guide.assessments[0].evidence).toBe("2. Quiz 3 - 4 20%")
 })
+it.each([
+  ["Quiz 1", "1. Quiz 1 - 2 20%"],
+  ["Quiz 02", "2. Quiz 3 - 4 20%"],
+  ["Written 3", "3. Written 1 - 7 20%"],
+  ["Written assignment 03", "3. Written 1 - 7 20%"],
+  ["Quiz 4", "4. Quiz 5 - 6 20%"],
+  ["Quiz 5 (IRIS invigilation quiz)", "5. Quiz (IRIS invigilation quiz) 1 - 7 20%"],
+  ["Quiz No. 1", "1. Quiz 1 - 2 20%"],
+])("validates short assessment row evidence for %s", (title, evidence) => {
+  expect(tutorialAssessmentEvidence(title, assessmentTable)).toBe(evidence)
+  const draft = plan()
+  draft.guide.assessments[0].title = title
+  draft.guide.assessments[0].evidence = evidence
+  expect(validateTutorialPlan(draft, { ...source, text: source.text + "\n" + assessmentTable }, catalog, []).guide.assessments[0].evidence).toBe(evidence)
+})
+it("does not match a method-specific title to another assessment method", () => {
+  expect(tutorialAssessmentEvidence("Quiz 3", assessmentTable)).toBeNull()
+  expect(tutorialAssessmentEvidence("Written 1", assessmentTable)).toBeNull()
+  expect(tutorialAssessmentEvidence("Quiz 6", assessmentTable)).toBeNull()
+})
 it("handles wrapped table rows without borrowing another assessment's evidence", () => {
   const wrapped = assessmentTable.replace("2. Quiz 3 - 4 20%", "2.\nQuiz\n3 - 4\n20%")
   expect(tutorialAssessmentEvidence("Assessment 2", wrapped)).toBe("2.\nQuiz\n3 - 4\n20%")
