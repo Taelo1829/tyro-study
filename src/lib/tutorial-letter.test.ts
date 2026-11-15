@@ -280,6 +280,39 @@ it("still rejects incomplete generated topic quizzes with fewer than ten questio
   m.query.mockResolvedValue([{ data: JSON.stringify({ plan: p, source, drafts: {}, uploadedQuestions: [] }), applied: false }])
   m.writer.mockResolvedValue("<p>Lesson.</p>")
   m.chat.mockResolvedValue({ questions: topicQuestions.slice(0, 9) })
-  await expect(draftTutorialTask("mod", "draft", "lesson-0-0")).rejects.toThrow("Return exactly 10 questions for the complete topic quiz.")
+  await expect(draftTutorialTask("mod", "draft", "lesson-0-0")).rejects.toThrow("9 validated distinct questions")
   expect(m.execute).not.toHaveBeenCalled()
+})
+it("keeps a short valid batch and asks only for the missing questions", async () => {
+  const p = plan(); p.guide.assessments = []
+  m.query.mockResolvedValue([{ data: JSON.stringify({ plan: p, source, drafts: {}, uploadedQuestions: [] }), applied: false }])
+  m.writer.mockResolvedValue("<p>Lesson.</p>")
+  m.chat.mockResolvedValueOnce({ questions: topicQuestions.slice(0, 6) })
+    .mockResolvedValueOnce({ questions: [topicQuestions[0], ...topicQuestions.slice(6, 8)] })
+    .mockResolvedValueOnce({ questions: topicQuestions.slice(8) })
+  await draftTutorialTask("mod", "draft", "lesson-0-0")
+  expect(m.chat.mock.calls.map(([arg]) => JSON.parse(arg.user).requiredQuestionCount)).toEqual([10, 4, 2])
+  expect(JSON.parse(m.chat.mock.calls[1][0].user).existingQuestions).toEqual(topicQuestions.slice(0, 6).map(q => q.question))
+  expect(JSON.parse(m.execute.mock.calls[0][2]).questions).toEqual(topicQuestions)
+})
+it("caps an oversized valid response at ten questions", async () => {
+  const p = plan(); p.guide.assessments = []
+  m.query.mockResolvedValue([{ data: JSON.stringify({ plan: p, source, drafts: {}, uploadedQuestions: [] }), applied: false }])
+  m.writer.mockResolvedValue("<p>Lesson.</p>")
+  m.chat.mockResolvedValue({ questions: [...topicQuestions, { ...q, question: "Extra question" }] })
+  await draftTutorialTask("mod", "draft", "lesson-0-0")
+  expect(JSON.parse(m.execute.mock.calls[0][2]).questions).toHaveLength(10)
+  expect(m.chat).toHaveBeenCalledOnce()
+})
+it("reserves a place for a missing written question in a mixed topic quiz", async () => {
+  const p = plan(); p.guide.assessments[0].format = "mixed"
+  m.query.mockResolvedValue([{ data: JSON.stringify({ plan: p, source, drafts: {}, uploadedQuestions: [] }), applied: false }])
+  m.writer.mockResolvedValue("<p>Lesson.</p>")
+  const written = { question: "Explain binary conversion.", kind: "written", difficulty: "medium", marks: 2, options: [], correctOption: "", modelAnswer: "Private answer", rubric: [{ criterion: "Working", marks: 2 }] }
+  m.chat.mockResolvedValueOnce({ questions: topicQuestions }).mockResolvedValueOnce({ questions: [written] })
+  await draftTutorialTask("mod", "draft", "lesson-0-0")
+  expect(JSON.parse(m.chat.mock.calls[1][0].user)).toMatchObject({ requiredQuestionCount: 1, missingQuestionKinds: ["written"] })
+  const saved = JSON.parse(m.execute.mock.calls[0][2])
+  expect(saved.questions).toHaveLength(10)
+  expect(saved.questions[9].kind).toBe("written")
 })

@@ -1,5 +1,6 @@
 import { getModuleAssessments, type SavedExam } from "@/lib/module-assessments"
 import { prisma } from "@/lib/prisma"
+import { chapterQuizPoolSize } from "./chapter-quiz-pool"
 
 /**
  * Quiz tracking for a student in a module: every topic quiz, chapter quiz and
@@ -210,7 +211,9 @@ export async function moduleProgress(userId: string, moduleId: string): Promise<
 
   const chapters: ChapterProgress[] = mod.chapters.map(ch => {
     const topics = ch.topics.map(t => ({ id: t.id, title: t.title, questions: assessments?.retiredQuestionIds ? t._count.questions : assessments?.topicPools[t.id]?.length ?? t._count.questions, stats: statsOf(items(`topic:${t.id}`)) }))
-    const pool = Math.max(0, ch._count.questions)
+    // Chapter practice uses all active lesson-topic questions, including uploads
+    // added after an older explicit topic pool was saved.
+    const pool = chapterQuizPoolSize(ch._count.questions, ch.topics.map(t => ({ title: t.title, questions: t._count.questions })))
     const quizSize = Math.min(CHAPTER_QUIZ_SIZE, pool)
     // The chapter's own pace: its chapter quizzes, else its topic quizzes, else the module's
     const chapterPace =

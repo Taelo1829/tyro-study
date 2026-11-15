@@ -61,19 +61,19 @@ it("keeps every uploaded assignment question and source order despite quiz size 
 })
 
 
-describe("separate chapter quizzes", () => {
- it("uses only dedicated chapter questions despite legacy topic pools", async () => {
+describe("chapter quizzes from chapter and topic pools", () => {
+ it("uses chapter and lesson-topic questions despite legacy topic pools", async () => {
   mocks.config.mockResolvedValue({ topicPools: { topic: ["topic-q"] }, chapterPools: { chapter: ["topic-q"] } })
   mocks.questions.mockResolvedValue([
    { ...question("chapter-q", ["a", "b"]), chapterId: "chapter" },
-   { ...question("topic-q", ["c", "d"]), chapterId: "chapter", topicId: "topic" },
+   { ...question("topic-q", ["c", "d"]), chapterId: null, topicId: "topic", topic: { id: "topic", title: "Lesson", chapterId: "chapter", chapter: { title: "Chapter", moduleId: "module", module: { title: "Module" } } } },
   ])
   const response = await POST(request({ moduleId: undefined, chapterId: "chapter" }))
   expect(response.status).toBe(200)
-  expect((await response.json()).data.questions.map((q: { id: string }) => q.id)).toEqual(["chapter-q"])
-  expect(mocks.questions).toHaveBeenCalledWith(expect.objectContaining({ where: { chapterId: "chapter", topicId: null } }))
+  expect((await response.json()).data.questions.map((q: { id: string }) => q.id).sort()).toEqual(["chapter-q", "topic-q"])
+  expect(mocks.questions).toHaveBeenCalledWith(expect.objectContaining({ where: { OR: expect.arrayContaining([{ chapterId: "chapter", topicId: null }, expect.objectContaining({ topic: expect.objectContaining({ chapterId: "chapter" }) })]) } }))
  })
- it("does not fall back to topic questions when no chapter questions exist", async () => {
+ it("reports unavailable only when neither chapter nor topic questions exist", async () => {
   mocks.questions.mockResolvedValue([])
   const response = await POST(request({ moduleId: undefined, chapterId: "chapter" }))
   expect(response.status).toBe(404)
@@ -83,7 +83,7 @@ describe("separate chapter quizzes", () => {
   expect((await POST(request({ moduleId: undefined, chapterId: "chapter", questionIds: ["topic-q"] }))).status).toBe(400)
   expect(mocks.create).not.toHaveBeenCalled()
  })
- it("abandons an old mixed chapter attempt instead of resuming topic questions", async () => {
+ it("abandons a chapter attempt containing a question outside its lesson topics", async () => {
   mocks.open.mockResolvedValue([{ id: "old", startedAt: new Date(), settings: "{}", questionsData: JSON.stringify([{ id: "topic-q" }]), questionAttempts: [] }])
   mocks.questions.mockResolvedValueOnce([{ ...question("topic-q", ["a", "b"]), topicId: "topic", chapterId: "chapter" }]).mockResolvedValueOnce([])
   const response = await POST(request({ moduleId: undefined, chapterId: "chapter", fresh: false }))
@@ -93,7 +93,7 @@ describe("separate chapter quizzes", () => {
 })
 
 describe("practice question priorities", () => {
- const topic = { id: "topic", title: "Topic", chapter: { title: "Chapter", moduleId: "module", module: { title: "Module" } } }
+ const topic = { id: "topic", title: "Topic", chapterId: "chapter", chapter: { title: "Chapter", moduleId: "module", module: { title: "Module" } } }
  const pool = (prefix: string, count: number) => Array.from({ length: count }, (_, i) => ({ ...question(`${prefix}${i}`, [`${prefix}${i}-a`, `${prefix}${i}-b`]), topic, topicId: "topic" }))
  function history(answered: string[], uploaded: string[], written: string[] = []) {
   mocks.raw.mockImplementation(async (sql: TemplateStringsArray) => {
@@ -118,6 +118,30 @@ describe("practice question priorities", () => {
   expect(ids).toHaveLength(20)
   expect(new Set(ids.slice(0, 15))).toEqual(new Set(pool("new", 15).map(q => q.id)))
   expect(ids.slice(15).every(id => id.startsWith("answered"))).toBe(true)
+ })
+ it("builds a chapter quiz entirely from topic questions with upload and answer priorities", async () => {
+  const newUploads = pool("new-upload", 5)
+  const newGenerated = pool("new-generated", 5)
+  const oldUploads = pool("old-upload", 5)
+  const oldGenerated = pool("old-generated", 10)
+  mocks.questions.mockResolvedValue([...oldGenerated, ...oldUploads, ...newGenerated, ...newUploads])
+  history([...oldUploads, ...oldGenerated].map(q => q.id), [...newUploads, ...oldUploads].map(q => q.id))
+  const ids = await start({ chapterId: "chapter" })
+  expect(ids).toHaveLength(20)
+  expect(new Set(ids.slice(0, 5))).toEqual(new Set(newUploads.map(q => q.id)))
+  expect(new Set(ids.slice(5, 10))).toEqual(new Set(newGenerated.map(q => q.id)))
+  expect(new Set(ids.slice(10, 15))).toEqual(new Set(oldUploads.map(q => q.id)))
+  expect(ids.slice(15).every(id => id.startsWith("old-generated"))).toBe(true)
+  expect(new Set(ids).size).toBe(20)
+ })
+ it("resumes chapter practice using the original topic question IDs", async () => {
+  const questions = pool("saved", 1)
+  mocks.questions.mockResolvedValue(questions)
+  mocks.open.mockResolvedValue([{ id: "saved-attempt", startedAt: new Date(), totalQuestions: 1, settings: JSON.stringify({ source: "chapter:chapter" }), questionsData: JSON.stringify(questions), questionAttempts: [] }])
+  const response = await POST(request({ moduleId: undefined, chapterId: "chapter", fresh: false }))
+  expect(response.status).toBe(200)
+  expect((await response.json()).data).toMatchObject({ resumed: true, attemptId: "saved-attempt", questions: [{ id: "saved0" }] })
+  expect(mocks.create).not.toHaveBeenCalled()
  })
  it("excludes generated questions when 20 unanswered uploaded questions exist", async () => {
   const uploaded = pool("uploaded", 25)

@@ -14,6 +14,7 @@ import type { Prisma } from "@/prisma/client"
 import { track } from "@/lib/analytics"
 import { captureError } from "@/lib/monitoring"
 import { saveFinalAnswers } from "@/lib/quiz-finish"
+import { belongsToChapterQuiz, chapterQuizQuestionWhere } from "@/lib/chapter-quiz-pool"
 import { log, requestIdFrom } from "@/lib/log"
 
 /** What kind of quiz an attempt is, for analytics: "topic", "chapter", "mock_exam", "module" or "custom" */
@@ -90,7 +91,7 @@ async function resumeAttempt(userId: string, source: string, examVersion?: strin
     const saved = JSON.parse(fresh.questionsData) as { id: string; question: string; difficulty: string; kind?: string; answers: { id: string; answer: string }[] }[]
     const pool = await prisma.question.findMany({ where: { id: { in: saved.map(q => q.id) } }, include: questionInclude })
     const byId = new Map(pool.map(q => [q.id, q]))
-    if (source.startsWith("chapter:") && pool.some(q => q.topicId !== null || q.chapterId !== source.slice("chapter:".length))) {
+    if (source.startsWith("chapter:") && pool.some(q => !belongsToChapterQuiz(q, source.slice("chapter:".length)))) {
         await prisma.quizAttempt.update({ where: { id: fresh.id }, data: { status: "ABANDONED" } })
         return null
     }
@@ -244,16 +245,14 @@ export async function POST(req: NextRequest) {
             })
             quizModuleId = moduleId
         } else if (chapterId) {
-            // Chapter quizzes have their own questions; never borrow topic questions.
+            // Reuse topic question IDs so uploads and answer history carry over.
             questions = await prisma.question.findMany({
-                where: {
-                    chapterId, topicId: null,
-                },
+                where: chapterQuizQuestionWhere(chapterId),
                 include: questionInclude,
             })
         }
 
-        if (chapterId) questions = questions.filter(q => q.chapterId === chapterId && q.topicId === null)
+        if (chapterId) questions = questions.filter(q => belongsToChapterQuiz(q, chapterId))
 
         const pool = topicId ? assessments?.topicPools[topicId] : null
         if (!exam && assessments?.retiredQuestionIds) {
@@ -266,7 +265,7 @@ export async function POST(req: NextRequest) {
 
         if (questions.length === 0) {
             return NextResponse.json(
-                { error: chapterId ? "This chapter quiz is not ready yet. Separate chapter questions must be added first." : "No questions found for this quiz" },
+                { error: chapterId ? "This chapter quiz is not ready yet. Add questions to the chapter or its lesson topics first." : "No questions found for this quiz" },
                 { status: 404 }
             )
         }
@@ -333,9 +332,9 @@ export async function POST(req: NextRequest) {
                 WHERE "userId" = ${user.id} AND "questionId" = ANY(${ids}::text[])
                   AND ("selectedAnswerId" IS NOT NULL OR "typedAnswer" IS NOT NULL)`
             const answered = new Set(answeredRows.map(row => row.questionId))
-            const papers = topicId ? await paperNames(ids) : new Map<string, string>()
+            const papers = await paperNames(ids)
             const priority = (q: PoolQuestion) =>
-                (answered.has(q.id) ? 2 : 0) + (topicId && !papers.has(q.id) ? 1 : 0)
+                (answered.has(q.id) ? 2 : 0) + (!papers.has(q.id) ? 1 : 0)
             // Shuffle within each priority, keeping uploaded unanswered questions
             // ahead of generated fillers, then reuse answered questions if needed.
             finalQuestions = shuffleArray(questions)
