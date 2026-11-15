@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth-session"
+import { plannerEventDisabled } from "@/lib/weekly-planner-settings"
 import {
   deleteCalendarEvent,
   getCalendarEventOwner,
@@ -24,6 +25,7 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   const { completed } = (await request.json().catch(() => ({}))) as { completed?: boolean }
+  if (await plannerEventDisabled(id)) return NextResponse.json({ error: "The weekly planner is turned off for this module." }, { status: 403 })
   if (typeof completed !== "boolean") {
     return NextResponse.json({ error: "completed must be true or false" }, { status: 400 })
   }

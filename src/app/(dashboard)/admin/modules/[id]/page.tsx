@@ -18,6 +18,7 @@ import { ModuleExerciseBuilder } from "@/components/admin/module-exercise-builde
 import { EditModuleButton } from "@/components/admin/edit-module-button"
 import { DeleteModuleButton } from "@/components/admin/delete-module-button"
 import { ModulePublishControl } from "@/components/admin/module-publish-control"
+import { WeeklyPlannerControl } from "@/components/admin/weekly-planner-control"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -119,6 +120,7 @@ export default function AdminModuleDetailPage() {
       </div>
 
       <ModulePublishControl moduleId={id} />
+      <WeeklyPlannerControl key={id} moduleId={id} />
       <UploadedAssignmentList moduleId={id} onDeleted={load} assignments={mod.chapters.flatMap(ch => (ch.assignmentCheckpoints ?? []).filter(a => /^assignment-[a-f0-9]{40}$/.test(a.id)).map(a => ({ ...a, chapter: ch.title })))} />
 
       {showForm && (

@@ -3,6 +3,8 @@ import { del } from "@vercel/blob"
 import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { NoTextError, isTextbookBlobUrl, readTextbookPdf, textbookFromOcr } from "@/lib/ai/textbook"
+import { isPaperLessonTopic } from "@/lib/paper-questions"
+import { lessonSummary } from "@/lib/topic-content-server"
 import { questionsFromPaper } from "@/lib/ai/papers"
 import { captureError } from "@/lib/monitoring"
 
@@ -39,11 +41,11 @@ export async function POST(request: Request) {
       select: {
         title: true,
         description: true,
-        chapters: { orderBy: { order: "asc" }, select: { title: true, topics: { orderBy: { order: "asc" }, select: { id: true, title: true } } } },
+        chapters: { orderBy: { order: "asc" }, select: { title: true, topics: { orderBy: { order: "asc" }, select: { id: true, title: true, content: true } } } },
       },
     })
     if (!mod) return NextResponse.json({ error: "Module not found" }, { status: 404 })
-    const topics = mod.chapters.flatMap((c, ci) => c.topics.map((t, ti) => ({ id: t.id, label: `${ci + 1}.${ti + 1} ${c.title} / ${t.title}` })))
+    const topics = mod.chapters.flatMap((c, ci) => c.topics.filter(isPaperLessonTopic).map((t, ti) => ({ id: t.id, label: `${ci + 1}.${ti + 1} ${c.title} / ${t.title}`, summary: lessonSummary(t.content ?? "").slice(0, 700) })))
     if (topics.length === 0) return NextResponse.json({ error: "Add this module's chapters and topics first, so the questions have somewhere to go." }, { status: 422 })
 
     let pages: string[]

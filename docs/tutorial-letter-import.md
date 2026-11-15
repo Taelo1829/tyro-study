@@ -16,6 +16,14 @@ The new `20261114190000_tutorial_letter_imports` migration must be deployed befo
 - Replacement rejects stale or incomplete drafts and is idempotent. Generation failures keep completed drafts. The student guide endpoint returns only public guidance, never source text, model answers or private rubrics.
 - Historical letter years remain visible. No missing deadlines or exam formats are invented. The supplied COS2621 letter is from 2022, refers to companion Guide 102, and directs students to myUnisa for due dates.
 
-## Validation
+## Student weekly planner
+
+After a reviewed tutorial letter is applied, enrolled students can create a weekly plan from the module page. The planner uses the letter's numbered week ranges and the student's chosen start date. Overlapping ranges share one weekly goal; multi-week reading blocks are presented as staged reading/practice goals, not invented textbook section allocations.
+
+Goals are stored as private study sessions in the existing timetable. Students can mark them complete, view all weeks, and reschedule unfinished goals at one per week while preserving completed work and unrelated calendar events. Catch-up flags appear after the study week ends. Optional reminders use the existing notification service at 09:00 South Africa time; past reminders are not scheduled. These dates are personal targets, never official assignment deadlines. The planner reuses the existing calendar tables. Its per-module admin switch defaults to off and requires migration `20261115090000_weekly_planner_setting`. In Admin → Module, turn on Study guide & weekly planner to make it available. Turning it off hides the student study guide and planner goals from the module and timetable and pauses reminders, while retaining saved progress.
+
+Planner checks: `npm test -- src/lib/weekly-study-plan.test.ts src/app/api/modules/[id]/weekly-plan/route.test.ts`.
+
+## Import validation
 
 `npm test -- src/lib/tutorial-letter.test.ts` covers source validation, checkpoint placement, preservation, stale/incomplete imports, idempotency, format enforcement, resumability and private-answer separation. `npm run typecheck` and focused ESLint checks also apply.

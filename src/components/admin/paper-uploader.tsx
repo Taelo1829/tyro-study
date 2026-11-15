@@ -118,12 +118,12 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
     setStep("saving")
     setError("")
     try {
-      const r = await postJson<{ added: number; skipped: number }>("/api/admin/papers/save", {
+      const r = await postJson<{ added: number; skipped: number; topics: number }>("/api/admin/papers/save", {
         moduleId,
         paper: paper.trim(),
         questions: chosen.map(({ question, options, correctOption, difficulty, topicId }) => ({ question, options, correctOption, difficulty, topicId })),
       })
-      setResult({ ...r, topics: new Set(chosen.map(q => q.topicId)).size })
+      setResult(r)
       setStep("done")
       onAdded()
     } catch (err) {
@@ -153,7 +153,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
               <p className="text-sm text-muted-foreground">
                 Upload a past exam or assignment paper (PDF, with or without its memo). Each question is converted into a
                 multiple-choice question, keeping the paper&apos;s options and memo answers where it has them, and puts it in the
-                topic it tests. You check them before anything is saved. The mock exam asks past-paper questions first.
+                topic it tests. Review or change each topic before saving. Questions are added to those topics’ quiz banks alongside existing questions.
               </p>
               <input
                 ref={inputRef}

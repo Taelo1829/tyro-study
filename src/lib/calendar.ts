@@ -38,6 +38,7 @@ export function listCalendarEvents(userId: string, fromIso: string, toIso: strin
     FROM "calendar_events" e
     LEFT JOIN "modules" m ON m."id" = e."moduleId"
     WHERE e."userId" = ${userId}
+      AND (NOT starts_with(e."id", 'weekly-') OR COALESCE((to_jsonb(m)->>'weeklyPlannerEnabled')::boolean, false))
       AND e."startAt" >= (${fromIso}::timestamptz AT TIME ZONE 'UTC')
       AND e."startAt" <  (${toIso}::timestamptz AT TIME ZONE 'UTC')
     ORDER BY e."startAt" ASC

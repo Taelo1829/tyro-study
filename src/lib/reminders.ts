@@ -86,6 +86,10 @@ export async function sendDueReminders(): Promise<{ due: number; sent: number }>
       WHERE "remindedAt" IS NULL
         AND "remindAt" IS NOT NULL
         AND "completed" = false
+        AND (NOT starts_with("id", 'weekly-') OR EXISTS (
+          SELECT 1 FROM "modules" m WHERE m."id" = "calendar_events"."moduleId"
+            AND COALESCE((to_jsonb(m)->>'weeklyPlannerEnabled')::boolean, false)
+        ))
         AND "remindAt" <= (NOW() AT TIME ZONE 'UTC')
         AND "remindAt" > (NOW() AT TIME ZONE 'UTC') - make_interval(mins => ${MAX_LATE_MINUTES}::int)
       ORDER BY "remindAt"

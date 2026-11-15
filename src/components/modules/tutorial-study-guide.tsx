@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import type { TutorialGuide } from "@/lib/tutorial-letter-types"
+import { WeeklyStudyPlanner } from "./weekly-study-planner"
 
 export function TutorialGuideContent({ guide }: { guide: TutorialGuide }) {
   return <div className="space-y-4 text-sm">
@@ -19,5 +20,5 @@ export function TutorialStudyGuide({ moduleId }: { moduleId: string }) {
     return () => { active = false }
   }, [moduleId])
   if (!guide) return null
-  return <details className="mb-6 rounded-xl border bg-card p-5"><summary className="cursor-pointer text-lg font-semibold">Your study guide <span className="text-sm font-normal text-muted-foreground">· Book, study schedule and assessments</span></summary><div className="mt-4"><TutorialGuideContent guide={guide} /></div></details>
+  return <><WeeklyStudyPlanner key={moduleId} moduleId={moduleId} guide={guide} /><details className="mb-6 rounded-xl border bg-card p-5"><summary className="cursor-pointer text-lg font-semibold">Your study guide <span className="text-sm font-normal text-muted-foreground">· Book, study schedule and assessments</span></summary><div className="mt-4"><TutorialGuideContent guide={guide} /></div></details></>
 }

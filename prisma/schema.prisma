@@ -166,6 +166,7 @@ model VerificationToken {
 }
 
 model Module {
+  weeklyPlannerEnabled Boolean @default(false)
   /// Regenerated quiz pools and a reviewed, source-faithful mock exam template
   assessmentConfig String? @db.Text
   id          String   @id @default(cuid())
