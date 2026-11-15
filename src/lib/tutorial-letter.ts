@@ -69,7 +69,7 @@ export function validateTutorialPlan(plan: TutorialPlan, source: PaperSource, ca
     if (typeof a.selfTest !== "boolean") fail(`${a.title}: selfTest must be true or false.`)
     if (typeof a.weight !== "string") fail(`${a.title}: weight must be the stated weight or the string Not stated.`)
     if (!verifiedQuote(a.evidence, source.text)) {
-      const anchor = tutorialAssessmentEvidence(a.title, source.text)
+      const anchor = tutorialAssessmentEvidence(a.title, source.text, a.evidence)
       // Compact table rows can have fewer than ten alphanumeric characters.
       // This anchor is already scoped to the assessment number and copied
       // directly from the source, so verify the exact substring instead.
@@ -150,7 +150,7 @@ Include every assignment and self-test mentioned, but no mock exam without an ex
       // Use the actual source section as the assessment anchor when its heading
       // can be located deterministically, rather than asking the model to retype it.
       for (const a of raw.guide.assessments) {
-        const evidence = tutorialAssessmentEvidence(a.title, source.text)
+        const evidence = tutorialAssessmentEvidence(a.title, source.text, a.evidence)
         if (evidence) a.evidence = evidence
       }
       if (contentsSource === stallings.url) {

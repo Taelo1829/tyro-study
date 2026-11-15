@@ -115,20 +115,29 @@ it.each([
   ["Quiz 02", "2. Quiz 3 - 4 20%"],
   ["Written 3", "3. Written 1 - 7 20%"],
   ["Written assignment 03", "3. Written 1 - 7 20%"],
+  ["Written 1", "3. Written 1 - 7 20%"],
+  ["Quiz 3", "4. Quiz 5 - 6 20%"],
   ["Quiz 4", "4. Quiz 5 - 6 20%"],
+  ["Quiz 4", "5. Quiz (IRIS invigilation quiz) 1 - 7 20%"],
   ["Quiz 5 (IRIS invigilation quiz)", "5. Quiz (IRIS invigilation quiz) 1 - 7 20%"],
   ["Quiz No. 1", "1. Quiz 1 - 2 20%"],
 ])("validates short assessment row evidence for %s", (title, evidence) => {
-  expect(tutorialAssessmentEvidence(title, assessmentTable)).toBe(evidence)
+  expect(tutorialAssessmentEvidence(title, assessmentTable, evidence)).toBe(evidence)
   const draft = plan()
   draft.guide.assessments[0].title = title
   draft.guide.assessments[0].evidence = evidence
   expect(validateTutorialPlan(draft, { ...source, text: source.text + "\n" + assessmentTable }, catalog, []).guide.assessments[0].evidence).toBe(evidence)
 })
 it("does not match a method-specific title to another assessment method", () => {
-  expect(tutorialAssessmentEvidence("Quiz 3", assessmentTable)).toBeNull()
-  expect(tutorialAssessmentEvidence("Written 1", assessmentTable)).toBeNull()
+  expect(tutorialAssessmentEvidence("Quiz 3", assessmentTable)).toBe("4. Quiz 5 - 6 20%")
+  expect(tutorialAssessmentEvidence("Written 2", assessmentTable)).toBeNull()
   expect(tutorialAssessmentEvidence("Quiz 6", assessmentTable)).toBeNull()
+})
+it("requires a matching quote to disambiguate quiz ordinal and assessment number", () => {
+  expect(tutorialAssessmentEvidence("Quiz 4", assessmentTable)).toBeNull()
+  expect(tutorialAssessmentEvidence("Quiz 4", assessmentTable, "4. Quiz 5 - 6 30%")).toBeNull()
+  expect(tutorialAssessmentEvidence("Quiz 4", assessmentTable, "2. Quiz 3 - 4 20%")).toBeNull()
+  expect(tutorialAssessmentEvidence("Assignment 3", assessmentTable, "4. Quiz 5 - 6 20%")).toBe("3. Written 1 - 7 20%")
 })
 it("handles wrapped table rows without borrowing another assessment's evidence", () => {
   const wrapped = assessmentTable.replace("2. Quiz 3 - 4 20%", "2.\nQuiz\n3 - 4\n20%")

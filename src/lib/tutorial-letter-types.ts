@@ -49,28 +49,39 @@ export function explicitTutorialReading(title: string, source: string) {
 }
 
 /** Locate the original numbered row, without joining the header over other rows. */
-export function tutorialAssessmentEvidence(title: string, source: string): string | null {
+export function tutorialAssessmentEvidence(title: string, source: string, evidence?: unknown): string | null {
   const heading = explicitTutorialReading(title, source).evidence
   if (heading) return heading
   const identity = title.match(/\b(assignment|assessment|quiz|written|mcq|multiple[- ]choice|practical|project|portfolio|test)\s+(?:(?:assignment|assessment|quiz|test)\s+)?(?:no\.?\s*|#\s*)?0*(\d+)\b/i)
   if (!identity) return null
   const [, label, number] = identity
   const matches: string[] = []
+  const quotedMatches: string[] = []
+  const method = (value: string) => value.toLowerCase().replace(/-/g, " ")
+  const compact = (value: string) => value.normalize("NFC").replace(/\s+/g, "").toLowerCase()
+  const generic = /^(assignment|assessment)$/i.test(label)
   for (const header of source.matchAll(/Assessment\s+number\s+Method\s+of\s+assessment/gi)) {
     const start = header.index! + header[0].length
     const following = source.slice(start, start + 6000)
     const sectionEnd = following.search(/\n\s*\d+\.\d+\s+\S/)
     const table = sectionEnd < 0 ? following : following.slice(0, sectionEnd)
     const rows = [...table.matchAll(/^\s*(\d+)[.)]\s+(Quiz|Written|MCQ|Multiple[- ]choice|Practical|Project|Portfolio|Test)\b/gim)]
+    let methodOrdinal = 0
     for (let i = 0; i < rows.length; i++) {
-      if (Number(rows[i][1]) !== Number(number)) continue
-      // A method-specific title must match that row's method as well as number.
-      const method = (value: string) => value.toLowerCase().replace(/-/g, " ")
-      if (!/^(assignment|assessment)$/i.test(label) && method(label) !== method(rows[i][2])) continue
+      const sameMethod = method(label) === method(rows[i][2])
+      if (sameMethod) methodOrdinal++
+      // "Assignment 4" is the table's row number. "Quiz 3" may be
+      // the third quiz (row 4 when a written assessment precedes it).
+      if (generic ? Number(rows[i][1]) !== Number(number) : !sameMethod || (Number(rows[i][1]) !== Number(number) && methodOrdinal !== Number(number))) continue
       const row = table.slice(rows[i].index, rows[i + 1]?.index ?? table.length).trim()
       // Only recognize a complete weighted assessment row, not arbitrary lists.
-      if (row.length <= 600 && /\d+(?:\.\d+)?\s*%\s*$/.test(row)) matches.push(row)
+      if (row.length <= 600 && /\d+(?:\.\d+)?\s*%\s*$/.test(row)) {
+        matches.push(row)
+        if (typeof evidence === "string" && compact(evidence) === compact(row)) quotedMatches.push(row)
+      }
     }
   }
-  return matches.length === 1 ? matches[0] : null
+  // The exact quoted row disambiguates numbering schemes; never guess between
+  // multiple rows or accept a changed weight/outcome range as an exact match.
+  return quotedMatches.length === 1 ? quotedMatches[0] : matches.length === 1 ? matches[0] : null
 }
