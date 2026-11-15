@@ -11,6 +11,7 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs"
 import { useCourseCrumb } from "@/components/modules/use-course-crumb"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { TutorialStudyGuide } from "@/components/modules/tutorial-study-guide"
 
 interface ChapterRow {
   assignmentCheckpoints?: { id: string; title: string }[]
@@ -122,6 +123,7 @@ export default function StudentModulePage() {
         </div>
       )}
 
+      <TutorialStudyGuide moduleId={id} />
       {mod.chapters.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">

@@ -1,0 +1,618 @@
+{
+  "book": "William Stallings, Computer Organization and Architecture: Designing for Performance, Tenth edition, Global Edition (2016)",
+  "url": "https://api.pageplace.de/preview/DT0400.9781292096865_A26551006/preview-9781292096865_A26551006.pdf",
+  "chapters": [
+    {
+      "ref": "1",
+      "title": "Basic Concepts and Computer Evolution",
+      "topics": [
+        {
+          "ref": "1.1",
+          "title": "Organization and Architecture"
+        },
+        {
+          "ref": "1.2",
+          "title": "Structure and Function"
+        },
+        {
+          "ref": "1.3",
+          "title": "A Brief History of Computers"
+        },
+        {
+          "ref": "1.4",
+          "title": "The Evolution of the Intel x86 Architecture"
+        },
+        {
+          "ref": "1.5",
+          "title": "Embedded Systems"
+        },
+        {
+          "ref": "1.6",
+          "title": "Arm Architecture"
+        },
+        {
+          "ref": "1.7",
+          "title": "Cloud Computing"
+        }
+      ]
+    },
+    {
+      "ref": "2",
+      "title": "Performance Issues",
+      "topics": [
+        {
+          "ref": "2.1",
+          "title": "Designing for Performance"
+        },
+        {
+          "ref": "2.2",
+          "title": "Multicore, Mics, and GPGPus"
+        },
+        {
+          "ref": "2.3",
+          "title": "Two Laws that Provide Insight: Ahmdahl’s Law and Little’s Law"
+        },
+        {
+          "ref": "2.4",
+          "title": "Basic Measures of Computer Performance"
+        },
+        {
+          "ref": "2.5",
+          "title": "Calculating the Mean"
+        },
+        {
+          "ref": "2.6",
+          "title": "Benchmarks and Spec"
+        }
+      ]
+    },
+    {
+      "ref": "3",
+      "title": "A Top-Level View of Computer Function and Interconnection",
+      "topics": [
+        {
+          "ref": "3.1",
+          "title": "Computer Components"
+        },
+        {
+          "ref": "3.2",
+          "title": "Computer Function"
+        },
+        {
+          "ref": "3.3",
+          "title": "Interconnection Structures"
+        },
+        {
+          "ref": "3.4",
+          "title": "Bus Interconnection"
+        },
+        {
+          "ref": "3.5",
+          "title": "Point-to-Point Interconnect"
+        },
+        {
+          "ref": "3.6",
+          "title": "PCI Express"
+        }
+      ]
+    },
+    {
+      "ref": "4",
+      "title": "Cache Memory",
+      "topics": [
+        {
+          "ref": "4.1",
+          "title": "Computer Memory System Overview"
+        },
+        {
+          "ref": "4.2",
+          "title": "Cache Memory Principles"
+        },
+        {
+          "ref": "4.3",
+          "title": "Elements of Cache Design"
+        },
+        {
+          "ref": "4.4",
+          "title": "Pentium 4 Cache Organization"
+        }
+      ]
+    },
+    {
+      "ref": "5",
+      "title": "Internal Memory",
+      "topics": [
+        {
+          "ref": "5.1",
+          "title": "Semiconductor Main Memory"
+        },
+        {
+          "ref": "5.2",
+          "title": "Error Correction"
+        },
+        {
+          "ref": "5.3",
+          "title": "DDR DRAM"
+        },
+        {
+          "ref": "5.4",
+          "title": "Flash Memory"
+        },
+        {
+          "ref": "5.5",
+          "title": "Newer Nonvolatile Solid-State Memory Technologies"
+        }
+      ]
+    },
+    {
+      "ref": "6",
+      "title": "External Memory",
+      "topics": [
+        {
+          "ref": "6.1",
+          "title": "Magnetic Disk"
+        },
+        {
+          "ref": "6.2",
+          "title": "RAID"
+        },
+        {
+          "ref": "6.3",
+          "title": "Solid State Drives"
+        },
+        {
+          "ref": "6.4",
+          "title": "Optical Memory"
+        },
+        {
+          "ref": "6.5",
+          "title": "Magnetic Tape"
+        }
+      ]
+    },
+    {
+      "ref": "7",
+      "title": "Input/Output",
+      "topics": [
+        {
+          "ref": "7.1",
+          "title": "External Devices"
+        },
+        {
+          "ref": "7.2",
+          "title": "I/O Modules"
+        },
+        {
+          "ref": "7.3",
+          "title": "Programmed I/O"
+        },
+        {
+          "ref": "7.4",
+          "title": "Interrupt-Driven I/O"
+        },
+        {
+          "ref": "7.5",
+          "title": "Direct Memory Access"
+        },
+        {
+          "ref": "7.6",
+          "title": "Direct Cache Access"
+        },
+        {
+          "ref": "7.7",
+          "title": "I/O Channels and Processors"
+        },
+        {
+          "ref": "7.8",
+          "title": "External Interconnection Standards"
+        },
+        {
+          "ref": "7.9",
+          "title": "IBM zEnterprise EC12 I/O Structure"
+        }
+      ]
+    },
+    {
+      "ref": "8",
+      "title": "Operating System Support",
+      "topics": [
+        {
+          "ref": "8.1",
+          "title": "Operating System Overview"
+        },
+        {
+          "ref": "8.2",
+          "title": "Scheduling"
+        },
+        {
+          "ref": "8.3",
+          "title": "Memory Management"
+        },
+        {
+          "ref": "8.4",
+          "title": "Intel x86 Memory Management"
+        },
+        {
+          "ref": "8.5",
+          "title": "Arm Memory Management"
+        }
+      ]
+    },
+    {
+      "ref": "9",
+      "title": "Number Systems",
+      "topics": [
+        {
+          "ref": "9.1",
+          "title": "The Decimal System"
+        },
+        {
+          "ref": "9.2",
+          "title": "Positional Number Systems"
+        },
+        {
+          "ref": "9.3",
+          "title": "The Binary System"
+        },
+        {
+          "ref": "9.4",
+          "title": "Converting Between Binary and Decimal"
+        },
+        {
+          "ref": "9.5",
+          "title": "Hexadecimal Notation"
+        }
+      ]
+    },
+    {
+      "ref": "10",
+      "title": "Computer Arithmetic",
+      "topics": [
+        {
+          "ref": "10.1",
+          "title": "The Arithmetic and Logic unit"
+        },
+        {
+          "ref": "10.2",
+          "title": "Integer Representation"
+        },
+        {
+          "ref": "10.3",
+          "title": "Integer Arithmetic"
+        },
+        {
+          "ref": "10.4",
+          "title": "Floating-Point Representation"
+        },
+        {
+          "ref": "10.5",
+          "title": "Floating-Point Arithmetic"
+        }
+      ]
+    },
+    {
+      "ref": "11",
+      "title": "Digital Logic",
+      "topics": [
+        {
+          "ref": "11.1",
+          "title": "Boolean Algebra"
+        },
+        {
+          "ref": "11.2",
+          "title": "Gates"
+        },
+        {
+          "ref": "11.3",
+          "title": "Combinational Circuits"
+        },
+        {
+          "ref": "11.4",
+          "title": "Sequential Circuits"
+        },
+        {
+          "ref": "11.5",
+          "title": "Programmable Logic Devices"
+        }
+      ]
+    },
+    {
+      "ref": "12",
+      "title": "Instruction Sets: Characteristics and Functions",
+      "topics": [
+        {
+          "ref": "12.1",
+          "title": "Machine Instruction Characteristics"
+        },
+        {
+          "ref": "12.2",
+          "title": "Types of Operands"
+        },
+        {
+          "ref": "12.3",
+          "title": "Intel x86 and ARM Data Types"
+        },
+        {
+          "ref": "12.4",
+          "title": "Types of Operations"
+        },
+        {
+          "ref": "12.5",
+          "title": "Intel x86 and ARM Operation Types"
+        }
+      ]
+    },
+    {
+      "ref": "13",
+      "title": "Instruction Sets: Addressing Modes and Formats",
+      "topics": [
+        {
+          "ref": "13.1",
+          "title": "Addressing Modes"
+        },
+        {
+          "ref": "13.2",
+          "title": "x86 and ARM Addressing Modes"
+        },
+        {
+          "ref": "13.3",
+          "title": "Instruction Formats"
+        },
+        {
+          "ref": "13.4",
+          "title": "x86 and ARM Instruction Formats"
+        },
+        {
+          "ref": "13.5",
+          "title": "Assembly Language"
+        }
+      ]
+    },
+    {
+      "ref": "14",
+      "title": "Processor Structure and Function",
+      "topics": [
+        {
+          "ref": "14.1",
+          "title": "Processor Organization"
+        },
+        {
+          "ref": "14.2",
+          "title": "Register Organization"
+        },
+        {
+          "ref": "14.3",
+          "title": "Instruction Cycle"
+        },
+        {
+          "ref": "14.4",
+          "title": "Instruction Pipelining"
+        },
+        {
+          "ref": "14.5",
+          "title": "The x86 Processor Family"
+        },
+        {
+          "ref": "14.6",
+          "title": "The ARM Processor"
+        }
+      ]
+    },
+    {
+      "ref": "15",
+      "title": "Reduced Instruction Set Computers",
+      "topics": [
+        {
+          "ref": "15.1",
+          "title": "Instruction Execution Characteristics"
+        },
+        {
+          "ref": "15.2",
+          "title": "The use of a Large Register File"
+        },
+        {
+          "ref": "15.3",
+          "title": "Compiler-Based Register Optimization"
+        },
+        {
+          "ref": "15.4",
+          "title": "Reduced Instruction Set Architecture"
+        },
+        {
+          "ref": "15.5",
+          "title": "RISC Pipelining"
+        },
+        {
+          "ref": "15.6",
+          "title": "MIPS R4000"
+        },
+        {
+          "ref": "15.7",
+          "title": "SPARC"
+        },
+        {
+          "ref": "15.8",
+          "title": "RISC versus CISC Controversy"
+        }
+      ]
+    },
+    {
+      "ref": "16",
+      "title": "Instruction-Level Parallelism and Superscalar Processors",
+      "topics": [
+        {
+          "ref": "16.1",
+          "title": "Overview"
+        },
+        {
+          "ref": "16.2",
+          "title": "Design Issues"
+        },
+        {
+          "ref": "16.3",
+          "title": "Intel Core Microarchitecture"
+        },
+        {
+          "ref": "16.4",
+          "title": "ARM Cortex-A8"
+        },
+        {
+          "ref": "16.5",
+          "title": "ARM Cortex-M3"
+        }
+      ]
+    },
+    {
+      "ref": "17",
+      "title": "Parallel Processing",
+      "topics": [
+        {
+          "ref": "17.1",
+          "title": "Multiple Processor Organizations"
+        },
+        {
+          "ref": "17.2",
+          "title": "Symmetric Multiprocessors"
+        },
+        {
+          "ref": "17.3",
+          "title": "Cache Coherence and the MESI Protocol"
+        },
+        {
+          "ref": "17.4",
+          "title": "Multithreading and Chip Multiprocessors"
+        },
+        {
+          "ref": "17.5",
+          "title": "Clusters"
+        },
+        {
+          "ref": "17.6",
+          "title": "Nonuniform Memory Access"
+        },
+        {
+          "ref": "17.7",
+          "title": "Cloud Computing"
+        }
+      ]
+    },
+    {
+      "ref": "18",
+      "title": "Multicore Computers",
+      "topics": [
+        {
+          "ref": "18.1",
+          "title": "Hardware Performance Issues"
+        },
+        {
+          "ref": "18.2",
+          "title": "Software Performance Issues"
+        },
+        {
+          "ref": "18.3",
+          "title": "Multicore Organization"
+        },
+        {
+          "ref": "18.4",
+          "title": "Heterogeneous Multicore Organization"
+        },
+        {
+          "ref": "18.5",
+          "title": "Intel Core i7-990X"
+        },
+        {
+          "ref": "18.6",
+          "title": "ARM Cortex-A15 MPCore"
+        },
+        {
+          "ref": "18.7",
+          "title": "IBM zEnterprise EC12 Mainframe"
+        }
+      ]
+    },
+    {
+      "ref": "19",
+      "title": "General-Purpose Graphic Processing Units",
+      "topics": [
+        {
+          "ref": "19.1",
+          "title": "Cuda Basics"
+        },
+        {
+          "ref": "19.2",
+          "title": "GPu versus CPu"
+        },
+        {
+          "ref": "19.3",
+          "title": "GPu Architecture Overview"
+        },
+        {
+          "ref": "19.4",
+          "title": "Intel’s Gen8 GPu"
+        },
+        {
+          "ref": "19.5",
+          "title": "When to use a GPu as a Coprocessor"
+        }
+      ]
+    },
+    {
+      "ref": "20",
+      "title": "Control Unit Operation",
+      "topics": [
+        {
+          "ref": "20.1",
+          "title": "Micro-Operations"
+        },
+        {
+          "ref": "20.2",
+          "title": "Control of the Processor"
+        },
+        {
+          "ref": "20.3",
+          "title": "Hardwired Implementation"
+        }
+      ]
+    },
+    {
+      "ref": "21",
+      "title": "Microprogrammed Control",
+      "topics": [
+        {
+          "ref": "21.1",
+          "title": "Basic Concepts"
+        },
+        {
+          "ref": "21.2",
+          "title": "Microinstruction Sequencing"
+        },
+        {
+          "ref": "21.3",
+          "title": "Microinstruction Execution"
+        },
+        {
+          "ref": "21.4",
+          "title": "TI 8800"
+        }
+      ]
+    },
+    {
+      "ref": "B",
+      "title": "Assembly Language and Related Topics",
+      "topics": [
+        {
+          "ref": "B.1",
+          "title": "Assembly Language"
+        },
+        {
+          "ref": "B.2",
+          "title": "Assemblers"
+        },
+        {
+          "ref": "B.3",
+          "title": "Loading and Linking"
+        }
+      ]
+    }
+  ]
+}

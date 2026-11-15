@@ -9,6 +9,7 @@ import { ChevronRight, Plus } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { TextbookUploader } from "@/components/admin/textbook-uploader"
+import { TutorialLetterImporter } from "@/components/admin/tutorial-letter-importer"
 import { PaperUploader } from "@/components/admin/paper-uploader"
 import { UploadedAssignmentList } from "@/components/admin/uploaded-assignment-list"
 import { UploadModuleAssignment } from "@/components/admin/upload-module-assignment"
@@ -99,6 +100,7 @@ export default function AdminModuleDetailPage() {
             chapterCount={mod.chapters.length}
             topicCount={mod.chapters.reduce((n, c) => n + c._count.topics, 0)}
           />
+          <TutorialLetterImporter moduleId={id} onSaved={load} />
           <TextbookUploader moduleId={id} onUploaded={load} />
           <PaperUploader moduleId={id} onAdded={load} />
           <ModuleContentRecreator moduleId={id} onSaved={load} />

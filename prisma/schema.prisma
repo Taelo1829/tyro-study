@@ -173,6 +173,7 @@ model Module {
   description String?
   createdAt   DateTime @default(now())
 
+  tutorialImports TutorialLetterImport[]
   chapters     Chapter[]
   timetables   Timetable[]
   enrollments  ModuleEnrollment[]
@@ -230,6 +231,18 @@ model ModuleEnrollment {
   @@index([userId])
   @@index([moduleId])
   @@map("module_enrollments")
+}
+
+model TutorialLetterImport {
+  id        String   @id
+  moduleId  String
+  data      String   @db.Text
+  applied   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId, createdAt])
+  @@map("tutorial_letter_imports")
 }
 
 model Chapter {

@@ -1,6 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest"
 import { lessonVersion } from "./module-recreation"
-import { assignmentPlacement, assignmentQuizQuestions, saveUploadedAssignment, draftUploadedAssignment } from "./uploaded-assignment"
+import { assignmentPlacement, assignmentQuizQuestions, saveUploadedAssignment, draftUploadedAssignment, extractUploadedAssignment } from "./uploaded-assignment"
 const m = vi.hoisted(() => ({ chat: vi.fn(), transaction: vi.fn(), query: vi.fn(), existing: vi.fn(), chapters: vi.fn(), createTopic: vi.fn(), createQuestion: vi.fn(), createAnswers: vi.fn(), updateTopic: vi.fn(), oldQuestions: vi.fn(), execute: vi.fn(), findTopic: vi.fn(), updateContent: vi.fn() }))
 vi.mock("@/lib/ai/openai", () => ({ chatJson: m.chat }))
 vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: m.transaction } }))
@@ -140,4 +140,24 @@ it("refuses a partial extraction rather than saving an incomplete quiz", async (
  m.chat.mockResolvedValue({ title: "Incomplete", questions: [{ ...questions[0], marks: 2, sourceNumber: 1 }] })
  await expect(draftUploadedAssignment(paper, chapters)).rejects.toThrow("question numbers or marks")
  expect(m.createTopic).not.toHaveBeenCalled()
+})
+
+
+it("keeps original PDF options while resolving the generated answer by index", async () => {
+ const paper = { name: "a.pdf", text: "Question 1\nNot yet answered\nMarked out of 2.00\nWhich choice applies?\na. CPU\nb. all of the above" }
+ m.chat.mockResolvedValue({ title: "Assignment", questions: [{ ...questions[0], sourceNumber: 1, marks: 2, correctOption: "All of the above.", correctOptionIndex: 1 }] })
+ const result = await extractUploadedAssignment(paper)
+ expect(result.questions[0]).toMatchObject({ question: "Which choice applies?", options: ["CPU", "all of the above"], correctOption: "all of the above", marks: 2 })
+})
+it("gives a specific failed answer reference to the extraction retry", async () => {
+ const paper = { name: "a.pdf", text: "Question 1\nMarked out of 2.00\nWhich choice applies?\na. CPU\nb. Memory" }
+ m.chat.mockResolvedValueOnce({ title: "Assignment", questions: [{ ...questions[0], sourceNumber: 1, marks: 2, correctOption: "Unknown" }] })
+  .mockResolvedValueOnce({ title: "Assignment", questions: [{ ...questions[0], sourceNumber: 1, marks: 2, correctOption: "Memory", correctOptionIndex: 1 }] })
+ const result = await extractUploadedAssignment(paper)
+ expect(result.questions[0].correctOption).toBe("Memory")
+ expect(JSON.parse(m.chat.mock.calls[1][0].user).retry).toContain("Question 1")
+})
+
+it("reports the original question number for invalid choices in later batches", () => {
+ expect(() => assignmentQuizQuestions([{ ...questions[0], sourceNumber: 21, options: ["Duplicate", "Duplicate"], correctOption: "Duplicate" }])).toThrow("Question 21")
 })
