@@ -61,11 +61,13 @@ it("rejects fabricated quotes, out-of-syllabus chapters and forgotten uploaded a
   expect(verifiedQuote("Study binary numbers first.", "Study bi\nnary numbers first\n•")).toBe(true)
 })
 const q = { question: "Which value is binary?", options: ["10", "2"], correctOption: "10", kind: "mcq", difficulty: "medium", marks: 1 }
-function setupApply(options: { uploaded?: boolean; incomplete?: boolean; stale?: boolean; applied?: boolean } = {}) {
+const topicQuestions = Array.from({ length: 20 }, (_, i) => ({ ...q, question: `Topic question ${i + 1}` }))
+function setupApply(options: { uploaded?: boolean; incomplete?: boolean; stale?: boolean; applied?: boolean; shortQuiz?: boolean } = {}) {
   const p = plan()
   if (options.uploaded) p.retainedAssignments = [{ id: "existing-upload", title: "Uploaded assignment", chapterRefs: ["1", "2"] }]
   const snapshot = { id: "mod", title: "COS2621", chapters: [{ id: "old", topics: [] }], assessmentConfig: null }
-  const drafts = { "lesson-0-0": { html: "<p>Binary lesson</p>", questions: [q] }, "lesson-1-0": { html: "<p>Memory lesson</p>", questions: [q] }, ...(!options.uploaded && !options.incomplete ? { "assessment-0": { html: "<p>Practice assignment</p>", questions: [q] } } : {}) }
+  const drafts = { "lesson-0-0": { html: "<p>Binary lesson</p>", questions: topicQuestions }, "lesson-1-0": { html: "<p>Memory lesson</p>", questions: topicQuestions }, ...(!options.uploaded && !options.incomplete ? { "assessment-0": { html: "<p>Practice assignment</p>", questions: [q] } } : {}) }
+  if (options.shortQuiz) drafts["lesson-0-0"].questions = [q]
   const data = { plan: p, source, drafts, version: options.stale ? "old-version" : createHash("sha256").update(JSON.stringify(snapshot)).digest("hex") }
   m.query.mockResolvedValueOnce([{ id: "mod" }]).mockResolvedValueOnce([{ data: JSON.stringify(data), applied: options.applied ?? false }]).mockResolvedValueOnce([{ assessmentConfig: null }])
   m.snapshot.mockResolvedValue({ id: snapshot.id, title: snapshot.title, chapters: snapshot.chapters })
@@ -78,6 +80,11 @@ it("blocks incomplete or stale drafts before modifying any chapter", async () =>
 it("rejects edits made after the import preview", async () => {
   setupApply({ stale: true })
   await expect(applyTutorialLetter("mod", "draft")).rejects.toThrow("changed")
+  expect(m.createChapter).not.toHaveBeenCalled()
+})
+it("blocks applying old topic quizzes with fewer than 20 questions", async () => {
+  setupApply({ shortQuiz: true })
+  await expect(applyTutorialLetter("mod", "draft")).rejects.toThrow("20 quiz questions")
   expect(m.createChapter).not.toHaveBeenCalled()
 })
 it("retains and repositions uploaded assignments without generating letter assignments", async () => {
@@ -109,16 +116,18 @@ it("retries an incorrect question format and saves only the validated written dr
   const data = { plan: plan(), source, drafts: {}, uploadedQuestions: [] }
   m.query.mockResolvedValue([{ data: JSON.stringify(data), applied: false }])
   m.writer.mockResolvedValue("<p>Binary numbers use two digits.</p>")
-  m.chat.mockResolvedValueOnce({ questions: [q] }).mockResolvedValueOnce({ questions: [{ question: "Explain a binary conversion. Upload your working.", kind: "written", difficulty: "medium", marks: 2, options: [], correctOption: "", modelAnswer: "Private answer", rubric: [{ criterion: "Working", marks: 2 }] }] })
+  const writtenBatch = (offset: number) => Array.from({ length: 10 }, (_, i) => ({ question: `Explain binary conversion ${offset + i}. Upload your working.`, kind: "written", difficulty: "medium", marks: 2, options: [], correctOption: "", modelAnswer: "Private answer", rubric: [{ criterion: "Working", marks: 2 }] }))
+  m.chat.mockResolvedValueOnce({ questions: topicQuestions.slice(0, 10) }).mockResolvedValueOnce({ questions: writtenBatch(0) }).mockResolvedValueOnce({ questions: writtenBatch(10) })
   await draftTutorialTask("mod", "draft", "lesson-0-0")
-  expect(m.chat).toHaveBeenCalledTimes(2)
+  expect(m.chat).toHaveBeenCalledTimes(3)
   expect(m.execute).toHaveBeenCalledOnce()
   expect(m.execute.mock.calls[0][2]).toContain("Private answer")
+  expect(JSON.parse(m.execute.mock.calls[0][2]).questions).toHaveLength(20)
   expect(m.createTopic).not.toHaveBeenCalled()
 })
 
 it("failed generation saves nothing and retains existing drafts for retry", async () => {
-  const data = { plan: plan(), source, drafts: { "lesson-0-0": { html: "Complete", questions: [q] } }, uploadedQuestions: [] }
+  const data = { plan: plan(), source, drafts: { "lesson-0-0": { html: "Complete", questions: topicQuestions } }, uploadedQuestions: [] }
   m.query.mockResolvedValue([{ data: JSON.stringify(data), applied: false }])
   m.writer.mockResolvedValue("<p>Memory content.</p>")
   m.chat.mockRejectedValue(new Error("Connection failed"))
@@ -126,4 +135,26 @@ it("failed generation saves nothing and retains existing drafts for retry", asyn
   expect(m.execute).not.toHaveBeenCalled()
   await draftTutorialTask("mod", "draft", "lesson-0-0")
   expect(m.writer).toHaveBeenCalledOnce()
+})
+
+it("upgrades a short quiz to 20 questions while reusing its completed lesson", async () => {
+  const p = plan(); p.guide.assessments = []
+  const data = { plan: p, source, drafts: { "lesson-0-0": { html: "<p>Keep this lesson.</p>", questions: [q] } }, uploadedQuestions: [] }
+  m.query.mockResolvedValue([{ data: JSON.stringify(data), applied: false }])
+  m.chat.mockResolvedValueOnce({ questions: topicQuestions.slice(0, 10) }).mockResolvedValueOnce({ questions: topicQuestions.slice(10) })
+  await draftTutorialTask("mod", "draft", "lesson-0-0")
+  const saved = JSON.parse(m.execute.mock.calls[0][2])
+  expect(saved.html).toBe("<p>Keep this lesson.</p>")
+  expect(saved.questions).toHaveLength(20)
+  expect(m.writer).not.toHaveBeenCalled()
+  expect(JSON.parse(m.chat.mock.calls[1][0].user).existingQuestions).toHaveLength(10)
+})
+
+it("rejects duplicate questions across batches and does not save an incomplete quiz", async () => {
+  const p = plan(); p.guide.assessments = []
+  m.query.mockResolvedValue([{ data: JSON.stringify({ plan: p, source, drafts: {}, uploadedQuestions: [] }), applied: false }])
+  m.writer.mockResolvedValue("<p>Lesson.</p>")
+  m.chat.mockResolvedValue({ questions: topicQuestions.slice(0, 10) })
+  await expect(draftTutorialTask("mod", "draft", "lesson-0-0")).rejects.toThrow("distinct")
+  expect(m.execute).not.toHaveBeenCalled()
 })
