@@ -169,7 +169,7 @@ it("rejects a note if any excerpt changes a fact, invents text, or stitches clau
   expect(verifiedNoteEvidence("To gain admission to the examination, the examination will count 80% towards the final module mark.", assessmentSource)).toBeNull()
   expect(verifiedNoteEvidence([], assessmentSource)).toBeNull()
 })
-const topicQuestions = Array.from({ length: 20 }, (_, i) => ({ ...q, question: `Topic question ${i + 1}` }))
+const topicQuestions = Array.from({ length: 10 }, (_, i) => ({ ...q, question: `Topic question ${i + 1}` }))
 function setupApply(options: { uploaded?: boolean; incomplete?: boolean; stale?: boolean; applied?: boolean; shortQuiz?: boolean } = {}) {
   const p = plan()
   if (options.uploaded) p.retainedAssignments = [{ id: "existing-upload", title: "Uploaded assignment", chapterRefs: ["1", "2"] }]
@@ -190,9 +190,9 @@ it("rejects edits made after the import preview", async () => {
   await expect(applyTutorialLetter("mod", "draft")).rejects.toThrow("changed")
   expect(m.createChapter).not.toHaveBeenCalled()
 })
-it("blocks applying old topic quizzes with fewer than 20 questions", async () => {
+it("blocks applying old topic quizzes with fewer than 10 questions", async () => {
   setupApply({ shortQuiz: true })
-  await expect(applyTutorialLetter("mod", "draft")).rejects.toThrow("20 quiz questions")
+  await expect(applyTutorialLetter("mod", "draft")).rejects.toThrow("10 quiz questions")
   expect(m.createChapter).not.toHaveBeenCalled()
 })
 it("retains and repositions uploaded assignments without generating letter assignments", async () => {
@@ -225,12 +225,12 @@ it("retries an incorrect question format and saves only the validated written dr
   m.query.mockResolvedValue([{ data: JSON.stringify(data), applied: false }])
   m.writer.mockResolvedValue("<p>Binary numbers use two digits.</p>")
   const writtenBatch = (offset: number) => Array.from({ length: 10 }, (_, i) => ({ question: `Explain binary conversion ${offset + i}. Upload your working.`, kind: "written", difficulty: "medium", marks: 2, options: [], correctOption: "", modelAnswer: "Private answer", rubric: [{ criterion: "Working", marks: 2 }] }))
-  m.chat.mockResolvedValueOnce({ questions: topicQuestions.slice(0, 10) }).mockResolvedValueOnce({ questions: writtenBatch(0) }).mockResolvedValueOnce({ questions: writtenBatch(10) })
+  m.chat.mockResolvedValueOnce({ questions: topicQuestions.slice(0, 10) }).mockResolvedValueOnce({ questions: writtenBatch(0) })
   await draftTutorialTask("mod", "draft", "lesson-0-0")
-  expect(m.chat).toHaveBeenCalledTimes(3)
+  expect(m.chat).toHaveBeenCalledTimes(2)
   expect(m.execute).toHaveBeenCalledOnce()
   expect(m.execute.mock.calls[0][2]).toContain("Private answer")
-  expect(JSON.parse(m.execute.mock.calls[0][2]).questions).toHaveLength(20)
+  expect(JSON.parse(m.execute.mock.calls[0][2]).questions).toHaveLength(10)
   expect(m.createTopic).not.toHaveBeenCalled()
 })
 
@@ -245,24 +245,41 @@ it("failed generation saves nothing and retains existing drafts for retry", asyn
   expect(m.writer).toHaveBeenCalledOnce()
 })
 
-it("upgrades a short quiz to 20 questions while reusing its completed lesson", async () => {
+it("upgrades a short quiz to 10 questions while reusing its completed lesson", async () => {
   const p = plan(); p.guide.assessments = []
   const data = { plan: p, source, drafts: { "lesson-0-0": { html: "<p>Keep this lesson.</p>", questions: [q] } }, uploadedQuestions: [] }
   m.query.mockResolvedValue([{ data: JSON.stringify(data), applied: false }])
-  m.chat.mockResolvedValueOnce({ questions: topicQuestions.slice(0, 10) }).mockResolvedValueOnce({ questions: topicQuestions.slice(10) })
+  m.chat.mockResolvedValueOnce({ questions: topicQuestions.slice(0, 10) })
   await draftTutorialTask("mod", "draft", "lesson-0-0")
   const saved = JSON.parse(m.execute.mock.calls[0][2])
   expect(saved.html).toBe("<p>Keep this lesson.</p>")
-  expect(saved.questions).toHaveLength(20)
+  expect(saved.questions).toHaveLength(10)
   expect(m.writer).not.toHaveBeenCalled()
-  expect(JSON.parse(m.chat.mock.calls[1][0].user).existingQuestions).toHaveLength(10)
+  expect(m.chat).toHaveBeenCalledOnce()
+  expect(JSON.parse(m.chat.mock.calls[0][0].user).requiredQuestionCount).toBe(10)
 })
 
-it("rejects duplicate questions across batches and does not save an incomplete quiz", async () => {
+it("rejects duplicate questions within the batch and does not save an incomplete quiz", async () => {
   const p = plan(); p.guide.assessments = []
   m.query.mockResolvedValue([{ data: JSON.stringify({ plan: p, source, drafts: {}, uploadedQuestions: [] }), applied: false }])
   m.writer.mockResolvedValue("<p>Lesson.</p>")
-  m.chat.mockResolvedValue({ questions: topicQuestions.slice(0, 10) })
+  m.chat.mockResolvedValue({ questions: [...topicQuestions.slice(0, 9), topicQuestions[0]] })
   await expect(draftTutorialTask("mod", "draft", "lesson-0-0")).rejects.toThrow("distinct")
+  expect(m.execute).not.toHaveBeenCalled()
+})
+it("keeps previously completed 20-question drafts without regenerating them", async () => {
+  const questions = Array.from({ length: 20 }, (_, i) => ({ ...q, question: `Existing question ${i}` }))
+  m.query.mockResolvedValue([{ data: JSON.stringify({ plan: plan(), source, drafts: { "lesson-0-0": { html: "<p>Existing lesson.</p>", questions } }, uploadedQuestions: [] }), applied: false }])
+  const result = await draftTutorialTask("mod", "draft", "lesson-0-0")
+  expect(result.tasks.find(t => t.key === "lesson-0-0")?.complete).toBe(true)
+  expect(m.chat).not.toHaveBeenCalled()
+  expect(m.execute).not.toHaveBeenCalled()
+})
+it("still rejects incomplete generated topic quizzes with fewer than ten questions", async () => {
+  const p = plan(); p.guide.assessments = []
+  m.query.mockResolvedValue([{ data: JSON.stringify({ plan: p, source, drafts: {}, uploadedQuestions: [] }), applied: false }])
+  m.writer.mockResolvedValue("<p>Lesson.</p>")
+  m.chat.mockResolvedValue({ questions: topicQuestions.slice(0, 9) })
+  await expect(draftTutorialTask("mod", "draft", "lesson-0-0")).rejects.toThrow("Return exactly 10 questions for the complete topic quiz.")
   expect(m.execute).not.toHaveBeenCalled()
 })

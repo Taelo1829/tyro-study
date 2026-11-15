@@ -1,4 +1,4 @@
-export const TUTORIAL_TOPIC_QUIZ_SIZE = 20
+export const TUTORIAL_TOPIC_QUIZ_SIZE = 10
 export interface BookChapter { ref: string; title: string; topics: { ref: string; title: string }[] }
 export interface TutorialNote { text: string; evidence: string | string[] }
 export interface TutorialAssessment {
