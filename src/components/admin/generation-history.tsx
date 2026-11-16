@@ -27,7 +27,6 @@ export function GenerationHistory() {
         const response = await fetch("/api/generation", { cache: "no-store" })
         if (!response.ok) throw new Error("Could not load generation activity")
         const rows = await response.json()
-        console.log(rows)
         if (active) setJobs(rows)
       } catch (error) { if (active) setError(error instanceof Error ? error.message : "Could not load jobs") }
       finally { if (active) setLoading(false) }
