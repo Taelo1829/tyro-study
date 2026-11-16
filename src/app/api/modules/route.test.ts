@@ -11,9 +11,19 @@ vi.mock("@/lib/levels-server", () => ({ getUserLevel: async () => "tertiary", mo
 beforeEach(() => {
  vi.resetAllMocks()
  m.modules.mockResolvedValue([
-  { id: "joined", title: "Joined module", enrollments: [{ id: "enrollment", enrolledAt: new Date() }] },
-  { id: "available", title: "Available module", enrollments: [] },
+  { id: "joined", title: "Joined module", createdAt: new Date("2026-11-15"), enrollments: [{ id: "enrollment", enrolledAt: new Date() }] },
+  { id: "available", title: "Available module", createdAt: new Date("2026-11-14"), enrollments: [] },
  ])
+})
+it("returns the most recently modified module first, even when it was created earlier", async () => {
+ m.opened.mockResolvedValueOnce([
+  { id: "joined", updatedAt: new Date("2026-11-15") },
+  { id: "available", updatedAt: new Date("2026-11-16") },
+ ]).mockResolvedValueOnce([])
+ const response = await GET(new Request("http://localhost/api/modules"))
+ const result = await response.json()
+ expect(result.map((row: { id: string }) => row.id)).toEqual(["available", "joined"])
+ expect(result[0].updatedAt).toBe("2026-11-16T00:00:00.000Z")
 })
 it("returns joined and browse modules even before the last-opened migration", async () => {
  m.opened.mockRejectedValue(new Error('column "lastOpenedAt" does not exist'))

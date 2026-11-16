@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
 import { savePaperQuestions } from "@/lib/paper-questions"
-import { RecreationInputError } from "@/lib/module-recreation-input"
+import { isRecreationInputError } from "@/lib/module-recreation-input"
+import { recreationFailure } from "@/lib/recreation-error"
 
 export const runtime = "nodejs"
 export const maxDuration = 120
@@ -15,8 +16,9 @@ export async function POST(request: Request) {
   if (!Array.isArray(body.lessons) || !body.lessons.length) return NextResponse.json({ error: "Prepare and review the targeted lesson updates before saving this paper." }, { status: 400 })
   try { return NextResponse.json(await savePaperQuestions(body.moduleId, paper, body.questions, body.lessons)) }
   catch (error) {
-    if (error instanceof RecreationInputError) return NextResponse.json({ error: error.message }, { status: 400 })
+    if (isRecreationInputError(error)) return NextResponse.json({ error: error.message }, { status: 400 })
     console.error("Question paper save failed", error)
-    return NextResponse.json({ error: "Could not add the paper questions. Nothing was saved. Please retry." }, { status: 500 })
+    const failure = recreationFailure(error, "save")
+    return NextResponse.json({ error: failure.error || "Could not add the paper questions. Nothing was saved. Please retry." }, { status: failure.status })
   }
 }

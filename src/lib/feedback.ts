@@ -37,6 +37,15 @@ export async function createFeedback(input: { userId: string; kind: FeedbackKind
   return id
 }
 
+/** Open question reports remain in the daily digest until admin triage resolves them. */
+export async function flaggedQuestions() {
+  const items = await prisma.$queryRaw<{ id: string; questionId: string; message: string; page: string | null; createdAt: Date; total: number }[]>`
+    SELECT "id", "questionId", "message", "page", "createdAt", COUNT(*) OVER()::int AS total
+    FROM "feedback" WHERE "questionId" IS NOT NULL AND "status" IN ('new', 'planned')
+    ORDER BY "createdAt" DESC LIMIT 50`
+  return { total: items[0]?.total ?? 0, items }
+}
+
 /** For admins. `status` "open" = new + planned. */
 export async function listFeedback(status: FeedbackStatus | "open" | "all" = "open", limit = 200): Promise<FeedbackRow[]> {
   try {

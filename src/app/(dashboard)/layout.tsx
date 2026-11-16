@@ -9,6 +9,7 @@ import { PresenceProvider } from "@/components/providers/presence-provider"
 import { InstallPrompt } from "@/components/pwa/install-prompt"
 import { DesktopNotepad } from "@/components/layout/desktop-notepad"
 import { GenerationActivity } from "@/components/admin/generation-activity"
+import { NotificationSound } from "@/components/notifications/notification-sound"
 
 export default async function DashboardLayout({
   children,
@@ -44,6 +45,7 @@ export default async function DashboardLayout({
         <DesktopNotepad />
         {/* "Install Tyro Study" pop-up, until the app is installed */}
         <InstallPrompt />
+        <NotificationSound />
         {isAdmin && <GenerationActivity />}
       </div>
     </PresenceProvider>

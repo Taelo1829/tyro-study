@@ -7,6 +7,7 @@ import { isPaperLessonTopic } from "@/lib/paper-questions"
 import { lessonSummary } from "@/lib/topic-content-server"
 import { questionsFromPaper } from "@/lib/ai/papers"
 import { captureError } from "@/lib/monitoring"
+import { readWordPaper } from "@/lib/word-paper"
 
 /**
  * POST { moduleId, url } or { moduleId, ocr: { pages } } (a scanned paper read
@@ -55,7 +56,10 @@ export async function POST(request: Request) {
       const res = await fetch(pdfUrl!)
       if (!res.ok) return NextResponse.json({ error: "Couldn't download the uploaded paper. Upload it again." }, { status: 410 })
       try {
-        pages = (await readTextbookPdf(Buffer.from(await res.arrayBuffer()))).pages
+        const buffer = Buffer.from(await res.arrayBuffer())
+        const isWord = res.headers.get("content-type")?.split(";")[0] === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          || /\.docx$/i.test(new URL(pdfUrl!).pathname)
+        pages = isWord ? [await readWordPaper(buffer)] : (await readTextbookPdf(buffer)).pages
       } catch (err) {
         if (!(err instanceof NoTextError)) throw err
         // Keep the stored PDF for the background OCR continuation.
@@ -72,7 +76,7 @@ export async function POST(request: Request) {
 
     const result = await questionsFromPaper({ pages, module: mod, topics })
     if (result.questions.length === 0) {
-      return NextResponse.json({ error: "No questions were found in that PDF. Is it a question paper?" }, { status: 422 })
+      return NextResponse.json({ error: "No questions were found in that document. Is it a question paper?" }, { status: 422 })
     }
     return NextResponse.json({ ...result, topics, source: { name: result.paper || "Question paper", text: pages.join("\n\n") } })
   } catch (err) {

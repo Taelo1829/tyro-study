@@ -19,7 +19,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Modal, ModalBody, ModalHeader } from "@/components/admin/modal"
 import { toast } from "@/hooks/use-toast"
-import { askForNotificationsOnTap, usePushNotifications } from "@/hooks/use-push-notifications"
+import { usePushNotifications } from "@/hooks/use-push-notifications"
 import { cn } from "@/lib/utils"
 
 // ─── Types & constants ───────────────────────────────────────────────────────
@@ -529,9 +529,6 @@ function EventForm({
   async function submit(event: React.FormEvent) {
     event.preventDefault()
     setError("")
-    // A reminder needs notifications: offer them now, while this tap still
-    // counts as the student's own action (browsers only show the prompt then)
-    if (remind !== "none") askForNotificationsOnTap()
 
     let startAt: Date
     let endAt: Date | null = null
@@ -728,12 +725,11 @@ function EventForm({
  * Hidden once they're on (the hook then keeps this device registered).
  */
 function ReminderBanner() {
-  const { supported, enabled, blocked, needsInstall, loading, enable } = usePushNotifications()
+  const { supported, enabled, blocked, needsInstall } = usePushNotifications()
 
   if (enabled) return null
 
   let message: React.ReactNode = null
-  let action: React.ReactNode = null
   if (needsInstall) {
     message = (
       <>
@@ -746,21 +742,7 @@ function ReminderBanner() {
   } else if (blocked) {
     message = "Notifications are blocked for Tyro Study. Allow them in your browser's site settings to get reminders."
   } else {
-    message = "Get a notification before your study sessions, due dates and exams."
-    action = (
-      <Button
-        variant="primary"
-        size="sm"
-        disabled={loading}
-        onClick={async () => {
-          const ok = await enable()
-          if (ok) toast.success("Reminders are on", "You'll be notified before each entry on your timetable")
-          else toast.error("Couldn't turn on reminders", "Check that notifications are allowed for this site")
-        }}
-      >
-        {loading ? "Turning on…" : "Turn on reminders"}
-      </Button>
-    )
+    message = "Use the bell at the top to enable all app notifications, including study sessions, due dates and exam reminders."
   }
 
   return (
@@ -769,7 +751,6 @@ function ReminderBanner() {
         <Bell className="mt-0.5 h-4 w-4 shrink-0" />
         <span>{message}</span>
       </p>
-      {action}
     </Card>
   )
 }

@@ -2,6 +2,14 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 
+// One device subscription covers chat, reminders and every generation stage.
+let subscriptionReady = false
+let subscriptionRequest: Promise<boolean> | null = null
+function publishSubscription(ready: boolean) {
+  subscriptionReady = ready
+  window.dispatchEvent(new Event(PERMISSION_EVENT))
+}
+
 function urlBase64ToUint8Array(value: string) {
   const padded = `${value}${"=".repeat((4 - (value.length % 4)) % 4)}`
   const base64 = padded.replace(/-/g, "+").replace(/_/g, "/")
@@ -34,12 +42,12 @@ function readNeedsInstall() {
  * subscription, and save it on the server. Safe to call again: it reuses the
  * existing subscription.
  */
-async function subscribeThisBrowser(): Promise<boolean> {
+async function registerThisBrowser(): Promise<boolean> {
   const keyRes = await fetch("/api/push/public-key")
   if (!keyRes.ok) return false
 
   const { publicKey } = (await keyRes.json()) as { publicKey: string }
-  const registration = await navigator.serviceWorker.register("/sw.js")
+  const registration = await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" })
   await navigator.serviceWorker.ready
   const existing = await registration.pushManager.getSubscription()
   const subscription =
@@ -57,12 +65,22 @@ async function subscribeThisBrowser(): Promise<boolean> {
   return saveRes.ok
 }
 
+function subscribeThisBrowser(): Promise<boolean> {
+  if (!subscriptionRequest) {
+    subscriptionRequest = registerThisBrowser().then(ok => { publishSubscription(ok); return ok })
+      .catch(error => { publishSubscription(false); throw error })
+      .finally(() => { subscriptionRequest = null })
+  }
+  return subscriptionRequest
+}
+
 async function showEnabledNotification(registration: ServiceWorkerRegistration) {
   await registration.showNotification("Tyro Study", {
-    body: "Notifications are on. You'll hear about new messages and get reminders before your study sessions, due dates and exams.",
+    body: "Notifications are on for Tyro Study: messages, study reminders, questions ready to review, and lessons ready to review.",
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
     tag: "notifications-enabled",
+    silent: false,
     data: { url: "/dashboard" },
   })
 }
@@ -134,8 +152,8 @@ export function usePushNotifications() {
     readPermission,
     () => "default" as NotificationPermission
   )
-  const [requestedPermission, setPermission] = useState<NotificationPermission | null>(null)
-  const permission = requestedPermission ?? browserPermission
+  const permission = browserPermission
+  const subscribed = useSyncExternalStore(subscribePermission, () => subscriptionReady, () => false)
   const supported = useSyncExternalStore(noopSubscribe, isPushSupported, () => false)
   const needsInstall = useSyncExternalStore(noopSubscribe, readNeedsInstall, () => false)
   const [loading, setLoading] = useState(false)
@@ -156,7 +174,7 @@ export function usePushNotifications() {
     setLoading(true)
     try {
       const ok = await turnOnNotifications()
-      setPermission(readPermission())
+      window.dispatchEvent(new Event(PERMISSION_EVENT))
       return ok
     } finally {
       setLoading(false)
@@ -167,7 +185,7 @@ export function usePushNotifications() {
     enable,
     loading,
     permission,
-    enabled: permission === "granted",
+    enabled: permission === "granted" && subscribed,
     /** The user said no; only their browser settings can undo that */
     blocked: permission === "denied",
     supported,

@@ -34,6 +34,15 @@ export async function GET(request: Request) {
     },
   })
 
+  // Compatible with older generated clients and databases awaiting migration.
+  const modifiedRows = await orFallback(() => prisma.$queryRaw<{ id: string; updatedAt: Date }[]>`
+    SELECT "id", COALESCE((to_jsonb(m)->>'updatedAt')::timestamp, "createdAt") AS "updatedAt"
+    FROM "modules" m
+  `, [])
+  const modified = new Map(modifiedRows.map(row => [row.id, row.updatedAt]))
+  const modifiedTime = (m: (typeof modules)[number]) => new Date(modified.get(m.id) ?? m.createdAt).getTime() || 0
+  modules.sort((a, b) => modifiedTime(b) - modifiedTime(a) || a.id.localeCompare(b.id))
+
   const openedRows = userId ? await orFallback(() => prisma.$queryRaw<{ moduleId: string; lastOpenedAt: Date | null }[]>`
     SELECT "moduleId", "lastOpenedAt" FROM "module_enrollments" WHERE "userId" = ${userId}
   `, []) : []
@@ -51,6 +60,7 @@ export async function GET(request: Request) {
     }
     return {
       ...mod,
+      updatedAt: modified.get(m.id) ?? m.createdAt,
       isEnrolled: Boolean(enrollment),
       enrolledAt: enrollment?.enrolledAt ?? null,
       lastOpenedAt: opened.get(m.id) ?? null,

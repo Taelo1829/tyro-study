@@ -10,6 +10,7 @@ import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AnswerExplanation } from "./answer-explanation"
 import { ScratchPad } from "./scratch-pad"
+import { FlagQuestion } from "./flag-question"
 import { MathText } from "@/components/ui/math-text"
 import { TopicContentView } from "@/components/topic/topic-content-view"
 import { CodeWithBlanks } from "@/components/exercises/code-with-blanks"
@@ -662,6 +663,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel, embe
                                                     </div>
                                                 </div>
                                             </div>
+                                            {attemptId && <FlagQuestion key={`${attemptId}:${question.id}`} attemptId={attemptId} questionId={question.id} />}
                                             {result && !result.isCorrect && question.kind !== "written" && attemptId && <AnswerExplanation attemptId={attemptId} questionId={question.id} />}
                                         </div>
                                     )
@@ -741,6 +743,7 @@ export function QuizRunner({ source, title: titleProp, backHref, backLabel, embe
                                 </span>
                             )}
                         </div>
+                        {attemptId && <FlagQuestion key={`${attemptId}:${current.id}`} attemptId={attemptId} questionId={current.id} />}
                         {current.exam && (
                             <div className="mb-4 rounded-xl bg-muted p-3 text-sm">
                                 <p className="font-semibold">{current.exam.section ? `${current.exam.section} · ` : ""}Question {current.exam.label} · {current.exam.marks} marks</p>

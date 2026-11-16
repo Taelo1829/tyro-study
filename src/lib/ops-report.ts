@@ -5,7 +5,7 @@
  * if a table is missing.
  */
 import { prisma } from "@/lib/prisma"
-import { feedbackCounts } from "@/lib/feedback"
+import { feedbackCounts, flaggedQuestions } from "@/lib/feedback"
 import { HEARTBEAT_LIMITS, errorSummary, isStale, listErrorGroups, listHeartbeats, type ErrorGroupRow } from "@/lib/monitoring"
 
 /** Targets at the 75th percentile (Core Web Vitals "good" thresholds; business/02 NFR-01). */
@@ -76,6 +76,7 @@ export async function heartbeatStatus(): Promise<HeartbeatStatus[]> {
 }
 
 export interface OpsReport {
+  questionFlags?: Awaited<ReturnType<typeof flaggedQuestions>>
   generatedAt: Date
   errors: Awaited<ReturnType<typeof errorSummary>>
   errorGroups: ErrorGroupRow[]
@@ -86,15 +87,16 @@ export interface OpsReport {
 }
 
 export async function opsReport(): Promise<OpsReport> {
-  const [errors, errorGroups, heartbeats, activity24h, vitals, feedback24h] = await Promise.all([
+  const [errors, errorGroups, heartbeats, activity24h, vitals, feedback24h, questionFlags] = await Promise.all([
     errorSummary(),
     listErrorGroups(24 * 7),
     heartbeatStatus(),
     activity(24),
     webVitals(7),
     feedbackCounts(1),
+    flaggedQuestions(),
   ])
-  return { generatedAt: new Date(), errors, errorGroups, heartbeats, activity24h, vitals, feedback24h }
+  return { generatedAt: new Date(), errors, errorGroups, heartbeats, activity24h, vitals, feedback24h, questionFlags }
 }
 
 export function formatVital(metric: string, value: number): string {
@@ -114,10 +116,15 @@ export function digestText(r: OpsReport, siteUrl: string): { subject: string; te
   const activeGroups = r.errorGroups.filter(g => new Date(g.lastSeenAt) > day)
   const stale = r.heartbeats.filter(h => h.stale && h.name !== "cron:daily-digest")
   const slowVitals = r.vitals.overall.filter(v => ["LCP", "INP", "CLS"].includes(v.metric) && v.samples >= 20 && !vitalOk(v.metric, v.p75))
-  const needsAttention = newGroups.length > 0 || stale.length > 0 || slowVitals.length > 0
+  const needsAttention = newGroups.length > 0 || stale.length > 0 || slowVitals.length > 0 || (r.questionFlags?.total ?? 0) > 0
 
   const lines: string[] = []
   lines.push(needsAttention ? "NEEDS ATTENTION" : "All quiet.", "")
+  if (r.questionFlags?.total) {
+    lines.push(`FLAGGED QUESTIONS: ${r.questionFlags.total} open reports`, "")
+    for (const flag of r.questionFlags.items) lines.push(flag.message, `Review: ${siteUrl}/admin/feedback`, "")
+    if (r.questionFlags.total > r.questionFlags.items.length) lines.push("More reports are available in Admin → Feedback.", "")
+  }
   if (stale.length) {
     lines.push("Scheduled jobs not running:")
     for (const h of stale) lines.push(`  - ${h.name}: last success ${h.minutesSinceOk === null ? "never" : `${h.minutesSinceOk} min ago`} (limit ${h.limitMinutes} min)${h.lastError ? `, last error: ${h.lastError}` : ""}`)
@@ -142,6 +149,6 @@ export function digestText(r: OpsReport, siteUrl: string): { subject: string; te
     lines.push("")
   }
   lines.push(`Details: ${siteUrl}/admin/monitoring`)
-  const subject = `Tyro ops: ${needsAttention ? "needs attention" : "all quiet"} (${a.activeStudents} active, ${activeGroups.length} error groups)`
+  const subject = `Tyro Study daily report: ${needsAttention ? "needs attention" : "all quiet"} (${a.activeStudents} active${r.questionFlags?.total ? `, ${r.questionFlags.total} question reports` : ""}, ${activeGroups.length} error groups)`
   return { subject, text: lines.join("\n"), needsAttention }
 }

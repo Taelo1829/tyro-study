@@ -10,7 +10,20 @@ export interface RecreatedQuestion extends GeneratedQuestion {
   kind?: "mcq" | "written"; marks?: number; rubric?: { criterion: string; marks: number }[]; modelAnswer?: string
 }
 export interface LessonReplacement { topicId: string; version: string; html: string; questions?: RecreatedQuestion[]; quizUnchanged?: boolean }
-export class RecreationInputError extends Error {}
+export class RecreationInputError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "RecreationInputError"
+    Object.setPrototypeOf(this, RecreationInputError.prototype)
+  }
+}
+
+export function isRecreationInputError(error: unknown): error is RecreationInputError {
+  return (
+    error instanceof RecreationInputError ||
+    (error instanceof Error && (error.name === "RecreationInputError" || error.constructor.name === "RecreationInputError"))
+  )
+}
 
 export function parsePaperSources(value: unknown): PaperSource[] {
   if (!Array.isArray(value) || !value.length || value.length > MAX_PAPER_FILES) throw new RecreationInputError(`Choose 1–${MAX_PAPER_FILES} papers.`)

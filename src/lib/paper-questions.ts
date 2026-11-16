@@ -35,10 +35,14 @@ export async function savePaperQuestions(moduleId: string, paper: string, input:
     })
     if (!candidates.length) continue
     const existing = topic.questions.filter(q => !retiredIds.has(q.id)).map(q => ({ question: q.question, options: q.answers.map(a => a.answer), correctOption: q.answers.find(a => a.isCorrect)?.answer ?? "" }))
-    const duplicates = await questionDuplicates(candidates, existing)
-    for (const [index, match] of duplicates) {
-      const position = candidates[index].index
-      checked[position] = { ...checked[position], question: match.question, options: match.options, correctOption: match.correctOption }
+    try {
+      const duplicates = await questionDuplicates(candidates, existing)
+      for (const [index, match] of duplicates) {
+        const position = candidates[index].index
+        checked[position] = { ...checked[position], question: match.question, options: match.options, correctOption: match.correctOption }
+      }
+    } catch (err) {
+      console.warn("Semantic duplicate check failed for topic", topic.id, err)
     }
   }
   return prisma.$transaction(async tx => {

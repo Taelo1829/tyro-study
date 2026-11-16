@@ -3,6 +3,7 @@ import { prisma } from "./prisma"
 import { dispatchGeneration } from "./generation-dispatch"
 import { sendPushToUser } from "./web-push"
 import type { GenerationJob, GenerationTask } from "./generation-types"
+import { paperReviewResult } from "./paper-review"
 
 export function generationWorkerSecret() {
   const secret = process.env.CRON_SECRET || process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
@@ -43,13 +44,16 @@ export async function wakeGenerationWorker() {
 }
 
 async function notifyFinished() {
-  const jobs = await prisma.$queryRaw<Pick<GenerationJob, "id" | "userId" | "title" | "status">[]>`SELECT "id", "userId", "title", "status" FROM "generation_jobs" WHERE "status" IN ('COMPLETED','FAILED') AND "notified" = false ORDER BY "updatedAt" LIMIT 20`
+  const jobs = await prisma.$queryRaw<Pick<GenerationJob, "id" | "userId" | "title" | "status" | "tasks" | "results">[]>`SELECT "id", "userId", "title", "status", "tasks", "results" FROM "generation_jobs" WHERE "status" IN ('COMPLETED','FAILED') AND "notified" = false ORDER BY "updatedAt" LIMIT 20`
   for (const job of jobs) {
     try {
+      const paper = paperReviewResult(job)
+      const lessonsReady = job.status === "COMPLETED" && job.tasks.length > 0 && job.tasks.every(task =>
+        task.path === "/api/admin/papers/lesson" || task.path === "/api/ai/generate-lesson")
       await sendPushToUser(job.userId, {
-        title: job.status === "COMPLETED" ? `${job.title} is ready` : `${job.title} needs attention`,
-        body: job.status === "COMPLETED" ? "Open Generation activity to review the results." : "Completed work is saved. Open Generation activity for details.",
-        url: `/admin/generation?job=${job.id}`, tag: `generation-${job.id}`,
+        title: paper ? "Questions ready to review" : lessonsReady ? "Lessons ready to review" : job.status === "COMPLETED" ? `${job.title} is ready` : `${job.title} needs attention`,
+        body: paper ? "Your paper has been read and its questions matched to topics. Review them, then choose Prepare lesson updates." : lessonsReady ? "Your lesson drafts are ready. Open to review the lessons and save the approved updates." : job.status === "COMPLETED" ? "Open Generation activity to review the results." : "Completed work is saved. Open Generation activity for details.",
+        url: paper ? `/admin/modules/${encodeURIComponent(paper.moduleId)}?paperJob=${encodeURIComponent(job.id)}` : `/admin/generation?job=${job.id}`, tag: `generation-${job.id}`,
       })
       await prisma.$executeRaw`UPDATE "generation_jobs" SET "notified" = true WHERE "id" = ${job.id}`
     } catch (error) { console.error("Generation notification failed", error) }

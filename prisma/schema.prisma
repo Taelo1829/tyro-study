@@ -167,6 +167,7 @@ model VerificationToken {
 }
 
 model Module {
+  updatedAt DateTime @default(now()) @updatedAt
   weeklyPlannerEnabled Boolean @default(false)
   /// Regenerated quiz pools and a reviewed, source-faithful mock exam template
   assessmentConfig String? @db.Text
@@ -187,6 +188,7 @@ model Module {
   /// "tertiary" (a university module) or "highschool" (a Grade 11 or 12 subject)
   level          String   @default("tertiary")
 
+  @@index([updatedAt], map: "modules_updatedAt_idx")
   @@map("modules")
 }
 
@@ -695,6 +697,7 @@ model RateLimit {
 
 /// Student feedback from the in-app form (business/12).
 model Feedback {
+  questionId String?
   id         String   @id
   userId     String?
   kind       String

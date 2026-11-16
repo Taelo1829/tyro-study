@@ -34,6 +34,32 @@ beforeEach(async () => {
 })
 afterAll(async () => { await db.close(); vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
+it("notifies when paper questions are ready and links directly to their saved review", async () => {
+  const read = { path: "/api/admin/papers/read", body: { moduleId: "module" } }
+  const job = await enqueueGeneration("owner", "Content generation", [read])
+  m.dispatch.mockResolvedValue({ data: { source: { name: "Exam", text: "Paper" }, questions: [{ question: "Question" }], topics: [{ id: "topic" }] }, next: [] })
+  await runGenerationStep()
+  expect(m.push).toHaveBeenCalledWith("owner", expect.objectContaining({ title: "Questions ready to review", body: expect.stringContaining("Prepare lesson updates"), url: `/admin/modules/module?paperJob=${job.id}` }))
+  await runGenerationStep()
+  expect(m.push).toHaveBeenCalledOnce()
+})
+it("notifies once all paper lessons are drafted and links to review before saving", async () => {
+  const lesson = { path: "/api/admin/papers/lesson", body: { moduleId: "module", topicId: "one" } }
+  const job = await enqueueGeneration("owner", "Question paper lesson updates", [lesson, { ...lesson, body: { ...lesson.body, topicId: "two" } }])
+  m.dispatch.mockResolvedValue({ data: { html: "<p>Lesson draft</p>" }, next: [] })
+  await runGenerationStep()
+  expect(m.push).not.toHaveBeenCalled()
+  await runGenerationStep()
+  expect(m.push).toHaveBeenCalledWith("owner", expect.objectContaining({ title: "Lessons ready to review", body: expect.stringContaining("review the lessons"), url: `/admin/generation?job=${job.id}` }))
+  await runGenerationStep()
+  expect(m.push).toHaveBeenCalledOnce()
+})
+it("does not announce lessons ready when drafting fails", async () => {
+  await enqueueGeneration("owner", "Question paper lesson updates", [{ path: "/api/admin/papers/lesson", body: { moduleId: "module", topicId: "one" } }])
+  m.dispatch.mockRejectedValue(new Error("Draft failed"))
+  await runGenerationStep()
+  expect(m.push).toHaveBeenCalledWith("owner", expect.objectContaining({ title: "Question paper lesson updates needs attention" }))
+})
 it("deduplicates repeated active submissions and restricts results to the owner", async () => {
   const a = await enqueueGeneration("owner", "Questions", [task])
   const b = await enqueueGeneration("owner", "Questions", [task])

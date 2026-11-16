@@ -51,6 +51,8 @@ const withPWA = withPWAInit({
   dest: "public",
   register: true,
   skipWaiting: true,
+  // Workbox replaces sw.js during a production build; preserve push handling.
+  importScripts: ["/notification-worker.js"],
 })
 
 export default withPWA(nextConfig);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { sendEmail } from "@/lib/email"
 import { CONTACT_EMAIL, siteUrl } from "@/lib/site"
 import { digestText, opsReport } from "@/lib/ops-report"
+import { digestHtml } from "@/lib/ops-email"
 import { heartbeat, pruneErrorGroups } from "@/lib/monitoring"
 import { pruneRateLimits } from "@/lib/rate-limit"
 import { log } from "@/lib/log"
@@ -28,12 +29,13 @@ export async function GET(request: Request) {
   try {
     const report = await opsReport()
     const { subject, text, needsAttention } = digestText(report, siteUrl())
+    const html = digestHtml(report, siteUrl(), needsAttention)
     if (new URL(request.url).searchParams.get("dry") === "1") {
-      return NextResponse.json({ ok: true, subject, text, needsAttention })
+      return NextResponse.json({ ok: true, subject, text, html, needsAttention })
     }
     const [prunedLimits, prunedErrors] = await Promise.all([pruneRateLimits(), pruneErrorGroups(90)])
     const recipients = (process.env.OPS_EMAIL || CONTACT_EMAIL).split(",").map(s => s.trim()).filter(Boolean)
-    for (const to of recipients) await sendEmail({ to, subject, text })
+    for (const to of recipients) await sendEmail({ to, subject, text, html })
     await heartbeat("cron:daily-digest", { ok: true, details: { needsAttention, recipients: recipients.length, prunedLimits, prunedErrors } })
     log.info("cron.daily_digest", { needsAttention, recipients: recipients.length })
     return NextResponse.json({ ok: true, needsAttention })

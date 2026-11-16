@@ -7,7 +7,6 @@ import { MAIN_NAV, navLabel } from "@/lib/navigation"
 import { useTerms } from "@/hooks/use-level"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
 import { signOut } from "next-auth/react"
-import { askForNotificationsOnTap } from "@/hooks/use-push-notifications"
 
 interface MobileNavProps {
   isAdmin?: boolean
@@ -51,8 +50,6 @@ export function MobileNav({ isAdmin = false }: MobileNavProps) {
             <li key={item.href}>
               <Link
                 href={item.href}
-                // Opening Chats is a natural moment to offer message notifications
-                onClick={item.href === "/chat" ? askForNotificationsOnTap : undefined}
                 className={cn(
                   "flex flex-col items-center gap-0.5 rounded-full px-3 py-1.5 text-[10px] font-medium transition-colors",
                   active ? "bg-primary text-primary-foreground" : "text-muted-foreground"

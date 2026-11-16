@@ -10,7 +10,8 @@ import { UserAvatar } from "@/components/ui/user-avatar"
 import { MAIN_NAV, navLabel } from "@/lib/navigation"
 import { useTerms } from "@/hooks/use-level"
 import { useChatUnreadCount } from "@/hooks/use-chat-unread-count"
-import { askForNotificationsOnTap, usePushNotifications } from "@/hooks/use-push-notifications"
+import { usePushNotifications } from "@/hooks/use-push-notifications"
+import { toast } from "@/hooks/use-toast"
 
 interface TopNavProps {
   isAdmin?: boolean
@@ -76,8 +77,6 @@ export function TopNav({ isAdmin = false }: TopNavProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  // Opening Chats is a natural moment to offer message notifications
-                  onClick={item.href === "/chat" ? askForNotificationsOnTap : undefined}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
@@ -104,10 +103,18 @@ export function TopNav({ isAdmin = false }: TopNavProps) {
           <button
             type="button"
             className="neo-button relative flex h-11 w-11 items-center justify-center"
-            aria-label={push.enabled ? "Notifications enabled" : "Enable notifications"}
-            title={push.enabled ? "Notifications enabled" : "Enable chat notifications"}
-            disabled={!push.supported || push.loading}
-            onClick={push.enable}
+            aria-label={push.enabled ? "All app notifications enabled" : "Enable all app notifications"}
+            title={push.enabled ? "Notifications on: messages, reminders, questions and lessons" : "Enable notifications for the whole app"}
+            disabled={push.loading}
+            onClick={async () => {
+              if (push.needsInstall) { toast.error("Install Tyro Study first", "Add it to your Home Screen and open it there to enable notifications."); return }
+              if (!push.supported) { toast.error("Notifications unavailable", "This browser does not support push notifications."); return }
+              if (push.blocked) { toast.error("Notifications are blocked", "Allow notifications for Tyro Study in your browser's site settings."); return }
+              if (push.enabled) { toast.success("All app notifications are on", "Messages, reminders, questions ready and lessons ready use this same setting."); return }
+              const ok = await push.enable()
+              if (ok) toast.success("All app notifications are on", "You'll receive messages, reminders, and question and lesson completion alerts.")
+              else toast.error("Couldn't enable notifications", "Please check your browser settings and try the bell again.")
+            }}
           >
             <BellIcon className="h-5 w-5 text-foreground" />
             {!push.enabled && (

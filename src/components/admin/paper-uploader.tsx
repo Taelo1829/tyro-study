@@ -1,7 +1,9 @@
 "use client"
 import { generationFetch, queueGeneration, waitForGeneration } from "@/lib/generation-client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { paperReviewResult } from "@/lib/paper-review"
+import type { GenerationJob } from "@/lib/generation-types"
 import { upload } from "@vercel/blob/client"
 import { AlertCircle, CheckCircle2, FileText, Loader2, ScrollText, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -35,7 +37,8 @@ interface ReviewQuestion {
   include: boolean
 }
 
-type Step = "pick" | "uploading" | "ocr" | "reading" | "review" | "drafting" | "saving" | "done"
+type Step = "pick" | "uploading" | "ocr" | "reading" | "review" | "drafting" | "saving"
+type ReadPaper = { source: PaperSource; paper: string; questions: Omit<ReviewQuestion, "include">[]; topics: { id: string; label: string }[] }
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const res = await generationFetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
@@ -54,37 +57,78 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
   const [paper, setPaper] = useState("")
   const [topics, setTopics] = useState<{ id: string; label: string }[]>([])
   const [questions, setQuestions] = useState<ReviewQuestion[]>([])
-  const [result, setResult] = useState<{ added: number; skipped: number; topics: number } | null>(null)
+  const [result, setResult] = useState<{ added: number; skipped: number; topics: number; paper: string } | null>(null)
   const [source, setSource] = useState<PaperSource | null>(null)
   const [lessons, setLessons] = useState<(LessonReplacement & { title: string })[]>([])
   const [reviewed, setReviewed] = useState(false)
   const busy = step === "drafting" || step === "uploading" || step === "ocr" || step === "reading" || step === "saving"
 
-  function close() {
-    if (busy) return
-    setOpen(false)
+  // Notification links restore the saved question review without another upload.
+  useEffect(() => {
+    const jobId = new URL(window.location.href).searchParams.get("paperJob")
+    if (!jobId) return
+    let cancelled = false
+    async function restore() {
+      try {
+        const response = await fetch(`/api/generation?id=${encodeURIComponent(jobId!)}`, { cache: "no-store" })
+        if (!response.ok) throw new Error("Couldn't load your saved questions. Open Generation progress to try again.")
+        const job = await response.json() as GenerationJob | null
+        const review = job && paperReviewResult(job, moduleId)
+        if (!review) throw new Error("These paper questions are not ready for review in this module.")
+        if (cancelled) return
+        const data = review.data as ReadPaper
+        setSource(data.source); setPaper(data.paper || "Question paper"); setTopics(data.topics)
+        setQuestions(data.questions.map(q => ({ ...q, include: !!q.topicId })))
+        setLessons([]); setReviewed(false); setResult(null); setError(""); setStep("review"); setOpen(true)
+        const url = new URL(window.location.href)
+        url.searchParams.delete("paperJob")
+        window.history.replaceState(window.history.state, "", url.toString())
+      } catch (error) {
+        if (!cancelled) { setError(error instanceof Error ? error.message : "Couldn't restore questions"); setOpen(true) }
+      }
+    }
+    void restore()
+    return () => { cancelled = true }
+  }, [moduleId])
+
+  function resetUpload() {
     setStep("pick")
     setError("")
+    setProgress(0)
+    setOcr({ done: 0, total: 0 })
+    setPaper("")
+    setTopics([])
     setQuestions([])
+    setSource(null)
+    setLessons([])
+    setReviewed(false)
     setResult(null)
     if (inputRef.current) inputRef.current.value = ""
   }
 
+  function close() {
+    if (busy) return
+    setOpen(false)
+    resetUpload()
+  }
+
   async function handleFile(file: File) {
-    if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") {
-      setError("Choose a PDF file")
+    resetUpload()
+    const isWord = /\.docx$/i.test(file.name)
+    if (!isWord && !/\.pdf$/i.test(file.name) && file.type !== "application/pdf") {
+      setError(/\.doc$/i.test(file.name) ? "Save this older Word document as .docx or PDF, then upload it." : "Choose a PDF or Word (.docx) file")
       return
     }
     setError("")
     setStep("uploading")
     setProgress(0)
     try {
-      type Read = { source: PaperSource; paper: string; questions: Omit<ReviewQuestion, "include">[]; topics: { id: string; label: string }[] }
+      type Read = ReadPaper
       const safeName = file.name.replace(/[^a-z0-9.-]+/gi, "-").slice(-80)
       const blob = await upload(`textbooks/papers/${safeName}`, file, {
         access: "public",
         handleUploadUrl: "/api/admin/textbooks/upload",
-        contentType: "application/pdf",
+        contentType: isWord ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/pdf",
         onUploadProgress: e => setProgress(Math.round(e.percentage)),
       })
       setStep("reading")
@@ -99,7 +143,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
       }
       const r = read as Read
       setSource(r.source); setLessons([]); setReviewed(false)
-      setPaper(r.paper || file.name.replace(/\.pdf$/i, ""))
+      setPaper(r.paper || file.name.replace(/\.(pdf|docx)$/i, ""))
       setTopics(r.topics)
       // Questions without a topic stay unticked until one is chosen
       setQuestions(r.questions.map(q => ({ ...q, include: !!q.topicId })))
@@ -117,6 +161,13 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
   const lessonsReady = lessons.length > 0 && [...new Set(chosen.map(q => q.topicId))].every(id => lessons.some(l => l.topicId === id))
   async function prepareLessons() {
     if (!source) return setError("Read the question paper again to prepare lesson updates.")
+    const invalid = chosen.filter(q => {
+      const opts = [...new Set((q.options || []).map(o => o.trim()).filter(Boolean))]
+      return !q.question?.trim() || opts.length < 2 || opts.length > 6 || !opts.includes(q.correctOption?.trim())
+    })
+    if (invalid.length > 0) {
+      return setError(`Please select the correct answer for ${invalid.map(q => q.number || "each question").join(", ")}.`)
+    }
     setStep("drafting"); setError(""); setReviewed(false)
     try {
       const ids = [...new Set(chosen.map(q => q.topicId!))]
@@ -129,17 +180,34 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
 
   async function save() {
     if (!lessonsReady || !reviewed) return
+    const invalid = chosen.filter(q => {
+      const opts = [...new Set((q.options || []).map(o => o.trim()).filter(Boolean))]
+      return !q.question?.trim() || opts.length < 2 || opts.length > 6 || !opts.includes(q.correctOption?.trim())
+    })
+    if (invalid.length > 0) {
+      return setError(`Please select the correct answer for ${invalid.map(q => q.number || "each question").join(", ")}.`)
+    }
     setStep("saving")
     setError("")
     try {
+      const cleanQuestions = chosen.map(q => {
+        const options = [...new Set(q.options.map(o => o.trim()).filter(Boolean))]
+        return {
+          question: q.question.trim(),
+          options,
+          correctOption: q.correctOption.trim(),
+          difficulty: q.difficulty,
+          topicId: q.topicId,
+        }
+      })
       const r = await postJson<{ added: number; skipped: number; topics: number }>("/api/admin/papers/save", {
         moduleId,
         paper: paper.trim(),
         lessons,
-        questions: chosen.map(({ question, options, correctOption, difficulty, topicId }) => ({ question, options, correctOption, difficulty, topicId })),
+        questions: cleanQuestions,
       })
-      setResult(r)
-      setStep("done")
+      resetUpload()
+      setResult({ ...r, paper: paper.trim() })
       onAdded()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save the questions")
@@ -150,33 +218,38 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
   return (
     <>
       <Button size="sm" onClick={() => setOpen(true)}>
-        <ScrollText className="h-4 w-4" />
-        Add question paper
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScrollText className="h-4 w-4" />}
+        {busy ? "View paper progress" : step === "review" ? "Review question paper" : "Add question paper"}
       </Button>
 
       <Modal open={open} onClose={close} size="xl" persistent={busy}>
         <ModalHeader onClose={busy ? undefined : close}>
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <ScrollText className="h-5 w-5" />
-            Add a question paper
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <ScrollText className="h-5 w-5" />
+              Add a question paper
+            </h2>
+            {busy && <Button type="button" size="sm" variant="outline" onClick={() => setOpen(false)}>Hide</Button>}
+          </div>
+          {busy && <p className="mt-2 text-sm text-muted-foreground">You can hide this window while processing continues. Reopen it using View paper progress.</p>}
         </ModalHeader>
 
         <ModalBody className="space-y-5">
           {(step === "pick" || step === "uploading" || step === "ocr" || step === "reading") && (
             <>
               <p className="text-sm text-muted-foreground">
-                Upload a past exam or assignment paper (PDF, with or without its memo). Each question is converted into a
+                Upload a past exam or assignment paper (PDF or Word .docx, with or without its memo). Each question is converted into a
                 multiple-choice question, keeping the paper&apos;s options and memo answers where it has them, and puts it in the
                 topic it tests. Review or change each topic before saving. Questions are added to those topics’ quiz banks. Review cohesive lesson updates for the selected topics before saving both together.
               </p>
               <input
                 ref={inputRef}
                 type="file"
-                accept="application/pdf,.pdf"
+                accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx"
                 className="hidden"
                 onChange={e => {
                   const f = e.target.files?.[0]
+                  e.target.value = ""
                   if (f) void handleFile(f)
                 }}
               />
@@ -185,7 +258,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
                 {step === "pick" && (
                   <Button variant="primary" onClick={() => inputRef.current?.click()}>
                     <Upload className="h-4 w-4" />
-                    Choose PDF
+                    Choose PDF or Word
                   </Button>
                 )}
                 {step === "uploading" && <p className="text-sm text-muted-foreground">Uploading… {progress}%</p>}
@@ -283,10 +356,10 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
             </>
           )}
 
-          {step === "done" && result && (
-            <p className="flex items-start gap-2 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-900">
+          {step === "pick" && result && (
+            <p role="status" className="flex items-start gap-2 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-900">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-              Added {result.added} question{result.added === 1 ? "" : "s"} from {paper || "the paper"} to {result.topics} topic
+              Added {result.added} question{result.added === 1 ? "" : "s"} from {result.paper || "the paper"} to {result.topics} topic
               {result.topics === 1 ? "" : "s"}.{result.skipped ? ` ${result.skipped} were skipped (already in the topic).` : ""} The selected lessons have been updated, and topic and chapter quizzes prioritize unanswered uploaded questions.
             </p>
           )}
@@ -313,7 +386,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
             </Button>
           </ModalFooter>
         )}
-        {step === "done" && (
+        {step === "pick" && result && (
           <ModalFooter>
             <Button variant="primary" onClick={close}>
               Done

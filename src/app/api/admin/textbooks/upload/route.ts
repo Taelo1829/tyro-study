@@ -18,7 +18,9 @@ export async function POST(request: Request) {
         if (error) throw new Error("Only admins can upload textbooks")
         if (!pathname.startsWith(TEXTBOOK_PREFIX)) throw new Error("Invalid upload path")
         return {
-          allowedContentTypes: ["application/pdf"],
+          allowedContentTypes: pathname.startsWith(`${TEXTBOOK_PREFIX}papers/`)
+            ? ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+            : ["application/pdf"],
           maximumSizeInBytes: MAX_TEXTBOOK_BYTES,
           addRandomSuffix: true,
         }

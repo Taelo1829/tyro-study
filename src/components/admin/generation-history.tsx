@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import type { GenerationJob } from "@/lib/generation-types"
-import { askForNotificationsOnTap, usePushNotifications } from "@/hooks/use-push-notifications"
+import { usePushNotifications } from "@/hooks/use-push-notifications"
 import { generationReviewAction } from "@/lib/generation-review"
 import { sanitizeTopicHtml } from "@/lib/topic-content"
 
@@ -88,7 +88,7 @@ export function GenerationHistory() {
     <h1 className="text-2xl font-bold">Generation progress</h1>
     <p>Work continues on the server when you leave or close the app. Results and drafts are saved here. Review drafts before applying them.</p>
     <p className="text-sm text-muted-foreground">Progress refreshes every 5 seconds. Steps may be added as documents are analysed.</p>
-    {!push.enabled && <Button onClick={() => void askForNotificationsOnTap()}>Enable completion notifications</Button>}
+    {!push.enabled && <p className="text-sm text-muted-foreground">Use the bell at the top to enable notifications for the whole app, including questions and lessons ready to review.</p>}
     {error && <p role="alert" className="text-red-600">{error}</p>}
     {loading ? <p role="status">Loading generation jobs…</p> : !jobs.length && <p>No generation jobs yet.</p>}
     {selected && !detail && !error && <p id="generation-detail" role="status">Loading selected job…</p>}

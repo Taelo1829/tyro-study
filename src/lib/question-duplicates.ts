@@ -42,8 +42,11 @@ export async function questionDuplicates<T extends ComparableQuestion>(incoming:
       if (!Array.isArray(result?.duplicates)) throw new Error("Duplicate check failed. Please retry; no questions were saved.")
       for (const match of result.duplicates) {
         if (!match || typeof match !== "object") throw new Error("Invalid duplicate check response")
-        const { candidate, reference } = match as { candidate: number; reference: number }
-        if (!Number.isInteger(candidate) || !Number.isInteger(reference) || !pending.includes(candidate) || !references.includes(reference) || reference >= candidate) throw new Error("Invalid duplicate check response")
+        const rawCand = (match as { candidate?: unknown }).candidate
+        const rawRef = (match as { reference?: unknown }).reference
+        const candidate = typeof rawCand === "string" ? parseInt(rawCand, 10) : rawCand
+        const reference = typeof rawRef === "string" ? parseInt(rawRef, 10) : rawRef
+        if (typeof candidate !== "number" || !Number.isInteger(candidate) || typeof reference !== "number" || !Number.isInteger(reference) || !pending.includes(candidate) || !references.includes(reference) || reference >= candidate) throw new Error("Invalid duplicate check response")
         duplicates.set(candidate, reference)
       }
     }
