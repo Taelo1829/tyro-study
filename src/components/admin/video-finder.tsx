@@ -1,4 +1,5 @@
 "use client"
+import { generationFetch } from "@/lib/generation-client"
 
 import { useCallback, useEffect, useState } from "react"
 import { Check, ExternalLink, Loader2, RefreshCw, Sparkles, MonitorPlay } from "lucide-react"
@@ -29,7 +30,7 @@ const views = (n: number) =>
   n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M views` : n >= 1000 ? `${Math.round(n / 1000)}K views` : `${n} views`
 
 async function fetchSuggestion(topicId: string, exclude: string[], tried: string[] = []): Promise<Suggestion> {
-  const res = await fetch("/api/ai/find-video", {
+  const res = await generationFetch("/api/ai/find-video", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ topicId, exclude, tried }),

@@ -1,4 +1,5 @@
 "use client"
+import { generationFetch } from "@/lib/generation-client"
 
 import { useCallback, useEffect, useState } from "react"
 import { Loader2, Sparkles, Trash2 } from "lucide-react"
@@ -32,7 +33,7 @@ export function ExerciseManager({ topicId, onCount, onQuestionsAdded }: { topicI
   const [message, setMessage] = useState("")
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/topics/${topicId}/exercises`)
+    const res = await generationFetch(`/api/topics/${topicId}/exercises`)
     if (!res.ok) return
     const data = (await res.json()) as { coding: { language: string | null }; exercises: Exercise[] }
     setCoding(!!data.coding.language)
@@ -49,7 +50,7 @@ export function ExerciseManager({ topicId, onCount, onQuestionsAdded }: { topicI
     setError("")
     setMessage("")
     try {
-      const res = await fetch(`/api/topics/${topicId}/exercises/generate`, {
+      const res = await generationFetch(`/api/topics/${topicId}/exercises/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ exercises: count, questions }),
@@ -72,7 +73,7 @@ export function ExerciseManager({ topicId, onCount, onQuestionsAdded }: { topicI
 
   async function remove(e: Exercise) {
     if (!confirm(`Delete the exercise "${e.title}"?`)) return
-    const res = await fetch(`/api/exercises/${e.id}`, { method: "DELETE" })
+    const res = await generationFetch(`/api/exercises/${e.id}`, { method: "DELETE" })
     if (res.ok) await load()
   }
 

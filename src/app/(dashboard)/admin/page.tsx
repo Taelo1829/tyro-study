@@ -71,6 +71,12 @@ export default async function AdminPage() {
       />
 
       <div className="mb-6 flex flex-wrap gap-3">
+        <Button asChild>
+          <Link href="/admin/generation">
+            <Activity className="h-4 w-4" />
+            Generation progress
+          </Link>
+        </Button>
         <Button variant="primary" asChild>
           <Link href="/admin/users">
             <Users className="h-4 w-4" />

@@ -1,4 +1,5 @@
 "use client"
+import { generationFetch } from "@/lib/generation-client"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -56,7 +57,7 @@ export function ContentManager({
     setAiBusy(true)
     setAiError("")
     try {
-      const res = await fetch("/api/ai/generate-lesson", {
+      const res = await generationFetch("/api/ai/generate-lesson", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topicId, length: aiLength, notes: aiNotes }),
@@ -82,7 +83,7 @@ export function ContentManager({
   async function writePractice() {
     setPractice({ busy: true, text: "Writing “Try it yourself” exercises and type-the-answer questions for this lesson…" })
     try {
-      const res = await fetch(`/api/topics/${topicId}/exercises/generate`, {
+      const res = await generationFetch(`/api/topics/${topicId}/exercises/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ auto: true, exercises: 2, questions: 5 }),
@@ -109,7 +110,7 @@ export function ContentManager({
     setLoading(true)
     setMessage("")
     try {
-      const res = await fetch(`/api/topics/${topicId}`, {
+      const res = await generationFetch(`/api/topics/${topicId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
@@ -137,7 +138,7 @@ export function ContentManager({
     const embed = getVideoEmbedHtml(url)
     if (!embed) throw new Error("That video link can't be embedded")
     const next = `${content}${embed}`
-    const res = await fetch(`/api/topics/${topicId}`, {
+    const res = await generationFetch(`/api/topics/${topicId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content: next }),
@@ -159,7 +160,7 @@ export function ContentManager({
     setLoading(true)
     setMessage("")
     try {
-      const res = await fetch(`/api/topics/${topicId}`, {
+      const res = await generationFetch(`/api/topics/${topicId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assignment }),

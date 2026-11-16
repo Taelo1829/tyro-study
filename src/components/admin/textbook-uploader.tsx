@@ -1,6 +1,7 @@
 "use client"
+import { generationFetch, queueGeneration, waitForGeneration } from "@/lib/generation-client"
 
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { upload } from "@vercel/blob/client"
 import { AlertCircle, BookOpen, Check, CheckCircle2, FileText, Loader2, RotateCcw, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -56,10 +57,9 @@ interface Task {
 type Step = "pick" | "uploading" | "reading" | "ocr" | "review" | "creating" | "writing" | "done"
 type Length = "short" | "standard" | "detailed"
 
-const CONCURRENCY = 2
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+  const res = await generationFetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
   const data = (await res.json().catch(() => ({}))) as T & { error?: string }
   if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`)
   return data
@@ -86,17 +86,6 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
   const [ocr, setOcr] = useState({ done: 0, total: 0 })
   const busy = step === "uploading" || step === "reading" || step === "ocr" || step === "creating" || step === "writing"
 
-  // Leaving the page mid-import would stop it
-  useEffect(() => {
-    if (!busy) return
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
-    window.addEventListener("beforeunload", warn)
-    return () => window.removeEventListener("beforeunload", warn)
-  }, [busy])
-
-  const cleanup = (url = pagesUrl) => {
-    if (url) void fetch("/api/admin/textbooks", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) })
-  }
 
   function reset() {
     setStep("pick")
@@ -112,8 +101,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
 
   function close() {
     if (busy) return
-    // The import can't be picked up again once closed, so drop the saved page text
-    if (step === "review" || step === "done") cleanup()
+    // Saved jobs retain the page text needed to review or retry this import.
     setOpen(false)
     reset()
   }
@@ -197,45 +185,14 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
   async function runTasks(list: Task[]) {
     stopRef.current = false
     setStep("writing")
-    const queue = list.filter(t => t.status !== "done").map(t => t.topicId)
-    const setStatus = (topicId: string, status: TaskStatus, note?: string) =>
-      setTasks(prev => prev.map(t => (t.topicId === topicId ? { ...t, status, note } : t)))
-    const byId = new Map(list.map(t => [t.topicId, t]))
-
-    const worker = async () => {
-      while (queue.length && !stopRef.current) {
-        const id = queue.shift()!
-        const task = byId.get(id)!
-        setStatus(id, "working")
-        try {
-          const r = await postJson<{
-            wroteLesson: boolean
-            questionsAdded: number
-            videoTitle?: string | null
-            videoNote?: string | null
-            projectsAdded?: number
-          }>("/api/admin/textbooks/generate-topic", {
-            topicId: id,
-            pagesUrl,
-            startPage: task.startPage,
-            endPage: task.endPage,
-            length,
-            questionCount,
-            video: withVideos,
-          })
-          const parts = [
-            r.wroteLesson ? "lesson" : "",
-            r.questionsAdded ? `${r.questionsAdded} questions` : "",
-            r.videoTitle ? "video" : r.videoNote ? `no video (${r.videoNote})` : "",
-            r.projectsAdded ? `${r.projectsAdded} coding projects` : "",
-          ]
-          setStatus(id, "done", parts.filter(Boolean).join(" · ") || "already done")
-        } catch (err) {
-          setStatus(id, "failed", err instanceof Error ? err.message : "Failed")
-        }
-      }
+    const pending = list.filter(t => t.status !== "done")
+    if (pending.length) {
+      try {
+        const id = await queueGeneration(pending.map(task => ({ path: "/api/admin/textbooks/generate-topic", label: task.title, body: { topicId: task.topicId, pagesUrl, startPage: task.startPage, endPage: task.endPage, length, questionCount, video: withVideos } })), "Textbook lessons")
+        await waitForGeneration(id)
+        setTasks(previous => previous.map(t => ({ ...t, status: "done" })))
+      } catch (error) { setError(error instanceof Error ? error.message : "Generation failed") }
     }
-    await Promise.all(Array.from({ length: CONCURRENCY }, worker))
     setStep("done")
     onUploaded()
   }
@@ -244,16 +201,11 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
     setError("")
     setStep("creating")
     try {
-      const result = await postJson<{
-        chapters: { id: string; title: string; topics: { id: string; title: string; number: string; startPage: number; endPage: number }[] }[]
-      }>("/api/admin/textbooks/create", {
-        moduleId,
-        chapters: selected.map(c => ({
-          title: c.title.trim(),
-          chapterId: c.existingChapterId ?? undefined,
-          topics: c.topics.map(t => ({ title: t.title.trim(), startPage: t.startPage, endPage: t.endPage })),
-        })),
-      })
+      const id = await queueGeneration([{ path: "/api/admin/textbooks/create", body: {
+        moduleId, chapters: selected.map(c => ({ title: c.title.trim(), chapterId: c.existingChapterId ?? undefined, topics: c.topics.map(t => ({ title: t.title.trim(), startPage: t.startPage, endPage: t.endPage })) })),
+      }, continueWith: "module-topics", options: { pagesUrl, length, questionCount, video: withVideos } }], "Textbook import and lessons")
+      const job = await waitForGeneration(id)
+      const result = job.results[0].data as { chapters: { topics: { id: string; number: string; title: string; startPage: number; endPage: number }[] }[] }
       onUploaded()
       const list: Task[] = result.chapters.flatMap(c =>
         c.topics.map(t => ({
@@ -262,11 +214,11 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
           title: t.title,
           startPage: t.startPage,
           endPage: t.endPage,
-          status: "waiting" as const,
+          status: "done" as const,
         }))
       )
       setTasks(list)
-      await runTasks(list)
+      setStep("done")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't add the chapters")
       setStep("review")
@@ -479,7 +431,7 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
               {error && <ErrorBox text={error} />}
 
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <button type="button" onClick={() => { cleanup(); reset() }} className="text-sm text-muted-foreground hover:text-foreground">
+                <button type="button" onClick={reset} className="text-sm text-muted-foreground hover:text-foreground">
                   Use a different PDF
                 </button>
                 <Button variant="primary" disabled={selectedTopics === 0} onClick={create}>
@@ -524,8 +476,8 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
                 </div>
                 {step === "writing" && (
                   <p className="text-xs text-muted-foreground">
-                    Keep this window open. Topics already finished are saved, so if you stop, the rest show as &quot;No content&quot;
-                    and you can Auto Generate them.
+                    Work continues in the background. Completed topics are saved, and unfinished work can be retried from Generation activity
+
                   </p>
                 )}
               </div>
@@ -555,8 +507,8 @@ export function TextbookUploader({ moduleId, onUploaded }: TextbookUploaderProps
 
               <div className="flex flex-wrap items-center justify-end gap-3">
                 {step === "writing" && (
-                  <Button variant="outline" onClick={() => (stopRef.current = true)}>
-                    Stop after current topics
+                  <Button variant="outline" onClick={() => setOpen(false)}>
+                    Continue in background
                   </Button>
                 )}
                 {step === "done" && unfinished > 0 && (

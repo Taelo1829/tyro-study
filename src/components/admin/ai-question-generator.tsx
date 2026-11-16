@@ -1,4 +1,5 @@
 "use client"
+import { generationFetch } from "@/lib/generation-client"
 
 import { useState } from "react"
 import { Check, RotateCcw, Sparkles, Trash2 } from "lucide-react"
@@ -107,7 +108,7 @@ export function AiQuestionGenerator({ topicId, chapterId, onSaved }: Props) {
     setBusy("generating")
     setError("")
     try {
-      const res = await fetch("/api/ai/generate-questions", {
+      const res = await generationFetch("/api/ai/generate-questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topicId, chapterId, count, difficulty, notes }),
@@ -132,7 +133,7 @@ export function AiQuestionGenerator({ topicId, chapterId, onSaved }: Props) {
     setBusy("saving")
     setError("")
     try {
-      const res = await fetch("/api/questions", {
+      const res = await generationFetch("/api/questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

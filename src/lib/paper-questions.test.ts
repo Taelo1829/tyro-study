@@ -1,6 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest"
 import { savePaperQuestions } from "./paper-questions"
-const m = vi.hoisted(() => ({ transaction: vi.fn(), query: vi.fn(), topics: vi.fn(), questions: vi.fn(), answers: vi.fn(), execute: vi.fn(), chat: vi.fn() }))
+import { lessonVersion } from "./module-recreation"
+const m = vi.hoisted(() => ({ transaction: vi.fn(), query: vi.fn(), topics: vi.fn(), questions: vi.fn(), answers: vi.fn(), execute: vi.fn(), chat: vi.fn(), topic: vi.fn(), updateTopic: vi.fn() }))
 vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: m.transaction, $queryRaw: m.query, topic: { findMany: m.topics } } }))
 vi.mock("@/lib/ai/openai", () => ({ chatJson: m.chat }))
 const input = { topicId: "memory", question: "What does cache store?", options: ["Recently used data", "Only programs"], correctOption: "Recently used data", difficulty: "medium" }
@@ -9,7 +10,7 @@ beforeEach(() => {
   m.chat.mockResolvedValue({ duplicates: [] })
   m.query.mockResolvedValue([{ assessmentConfig: JSON.stringify({ topicPools: { memory: ["existing"] }, chapterPools: { chapter: ["chapter-q"] }, mock: { version: "exam" }, mockReason: "" }) }])
   m.topics.mockResolvedValue([{ id: "memory", title: "Cache Memory", questions: [] }, { id: "assignment-abc", title: "Assignment quiz: 1", questions: [] }])
-  m.transaction.mockImplementation(fn => fn({ $queryRaw: m.query, $executeRaw: m.execute, topic: { findMany: m.topics }, question: { createMany: m.questions }, answer: { createMany: m.answers } }))
+  m.transaction.mockImplementation(fn => fn({ $queryRaw: m.query, $executeRaw: m.execute, topic: { findMany: m.topics, findFirst: m.topic, updateMany: m.updateTopic }, question: { createMany: m.questions }, answer: { createMany: m.answers } }))
 })
 it("adds questions to their matched topics and appends to legacy active pools", async () => {
   expect(await savePaperQuestions("mod", "Exam 2025", [input])).toMatchObject({ added: 1, topics: 1, skipped: 0 })
@@ -57,4 +58,19 @@ it("supports modules without an explicit quiz configuration", async () => {
 it("propagates save failures through the transaction instead of reporting partial success", async () => {
   m.execute.mockRejectedValue(new Error("Database unavailable"))
   await expect(savePaperQuestions("mod", "Paper", [input])).rejects.toThrow("Database unavailable")
+})
+it("saves paper questions and cohesive lesson replacements in the same transaction", async () => {
+  const topic = { id: "memory", title: "Cache", chapterId: "chapter", content: "<p>Old lesson.</p>" }
+  m.topic.mockResolvedValue(topic)
+  m.updateTopic.mockResolvedValue({ count: 1 })
+  const lessons = [{ topicId: "memory", version: lessonVersion(topic), html: "<p>A rewritten cache lesson with integrated examples.</p>" }]
+  expect(await savePaperQuestions("mod", "Paper", [input], lessons)).toMatchObject({ added: 1, lessonsUpdated: 1 })
+  expect(m.updateTopic).toHaveBeenCalledWith({ where: { id: "memory", title: "Cache", chapterId: "chapter", content: topic.content }, data: { content: lessons[0].html } })
+  expect(m.transaction).toHaveBeenCalledOnce()
+})
+it("rejects stale lesson replacements or incomplete topic coverage", async () => {
+  m.topic.mockResolvedValue({ id: "memory", title: "Cache", chapterId: "chapter", content: "Changed since drafting" })
+  await expect(savePaperQuestions("mod", "Paper", [input], [{ topicId: "memory", version: "a".repeat(64), html: "<p>Replacement.</p>" }])).rejects.toThrow("changed after drafting")
+  expect(m.updateTopic).not.toHaveBeenCalled()
+  await expect(savePaperQuestions("mod", "Paper", [input], [{ topicId: "outside", version: "a".repeat(64), html: "<p>Replacement.</p>" }])).rejects.toThrow("every selected topic")
 })

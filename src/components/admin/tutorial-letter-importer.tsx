@@ -1,5 +1,6 @@
 "use client"
-import { useRef, useState } from "react"
+import { generationFetch, queueGeneration } from "@/lib/generation-client"
+import { useState } from "react"
 import { BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DocumentUpload } from "@/components/ui/document-upload"
@@ -19,9 +20,8 @@ export function TutorialLetterImporter({ moduleId, onSaved }: { moduleId: string
   const [error, setError] = useState("")
   const [reviewed, setReviewed] = useState(false)
   const [detail, setDetail] = useState<{ title: string; html: string; questions: RecreatedQuestion[] } | null>(null)
-  const pause = useRef(false)
   async function post<T>(body: unknown): Promise<T> {
-    const r = await fetch(`/api/admin/modules/${moduleId}/tutorial-letter`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    const r = await generationFetch(`/api/admin/modules/${moduleId}/tutorial-letter`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
     const data = await r.json()
     if (!r.ok) throw new Error(data.error || "Could not complete this step.")
     return data
@@ -42,19 +42,15 @@ export function TutorialLetterImporter({ moduleId, onSaved }: { moduleId: string
   }
   async function generate() {
     if (!preview) return
-    pause.current = false; setReviewed(false)
+    setReviewed(false)
     await run(async () => {
-      for (const [i, task] of preview.tasks.entries()) {
-        if (pause.current) break
-        if (task.complete) continue
-        setMessage(`Drafting ${i + 1} of ${preview.tasks.length}: ${task.title}`)
-        setPreview(await post<TutorialPreview>({ action: "draft", importId: preview.id, key: task.key }))
-      }
+      await queueGeneration([{ path: `/api/admin/modules/${moduleId}/tutorial-letter`, body: { action: "draft-all", importId: preview.id } }], "Tutorial-letter lessons and quizzes")
+      setMessage("Drafting in the background. You can close this dialog or the app. Check Generation activity, then reopen this import to review the completed drafts.")
     })
   }
   const ready = !!preview && preview.tasks.every(t => t.complete)
   return <>
-    <Button size="sm" onClick={() => { setOpen(true); void run(async () => { const r = await fetch(`/api/admin/modules/${moduleId}/tutorial-letter`); const data = await r.json(); if (!r.ok) throw new Error(data.error); setPreview(data); setReviewed(false) }) }}><BookOpen className="h-4 w-4" />Upload tutorial letter</Button>
+    <Button size="sm" onClick={() => { setOpen(true); void run(async () => { const r = await generationFetch(`/api/admin/modules/${moduleId}/tutorial-letter`); const data = await r.json(); if (!r.ok) throw new Error(data.error); setPreview(data); setReviewed(false) }) }}><BookOpen className="h-4 w-4" />Upload tutorial letter</Button>
     <Modal open={open} onClose={() => { if (!busy) setOpen(false) }} size="xl" persistent={busy}>
       <ModalHeader onClose={busy ? undefined : () => setOpen(false)}><h2 className="text-lg font-semibold">Rebuild from a tutorial letter</h2></ModalHeader>
       <ModalBody className="space-y-4">
@@ -108,11 +104,10 @@ export function TutorialLetterImporter({ moduleId, onSaved }: { moduleId: string
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
       </ModalBody>
       <ModalFooter>
-        {busy && message.startsWith("Drafting") && <Button onClick={() => { pause.current = true; setMessage("Pausing after this draft…") }}>Pause after this draft</Button>}
         {!busy && preview && <Button onClick={() => {
           setFile(null); setContents(null)
           setPreview(null); setDetail(null); setReviewed(false)
-          setMessage(""); setError(""); pause.current = false
+          setMessage(""); setError("")
         }}>Start a new import</Button>}
         {!preview && <Button variant="primary" disabled={busy || !file} onClick={() => void start()}>Review import plan</Button>}
         {preview && !preview.applied && !ready && <Button variant="primary" disabled={busy} onClick={() => void generate()}>{preview.tasks.some(t => t.complete) ? "Continue drafting" : "Generate lessons and assessments"}</Button>}

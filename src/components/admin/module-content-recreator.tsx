@@ -1,4 +1,5 @@
 "use client"
+import { generationFetch, queueGeneration, waitForGeneration } from "@/lib/generation-client"
 
 import { DocumentUpload } from "@/components/ui/document-upload"
 import { useEffect, useRef, useState } from "react"
@@ -6,7 +7,6 @@ import { Download, Loader2, RefreshCw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TopicContentView } from "@/components/topic/topic-content-view"
 import type { RecreatedQuestion } from "@/lib/module-recreation-input"
-import type { AssignmentAnalysis, TopicQuizPlan } from "@/lib/assignment-quiz-format"
 import type { ExamDraft } from "@/lib/exam-structure"
 import { MAX_PAPER_BYTES, MAX_PAPER_FILES, parsePaperSources, type PaperSource } from "@/lib/module-recreation-input"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "./modal"
@@ -19,7 +19,7 @@ type Draft = { topicId: string; skipped: true; reason: string } | { topicId: str
 async function post<T>(url: string, body: unknown): Promise<T> {
   const payload = JSON.stringify(body)
   if (new TextEncoder().encode(payload).length > 3_000_000) throw new Error("This batch is too large. Select fewer papers or lessons.")
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: payload })
+  const res = await generationFetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: payload })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.error ?? "The request failed. Please try again.")
   return data as T
@@ -30,7 +30,6 @@ export function ModuleContentRecreator({ moduleId, onSaved }: { moduleId: string
   const [outline, setOutline] = useState<Outline | null>(null)
   const [files, setFiles] = useState<File[]>([])
   const [paperSettings, setPaperSettings] = useState<Record<string, { kind: "assignment" | "exam"; format: "auto" | "mcq" | "written" | "mixed" }>>({})
-  const [assignmentState, setAssignmentState] = useState<{ analysis: AssignmentAnalysis; plans: Record<string, TopicQuizPlan> } | null>(null)
   const [sources, setSources] = useState<PaperSource[] | null>(null)
   const [rows, setRows] = useState<Row[]>([])
   const [busy, setBusy] = useState(false)
@@ -46,12 +45,6 @@ export function ModuleContentRecreator({ moduleId, onSaved }: { moduleId: string
   const chosen = ready.filter(r => r.selected)
   const remaining = rows.filter(r => r.status === "waiting" || r.status === "failed")
 
-  useEffect(() => {
-    if (!busy && (!ready.length || saved !== null)) return
-    const warn = (event: BeforeUnloadEvent) => event.preventDefault()
-    window.addEventListener("beforeunload", warn)
-    return () => window.removeEventListener("beforeunload", warn)
-  }, [busy, ready.length, saved])
   useEffect(() => () => { stop.current = true }, [])
 
   async function show(reset = false) {
@@ -61,14 +54,13 @@ export function ModuleContentRecreator({ moduleId, onSaved }: { moduleId: string
     setError("")
     setMessage("Loading the current chapters and topics…")
     try {
-      const res = await fetch(endpoint)
+      const res = await generationFetch(endpoint)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Couldn't load the module.")
       const next = data as Outline
       setOutline(next)
       setRows(next.chapters.flatMap(c => c.topics.map(t => ({ id: t.id, title: t.title, chapter: c.title, status: "waiting" as const, selected: true }))))
       setSources(null)
-      setAssignmentState(null)
       setPaperSettings({})
       setAssessment(null)
       setConfirmed(false)
@@ -109,36 +101,18 @@ export function ModuleContentRecreator({ moduleId, onSaved }: { moduleId: string
         material = parsePaperSources(read)
         setSources(material)
       }
-      let assignmentPlan = assignmentState
-      if (!assignmentPlan) {
-        setMessage("Matching assignment formats to topics…")
-        assignmentPlan = await post<{ analysis: AssignmentAnalysis; plans: Record<string, TopicQuizPlan> }>(endpoint, { action: "assignments", sources: material })
-        setAssignmentState(assignmentPlan)
+      const jobId = await queueGeneration([{ path: endpoint, body: { action: "assignments", sources: material }, continueWith: "recreate-lessons", options: { topics: remaining.map(r => ({ id: r.id, title: r.title })), referenceIndex: Number(referenceIndex) } }], "Module lesson and assessment drafts")
+      setMessage("Drafting in the background. You can leave or close the app; results are saved in Generation activity.")
+      const job = await waitForGeneration(jobId)
+      for (const entry of job.results) {
+        if (entry.task.body.action === "exam") { setAssessment(entry.data as { exam: ExamDraft | null; reason: string }); setConfirmed(false) }
+        if (entry.task.body.action !== "draft") continue
+        const draft = entry.data as Draft
+        setRows(previous => previous.map(r => r.id !== entry.task.body.topicId ? r : draft.skipped
+          ? { ...r, status: "skipped", note: draft.reason, selected: false }
+          : { ...r, status: "ready", html: draft.html, version: draft.version, questions: draft.questions, quizUnchanged: draft.quizUnchanged, quizNote: draft.quizNote, selected: true }))
       }
-      if (!assessment) {
-        setMessage("Checking the previous exam structure…")
-        const result = Number(referenceIndex) < 0
-          ? { exam: null, reason: "No previous exam was selected. The mock exam will be unavailable." }
-          : await post<{ exam: ExamDraft | null; reason: string }>(endpoint, { action: "exam", sources: material, referenceIndex: Number(referenceIndex) }).catch(() => ({ exam: null, reason: "The previous exam structure could not be verified. Lessons can still be created; no mock exam will be generated." }))
-        setAssessment(result)
-        setConfirmed(false)
-      }
-      for (const row of remaining) {
-        if (stop.current) break
-        setMessage(`Drafting ${row.chapter} → ${row.title}`)
-        setRows(previous => previous.map(r => r.id === row.id ? { ...r, status: "writing", note: undefined } : r))
-        try {
-          const draft = await post<Draft>(endpoint, { action: "draft", topicId: row.id, sources: material, assignmentAnalysis: assignmentPlan.analysis })
-          setRows(previous => previous.map(r => r.id !== row.id ? r : draft.skipped
-            ? { ...r, status: "skipped", note: draft.reason, selected: false }
-            : { ...r, status: "ready", html: draft.html, version: draft.version, questions: draft.questions, quizUnchanged: draft.quizUnchanged, quizNote: draft.quizNote, selected: true }))
-        } catch (err) {
-          setRows(previous => previous.map(r => r.id === row.id ? { ...r, status: "failed", note: err instanceof Error ? err.message : "Couldn't draft this lesson." } : r))
-          // Stop on failure so an unavailable service does not fail every topic in turn.
-          setError("Drafting paused. Review the topic message below, then retry the remaining topics.")
-          break
-        }
-      }
+      if (Number(referenceIndex) < 0) setAssessment({ exam: null, reason: "No previous exam was selected. The mock exam will be unavailable." })
       setMessage("Review the lessons, quizzes and mock exam decision below before saving.")
     } catch (err) { setError(err instanceof Error ? err.message : "Couldn't read the papers.") }
     finally { setBusy(false) }
@@ -228,7 +202,7 @@ export function ModuleContentRecreator({ moduleId, onSaved }: { moduleId: string
         </ModalBody>
         <ModalFooter className="flex-wrap">
           {outline && <Button size="sm" variant="ghost" onClick={downloadOriginals}><Download className="h-4 w-4" />Download original lessons</Button>}
-          {busy ? <Button variant="ghost" onClick={() => { stop.current = true }}>Stop after current item</Button> : <Button variant="ghost" onClick={() => setOpen(false)}>Close</Button>}
+          {busy ? <Button variant="ghost" onClick={() => setOpen(false)}>Continue in background</Button> : <Button variant="ghost" onClick={() => setOpen(false)}>Close</Button>}
           {!busy && (sources || saved !== null) && <Button variant="ghost" onClick={() => void show(true)}>Start a new batch</Button>}
           {saved === null && remaining.length > 0 && <Button onClick={() => void generate()} disabled={busy || !files.length || !outline} variant="primary">{sources ? "Draft remaining topics" : "Generate content and quizzes"}</Button>}
           {saved === null && assessment && <Button onClick={() => void save()} disabled={busy || (!!assessment.exam && !confirmed)} variant="primary">Save {chosen.length} topics and mock decision</Button>}

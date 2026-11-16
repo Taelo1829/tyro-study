@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
+import { wakeGenerationWorker } from "@/lib/generation-jobs"
 import { sendDueReminders } from "@/lib/reminders"
 import { heartbeat } from "@/lib/monitoring"
 import { log } from "@/lib/log"
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
   }
 
   const started = Date.now()
+  after(() => wakeGenerationWorker().catch(error => console.error("Generation recovery wake failed", error)))
   try {
     const result = await sendDueReminders()
     const ms = Date.now() - started

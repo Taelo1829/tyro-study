@@ -109,6 +109,7 @@ model User {
   userAnswers   UserAnswer[]
   timetables    Timetable[]
   notifications Notification[]
+  generationJobs GenerationJob[]
   enrollments   ModuleEnrollment[]
   quizAttempts  QuizAttempt[]
   sentFriendRequests     Friendship[]   @relation("FriendshipSender")
@@ -440,6 +441,27 @@ model Notification {
 
   @@index([userId, scheduledAt])
   @@map("notifications")
+}
+
+model GenerationJob {
+  id         String @id
+  userId     String
+  title      String
+  dedupeKey  String
+  status     String @default("QUEUED")
+  tasks      Json
+  results    Json @default("[]")
+  cursor     Int @default(0)
+  error      String?
+  leaseToken String?
+  leaseUntil DateTime? @db.Timestamptz
+  notified   Boolean @default(false)
+  createdAt  DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @default(now()) @db.Timestamptz
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([status, createdAt], map: "generation_jobs_queue")
+  @@index([userId, createdAt], map: "generation_jobs_user")
+  @@map("generation_jobs")
 }
 
 enum FriendshipStatus {

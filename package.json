@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 4000",
+    "dev": "node scripts/start-next.mjs dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start",
+    "start": "node scripts/start-next.mjs start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

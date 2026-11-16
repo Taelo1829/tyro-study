@@ -19,11 +19,13 @@ npm run dev                     # http://localhost:4000
 
 Never point `.env.local` at the production database.
 
+Always run local app servers on port **4000 or higher**. Both `npm run dev` and `npm start` try 4000 first, then automatically use 4001, 4002, and so on if occupied. Existing servers are left running. To start searching from a higher port, use `npm run dev -- --port 4001`.
+
 ## Scripts
 
 | Command | Does |
 |---|---|
-| `npm run dev` | Dev server on port 4000 |
+| `npm run dev` | Dev server on the first available port from 4000 |
 | `npm run build` / `start` | Production build / serve |
 | `npm test` / `test:watch` | Unit and integration tests (Vitest + PGlite) |
 | `npm run typecheck` | TypeScript check |

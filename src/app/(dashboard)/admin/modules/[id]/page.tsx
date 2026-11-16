@@ -2,15 +2,16 @@
 
 import { toPlainText } from "@/lib/plain-text"
 import { CODING_LANGUAGES } from "@/lib/coding-shared"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ChevronRight, Plus } from "lucide-react"
+import { Activity, BookOpen, ChevronRight, FileUp, Plus } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { EntityForm } from "@/components/admin/entity-form"
 import { TextbookUploader } from "@/components/admin/textbook-uploader"
 import { TutorialLetterImporter } from "@/components/admin/tutorial-letter-importer"
 import { PaperUploader } from "@/components/admin/paper-uploader"
+import { SyncPaperLessons } from "@/components/admin/sync-paper-lessons"
 import { UploadedAssignmentList } from "@/components/admin/uploaded-assignment-list"
 import { UploadModuleAssignment } from "@/components/admin/upload-module-assignment"
 import { ModuleContentRecreator } from "@/components/admin/module-content-recreator"
@@ -87,7 +88,7 @@ export default function AdminModuleDetailPage() {
         )}
       </p>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/admin/modules"
           className="text-sm text-muted-foreground hover:text-primary"
@@ -95,33 +96,55 @@ export default function AdminModuleDetailPage() {
           ← Modules
         </Link>
         <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" asChild>
+            <Link href="/admin/generation"><Activity className="h-4 w-4" />Generation progress</Link>
+          </Button>
           <EditModuleButton
             module={mod}
             onSaved={updated => setMod(prev => (prev ? { ...prev, ...updated } : prev))}
             chapterCount={mod.chapters.length}
             topicCount={mod.chapters.reduce((n, c) => n + c._count.topics, 0)}
           />
-          <TutorialLetterImporter moduleId={id} onSaved={load} />
-          <TextbookUploader moduleId={id} onUploaded={load} />
-          <PaperUploader moduleId={id} onAdded={load} />
-          <ModuleContentRecreator moduleId={id} onSaved={load} />
-          <UploadModuleAssignment moduleId={id} onSaved={load} />
-          {mod.coding?.language && <ModuleExerciseBuilder moduleId={id} />}
-          <Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)}>
-            <Plus className="h-4 w-4" />
-            New chapter
-          </Button>
-          <DeleteModuleButton
-            module={mod}
-            chapterCount={mod.chapters.length}
-            topicCount={mod.chapters.reduce((n, c) => n + c._count.topics, 0)}
-          />
         </div>
+      </div>
+
+      <div className="mb-6 grid items-start gap-4 xl:grid-cols-2">
+        <Card className="min-w-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base"><FileUp className="h-4 w-4 text-primary" />Upload materials</CardTitle>
+            <p className="text-sm text-muted-foreground">Add source documents, assessments and question papers.</p>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+            <ModuleAction><TutorialLetterImporter moduleId={id} onSaved={load} /></ModuleAction>
+            <ModuleAction><TextbookUploader moduleId={id} onUploaded={load} /></ModuleAction>
+            <ModuleAction><PaperUploader moduleId={id} onAdded={load} /></ModuleAction>
+            <ModuleAction><UploadModuleAssignment moduleId={id} onSaved={load} /></ModuleAction>
+          </CardContent>
+        </Card>
+        <Card className="min-w-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base"><BookOpen className="h-4 w-4 text-primary" />Update learning content</CardTitle>
+            <p className="text-sm text-muted-foreground">Refresh lessons and review generated content.</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <ModuleAction><SyncPaperLessons moduleId={id} /></ModuleAction>
+            <p className="text-xs text-muted-foreground">Use papers already uploaded to this module to prepare lesson updates.</p>
+            <ModuleAction><ModuleContentRecreator moduleId={id} onSaved={load} /></ModuleAction>
+            {mod.coding?.language && <ModuleAction><ModuleExerciseBuilder moduleId={id} /></ModuleAction>}
+          </CardContent>
+        </Card>
       </div>
 
       <ModulePublishControl moduleId={id} />
       <WeeklyPlannerControl key={id} moduleId={id} />
       <UploadedAssignmentList moduleId={id} onDeleted={load} assignments={mod.chapters.flatMap(ch => (ch.assignmentCheckpoints ?? []).filter(a => /^assignment-[a-f0-9]{40}$/.test(a.id)).map(a => ({ ...a, chapter: ch.title })))} />
+
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold">Chapters <span className="text-sm font-normal text-muted-foreground">({mod.chapters.length})</span></h2>
+        <Button variant="primary" size="sm" aria-expanded={showForm} onClick={() => setShowForm(!showForm)}>
+          <Plus className="h-4 w-4" />New chapter
+        </Button>
+      </div>
 
       {showForm && (
         <Card className="mb-6">
@@ -182,6 +205,17 @@ export default function AdminModuleDetailPage() {
           </li>
         ))}
       </ul>
+      <details className="mt-8 rounded-xl border border-border p-4">
+        <summary className="cursor-pointer text-sm font-medium">Delete module</summary>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">Permanently remove this module and its content.</p>
+          <DeleteModuleButton module={mod} chapterCount={mod.chapters.length} topicCount={mod.chapters.reduce((n, c) => n + c._count.topics, 0)} />
+        </div>
+      </details>
     </>
   )
+}
+
+function ModuleAction({ children }: { children: ReactNode }) {
+  return <div className="min-w-0 [&>button]:h-auto [&>button]:min-h-10 [&>button]:w-full [&>button]:justify-start [&>button]:whitespace-normal [&>button]:text-left [&>div>button]:h-auto [&>div>button]:min-h-10 [&>div>button]:w-full [&>div>button]:justify-start [&>div>button]:whitespace-normal [&>div>button]:text-left">{children}</div>
 }

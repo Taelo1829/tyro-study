@@ -1,4 +1,5 @@
 "use client"
+import { generationFetch, queueGeneration, waitForGeneration } from "@/lib/generation-client"
 import { DocumentUpload } from "@/components/ui/document-upload"
 import { useState } from "react"
 import Link from "next/link"
@@ -23,7 +24,7 @@ export function UploadModuleAssignment({ moduleId, onSaved }: { moduleId: string
   const [reviewed, setReviewed] = useState(false)
   const [savedId, setSavedId] = useState<string | null>(null)
   async function post<T>(body: unknown): Promise<T> {
-    const response = await fetch(`/api/admin/modules/${moduleId}/assignments`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    const response = await generationFetch(`/api/admin/modules/${moduleId}/assignments`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
     const data = await response.json().catch(() => ({}))
     if (!response.ok) throw new Error(data.error ?? "Could not add this assignment.")
     return data
@@ -32,12 +33,12 @@ export function UploadModuleAssignment({ moduleId, onSaved }: { moduleId: string
   const lessonsReady = topicIds.length > 0 && topicIds.every(id => lessons.some(l => l.topicId === id))
   async function draftLessons(paper: PaperSource, assignment: Draft, completed: LessonDraft[]) {
     const ids = [...new Set(assignment.matches.map(m => m.topicId))]
-    for (let i = 0; i < ids.length; i++) {
-      if (completed.some(l => l.topicId === ids[i])) continue
-      setMessage(`Updating targeted lesson ${i + 1} of ${ids.length}…`)
-      const lesson = await post<LessonDraft>({ action: "lesson", source: paper, matches: assignment.matches, topicId: ids[i] })
-      setLessons(previous => [...previous.filter(l => l.topicId !== lesson.topicId), lesson])
-    }
+    const pending = ids.filter(id => !completed.some(l => l.topicId === id))
+    if (!pending.length) return
+    const jobId = await queueGeneration(pending.map(topicId => ({ path: `/api/admin/modules/${moduleId}/assignments`, body: { action: "lesson", source: paper, matches: assignment.matches, topicId } })), "Assignment lesson updates")
+    const job = await waitForGeneration(jobId)
+    setLessons(previous => [...previous, ...job.results.map(r => r.data as LessonDraft)])
+
   }
   async function retryLessons() {
     if (!source || !draft) return
@@ -53,9 +54,11 @@ export function UploadModuleAssignment({ moduleId, onSaved }: { moduleId: string
       const paper = await readPaperFile(file, setMessage)
       setSource(paper)
       setMessage("Extracting all questions and marks, then reviewing every chapter for assessment coverage…")
-      const result = await post<Draft>({ action: "draft", source: paper })
-      setDraft(result); setReviewed(false); setLessons([])
-      await draftLessons(paper, result, [])
+      const jobId = await queueGeneration([{ path: `/api/admin/modules/${moduleId}/assignments`, body: { action: "draft", source: paper }, continueWith: "assignment-lessons" }], "Assignment and lesson drafts")
+      const job = await waitForGeneration(jobId)
+      setDraft(job.results[0].data as Draft); setReviewed(false)
+      setLessons(job.results.slice(1).map(r => r.data as LessonDraft))
+
     } catch (err) { setError(err instanceof Error ? err.message : "Could not read this assignment.") }
     finally { setBusy(false); setMessage("") }
   }

@@ -1,7 +1,8 @@
 "use client"
+import { queueGeneration, waitForGeneration } from "@/lib/generation-client"
 
 import { DocumentUpload } from "@/components/ui/document-upload"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { readPaperFile } from "./read-paper-file"
 import { parsePaperSources, MAX_PAPER_FILES, MAX_PAPER_BYTES, type PaperSource } from "@/lib/module-recreation-input"
 import Link from "next/link"
@@ -32,15 +33,7 @@ interface Task {
   note?: string
 }
 
-const CONCURRENCY = 3
 const FLASHCARDS = 10
-
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
-  const data = (await res.json().catch(() => ({}))) as T & { error?: string }
-  if (!res.ok) throw Object.assign(new Error(data.error ?? `Request failed (${res.status})`), { data })
-  return data
-}
 
 export function ModuleBuilder({
   onAdded,
@@ -68,16 +61,8 @@ export function ModuleBuilder({
   const [existingId, setExistingId] = useState<string | null>(null)
   const [built, setBuilt] = useState<{ moduleId: string; title: string } | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
-  const stop = useRef(false)
-  const [stopping, setStopping] = useState(false)
   const busy = step === "planning" || step === "writing"
 
-  useEffect(() => {
-    if (!busy) return
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
-    window.addEventListener("beforeunload", warn)
-    return () => window.removeEventListener("beforeunload", warn)
-  }, [busy])
 
   function close() {
     if (busy) return
@@ -95,40 +80,17 @@ export function ModuleBuilder({
     setReading("")
   }
 
-  const setTask = (id: string, patch: Partial<Task>) => setTasks(prev => prev.map(t => (t.id === id ? { ...t, ...patch } : t)))
 
   async function writeAll(list: Task[], documents = material, moduleId = built?.moduleId) {
     setStep("writing")
-    stop.current = false
-    setStopping(false)
-    const queue = [...list]
-    const worker = async () => {
-      while (queue.length && !stop.current) {
-        const task = queue.shift()!
-        setTask(task.id, { status: "working", note: undefined })
-        try {
-          if (documents && moduleId) {
-            const r = await postJson<{ note: string }>("/api/modules/build/topic", { moduleId, topicId: task.id, sources: documents })
-            setTask(task.id, { status: "done", note: r.note })
-            continue
-          }
-          const r = await postJson<{ wroteLesson: boolean; questionsAdded: number; flashcardsAdded?: number; exercisesAdded?: number }>(
-            "/api/admin/textbooks/generate-topic",
-            { topicId: task.id, length: "standard", questionCount: questions, flashcards: flashcards && task.theory ? FLASHCARDS : 0, projects: task.theory ? 1 : 2 }
-          )
-          const parts = [
-            r.wroteLesson ? "lesson" : "",
-            r.questionsAdded ? `${r.questionsAdded} questions` : "",
-            r.flashcardsAdded ? `${r.flashcardsAdded} flashcards` : "",
-            r.exercisesAdded ? `${r.exercisesAdded} exercises` : "",
-          ].filter(Boolean)
-          setTask(task.id, { status: "done", note: parts.join(" · ") || "already done" })
-        } catch (err) {
-          setTask(task.id, { status: "failed", note: err instanceof Error ? err.message : "Failed" })
-        }
-      }
-    }
-    await Promise.all(Array.from({ length: documents ? 1 : CONCURRENCY }, worker))
+    const tasks = list.map(task => documents && moduleId
+      ? { path: "/api/modules/build/topic", body: { moduleId, topicId: task.id, sources: documents }, label: task.title }
+      : { path: "/api/admin/textbooks/generate-topic", body: { topicId: task.id, length: "standard", questionCount: questions, flashcards: flashcards && task.theory ? FLASHCARDS : 0, projects: task.theory ? 1 : 2 }, label: task.title })
+    try {
+      const id = await queueGeneration(tasks, "Module lessons and quizzes")
+      await waitForGeneration(id)
+      setTasks(previous => previous.map(t => list.some(item => item.id === t.id) ? { ...t, status: "done" } : t))
+    } catch (error) { setError(error instanceof Error ? error.message : "Generation failed") }
     setStep("done")
     onAdded()
   }
@@ -151,18 +113,17 @@ export function ModuleBuilder({
         setMaterial(documents)
         setReading("Planning chapters, topics and assignment checkpoints from your documents…")
       }
-      const r = await postJson<{ moduleId: string; title: string; topics: Omit<Task, "status">[] }>("/api/modules/build", {
-        level,
-        name: name.trim(),
-        grade: level === "highschool" ? grade : undefined,
-        notes: notes.trim() || undefined,
-        sources: documents ?? undefined,
-      })
+      const jobId = await queueGeneration([{ path: "/api/modules/build", body: {
+        level, name: name.trim(), grade: level === "highschool" ? grade : undefined,
+        notes: notes.trim() || undefined, sources: documents ?? undefined,
+      }, continueWith: "module-topics", options: { length: "standard", questionCount: questions, flashcards: flashcards ? FLASHCARDS : 0, projects: 1 } }], `Build ${name.trim()}`)
+      const job = await waitForGeneration(jobId)
+      const r = job.results[0].data as { moduleId: string; title: string; topics: Omit<Task, "status">[] }
       setBuilt({ moduleId: r.moduleId, title: r.title })
       onAdded()
-      const list = r.topics.map(t => ({ ...t, status: "waiting" as const }))
+      const list = r.topics.map(t => ({ ...t, status: "done" as const }))
       setTasks(list)
-      await writeAll(list, documents, r.moduleId)
+      setStep("done")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't plan it")
       const data = (err as { data?: { moduleId?: string } }).data
@@ -292,7 +253,7 @@ export function ModuleBuilder({
               <>
                 <p className="text-sm" role="status">
                   {step === "writing"
-                    ? `Writing lessons and quizzes: ${done} of ${tasks.length} topics done. Keep this window open; it takes a while.`
+                    ? `Writing lessons and quizzes: ${done} of ${tasks.length} topics done. You can leave or close the app; progress is saved.`
                     : failed.length
                       ? `${done} of ${tasks.length} topics written. ${failed.length} failed: try them again.`
                       : tasks.some(t => t.status !== "done") ? `${done} of ${tasks.length} topics written. Continue when ready.` : `All ${tasks.length} topics processed. Review the lessons and assessments in the ${word}.`}
@@ -334,19 +295,7 @@ export function ModuleBuilder({
                 </Button>
               </>
             )}
-            {step === "writing" && (
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={stopping}
-                onClick={() => {
-                  stop.current = true
-                  setStopping(true)
-                }}
-              >
-                {stopping ? "Stopping after the current topics…" : "Stop"}
-              </Button>
-            )}
+            {(step === "writing" || step === "planning") && <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Continue in background</Button>}
             {step === "done" && (
               <>
                 {tasks.some(t => t.status !== "done") && (

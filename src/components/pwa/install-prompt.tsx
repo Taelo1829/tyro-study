@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
  *   the steps (Share → Add to Home Screen / File → Add to Dock).
  * - Already running as the installed app, or installed from this browser:
  *   never shown.
- * - "Later" hides it until the next calendar day (local time), then it asks again.
+ * - "Later" hides it for a full 24 hours, including across reloads.
  */
 
 interface BeforeInstallPromptEvent extends Event {
@@ -28,17 +28,10 @@ const INSTALLED_KEY = "tyro-pwa-installed"
 // Stores the time (ms) the prompt may show again after "Later"
 const LATER_KEY = "tyro-pwa-later-until"
 const SHOW_DELAY_MS = 2500
-
-// Midnight at the start of tomorrow, in the student's own time zone
-function startOfTomorrow() {
-  const d = new Date()
-  d.setHours(24, 0, 0, 0)
-  return d.getTime()
-}
-
-function isSnoozed() {
+const SNOOZE_MS = 24 * 60 * 60 * 1000
+function storedSnoozeUntil() {
   const until = Number(read(local, LATER_KEY))
-  return Number.isFinite(until) && until > Date.now()
+  return Number.isFinite(until) ? until : 0
 }
 
 // Storage can be blocked (private mode, strict settings), so never let it throw
@@ -81,48 +74,70 @@ export function InstallPrompt() {
   const [mode, setMode] = useState<Mode | null>(null)
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
   const [installing, setInstalling] = useState(false)
+  const [snoozeUntil, setSnoozeUntil] = useState(0)
 
   useEffect(() => {
     if (isRunningInstalled() || read(local, INSTALLED_KEY)) return
-    if (isSnoozed()) return
-
     let timer: ReturnType<typeof setTimeout> | undefined
     const showSoon = (next: Mode) => {
       clearTimeout(timer)
+      const remaining = Math.max(snoozeUntil, storedSnoozeUntil()) - Date.now()
       timer = setTimeout(() => {
+        if (isRunningInstalled() || read(local, INSTALLED_KEY)) return
+        // Recheck storage: another tab may have selected Later while this timer waited.
+        if (Math.max(snoozeUntil, storedSnoozeUntil()) > Date.now()) {
+          showSoon(next)
+          return
+        }
         setMode(next)
         setOpen(true)
-      }, SHOW_DELAY_MS)
+      }, Math.min(2_147_483_647, Math.max(SHOW_DELAY_MS, remaining)))
     }
 
     const onBeforeInstall = (event: Event) => {
       // Keep the browser's mini-bar away; we show our own pop-up instead
       event.preventDefault()
       setDeferred(event as BeforeInstallPromptEvent)
-      showSoon("prompt")
     }
     const onInstalled = () => {
+      clearTimeout(timer)
       write(local, INSTALLED_KEY, "1")
       setOpen(false)
       setDeferred(null)
     }
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === LATER_KEY) {
+        setSnoozeUntil(storedSnoozeUntil())
+        if (storedSnoozeUntil() > Date.now()) setOpen(false)
+      }
+      if (event.key === INSTALLED_KEY && event.newValue) {
+        clearTimeout(timer)
+        setOpen(false)
+        setDeferred(null)
+      }
+    }
 
     window.addEventListener("beforeinstallprompt", onBeforeInstall)
     window.addEventListener("appinstalled", onInstalled)
+    window.addEventListener("storage", onStorage)
 
     // Browsers without an install prompt get the manual steps instead
     const manual = detectManualMode()
-    if (manual) showSoon(manual)
+    if (deferred) showSoon("prompt")
+    else if (manual) showSoon(manual)
 
     return () => {
       clearTimeout(timer)
       window.removeEventListener("beforeinstallprompt", onBeforeInstall)
       window.removeEventListener("appinstalled", onInstalled)
+      window.removeEventListener("storage", onStorage)
     }
-  }, [])
+  }, [deferred, snoozeUntil])
 
   const later = () => {
-    write(local, LATER_KEY, String(startOfTomorrow()))
+    const until = Date.now() + SNOOZE_MS
+    write(local, LATER_KEY, String(until))
+    setSnoozeUntil(until)
     setOpen(false)
   }
 

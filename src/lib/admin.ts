@@ -3,9 +3,11 @@ import { NextResponse } from "next/server"
 import { redirect } from "next/navigation"
 import { authOptions } from "./auth"
 import { prisma } from "./prisma"
+import { generationPrincipal } from "./generation-context"
 
 export async function requireAdmin() {
-  const session = await getServerSession(authOptions)
+  const workerUserId = generationPrincipal.getStore()
+  const session = workerUserId ? { user: { id: workerUserId }, expires: "" } : await getServerSession(authOptions)
 
   if (!session?.user?.id) {
     return {

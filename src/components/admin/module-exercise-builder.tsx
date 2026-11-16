@@ -1,6 +1,7 @@
 "use client"
+import { generationFetch, queueGeneration, waitForGeneration } from "@/lib/generation-client"
 
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { Loader2, Terminal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "./modal"
@@ -19,13 +20,12 @@ export function ModuleExerciseBuilder({ moduleId }: { moduleId: string }) {
   const [haveAll, setHaveAll] = useState(0)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState("")
-  const stop = useRef(false)
 
   async function show() {
     setOpen(true)
     setRows(null)
     setError("")
-    const res = await fetch(`/api/modules/${moduleId}/exercises`)
+    const res = await generationFetch(`/api/modules/${moduleId}/exercises`)
     if (!res.ok) {
       setError("Couldn't load the topics")
       return
@@ -38,28 +38,14 @@ export function ModuleExerciseBuilder({ moduleId }: { moduleId: string }) {
   async function run() {
     if (!rows) return
     setRunning(true)
-    stop.current = false
-    for (const row of rows) {
-      if (stop.current) break
-      if (row.status === "done") continue
-      setRows(prev => prev!.map(r => (r.id === row.id ? { ...r, status: "writing", note: undefined } : r)))
-      try {
-        const res = await fetch(`/api/topics/${row.id}/exercises/generate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ exercises: 2, questions: 5 }),
-        })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok) throw new Error(data.error ?? "Failed")
-        const note = `${data.exercises} exercise${data.exercises === 1 ? "" : "s"}, ${data.questions} question${data.questions === 1 ? "" : "s"}`
-        setRows(prev => prev!.map(r => (r.id === row.id ? { ...r, status: "done", note } : r)))
-      } catch (err) {
-        const note = err instanceof Error ? err.message : "Failed"
-        setRows(prev => prev!.map(r => (r.id === row.id ? { ...r, status: "failed", note } : r)))
-        // A missing database update or API key fails every topic the same way: stop
-        if (/migrate deploy|OPENAI_API_KEY/.test(note)) break
+    try {
+      const pending = rows.filter(row => row.status !== "done")
+      if (pending.length) {
+        const id = await queueGeneration(pending.map(row => ({ path: `/api/topics/${row.id}/exercises/generate`, body: { exercises: 2, questions: 5 }, label: row.title })), "Module exercises")
+        await waitForGeneration(id)
+        setRows(previous => previous!.map(row => ({ ...row, status: "done" })))
       }
-    }
+    } catch (error) { setError(error instanceof Error ? error.message : "Generation failed") }
     setRunning(false)
   }
 
@@ -81,7 +67,7 @@ export function ModuleExerciseBuilder({ moduleId }: { moduleId: string }) {
         <ModalBody className="space-y-4">
           <p className="text-sm text-muted-foreground">
             For each topic with a lesson and no exercises yet, generate 2 fill-in-the-blank code exercises (shown after the
-            lesson) and 5 type-the-answer quiz questions. It takes about half a minute a topic; keep this window open.
+            lesson) and 5 type-the-answer quiz questions. It takes about half a minute a topic; you can leave or close the app after it is queued.
           </p>
           {!rows && !error && <p className="text-sm text-muted-foreground">Loading…</p>}
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -108,8 +94,8 @@ export function ModuleExerciseBuilder({ moduleId }: { moduleId: string }) {
         </ModalBody>
         <ModalFooter>
           {running ? (
-            <Button variant="ghost" onClick={() => (stop.current = true)}>
-              Stop after this topic
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              Continue in background
             </Button>
           ) : (
             <Button variant="ghost" onClick={() => setOpen(false)}>

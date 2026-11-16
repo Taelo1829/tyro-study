@@ -1,6 +1,7 @@
 "use client"
+import { generationFetch, queueGeneration, waitForGeneration } from "@/lib/generation-client"
 
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { AlertCircle, Check, CheckCircle2, Link2, Loader2, Plus, RotateCcw, Sparkles, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -69,13 +70,12 @@ const TOPIC_CONCURRENCY = 3
 const FLASHCARDS_PER_THEORY_TOPIC = 10
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+  const res = await generationFetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
   const data = (await res.json().catch(() => ({}))) as T & { error?: string }
   if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`)
   return data
 }
 
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 
 export function CourseImport({
   course,
@@ -109,17 +109,7 @@ export function CourseImport({
 
   const [jobs, setJobs] = useState<ModuleJob[]>([])
   const [tasks, setTasks] = useState<TopicTask[]>([])
-  const stopRef = useRef(false)
-  const [stopping, setStopping] = useState(false)
   const busy = step === "finding" || step === "building"
-
-  // Leaving the page mid-build stops it: warn first
-  useEffect(() => {
-    if (step !== "building") return
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
-    window.addEventListener("beforeunload", warn)
-    return () => window.removeEventListener("beforeunload", warn)
-  }, [step])
 
   function close() {
     if (busy) return
@@ -188,104 +178,28 @@ export function CourseImport({
   const newOnes = chosen.filter(r => !r.existingModuleId).length
   const linkOnly = chosen.length - newOnes
 
-  async function writeTopic(task: TopicTask, setTask: (id: string, patch: Partial<TopicTask>) => void) {
-    setTask(task.topicId, { status: "working" })
-    try {
-      const r = await postJson<{
-        wroteLesson: boolean
-        questionsAdded: number
-        flashcardsAdded?: number
-        projectsAdded?: number
-        videoTitle?: string | null
-        videoNote?: string | null
-      }>("/api/admin/textbooks/generate-topic", {
-        topicId: task.topicId,
-        length,
-        questionCount,
-        video: videos,
-        flashcards: flashcards && task.theory ? FLASHCARDS_PER_THEORY_TOPIC : 0,
-        // Coding modules only (the server checks): fewer projects on theory topics
-        projects: task.theory ? 1 : 2,
-      })
-      const parts = [
-        r.wroteLesson ? "lesson" : "",
-        r.questionsAdded ? `${r.questionsAdded} questions` : "",
-        r.flashcardsAdded ? `${r.flashcardsAdded} flashcards` : "",
-        r.projectsAdded ? `${r.projectsAdded} coding projects` : "",
-        r.videoTitle ? "video" : "",
-      ]
-      setTask(task.topicId, { status: "done", note: parts.filter(Boolean).join(" · ") || "already done" })
-      return true
-    } catch (err) {
-      setTask(task.topicId, { status: "failed", note: err instanceof Error ? err.message : "Failed" })
-      return false
-    }
-  }
-
-  const setJob = (code: string, patch: Partial<ModuleJob>) =>
-    setJobs(prev => prev.map(j => (j.code === code ? { ...j, ...patch } : j)))
-  const setTask = (id: string, patch: Partial<TopicTask>) =>
-    setTasks(prev => prev.map(t => (t.topicId === id ? { ...t, ...patch } : t)))
-
-  /**
-   * Plans `toPlan` one after another (creating each module with its chapters
-   * and topics) while topics are written a few at a time: the new modules'
-   * topics plus `toWrite` (topics to try again).
-   */
   async function run(toPlan: ModuleJob[], toWrite: TopicTask[]) {
-    stopRef.current = false
-    setStopping(false)
-    setError("")
-    setStep("building")
-
-    const queue: TopicTask[] = [...toWrite]
-    for (const t of toWrite) setTask(t.topicId, { status: "waiting", note: undefined })
-    let planning = true
-
-    const worker = async () => {
-      while (!stopRef.current) {
-        const task = queue.shift()
-        if (!task) {
-          if (!planning) return
-          await sleep(400)
-          continue
+    setError(""); setStep("building")
+    const options = { length, questionCount, video: videos, flashcards: flashcards ? FLASHCARDS_PER_THEORY_TOPIC : 0, projects: 1 }
+    try {
+      const tasks = [
+        ...toPlan.map(m => ({ path: `/api/courses/${course.id}/import-module`, body: { code: m.code, title: m.title, year: m.year, url: m.url }, continueWith: "module-topics" as const, options, label: m.title })),
+        ...toWrite.map(t => ({ path: "/api/admin/textbooks/generate-topic", body: { ...options, topicId: t.topicId, flashcards: t.theory ? options.flashcards : 0 }, label: t.title })),
+      ]
+      if (tasks.length) {
+        const id = await queueGeneration(tasks, "Course modules and lessons")
+        const result = await waitForGeneration(id)
+        const planned = result.results.filter(r => r.task.path.endsWith("/import-module"))
+        for (const entry of planned) {
+          const data = entry.data as { created: boolean; topics: { id: string; title: string; theory: boolean; chapter: string }[] }
+          const code = String(entry.task.body.code)
+          setJobs(previous => previous.map(j => j.code === code ? { ...j, phase: "planned", linkedOnly: !data.created } : j))
+          setTasks(previous => [...previous.filter(t => t.code !== code), ...data.topics.map(t => ({ topicId: t.id, code, number: t.chapter, title: t.title, theory: t.theory, status: "done" as const }))])
         }
-        await writeTopic(task, setTask)
+        setTasks(previous => previous.map(t => toWrite.some(row => row.topicId === t.topicId) ? { ...t, status: "done" } : t))
       }
-    }
-    const workers = Array.from({ length: TOPIC_CONCURRENCY }, worker)
-
-    for (const m of toPlan) {
-      if (stopRef.current) break
-      setJob(m.code, { phase: "planning", note: undefined })
-      try {
-        const r = await postJson<{ created: boolean; topics: { id: string; title: string; theory: boolean; chapter: string }[] }>(
-          `/api/courses/${course.id}/import-module`,
-          { code: m.code, title: m.title, year: m.year, url: m.url }
-        )
-        onChanged()
-        const newTasks: TopicTask[] = r.topics.map(t => ({
-          topicId: t.id,
-          code: m.code,
-          number: t.chapter,
-          title: t.title,
-          theory: t.theory,
-          status: "waiting",
-        }))
-        setTasks(prev => [...prev.filter(t => t.code !== m.code), ...newTasks])
-        setJob(m.code, { phase: "planned", linkedOnly: !r.created })
-        queue.push(...newTasks)
-      } catch (err) {
-        setJob(m.code, { phase: "planFailed", note: err instanceof Error ? err.message : "Couldn't add it" })
-      }
-    }
-    planning = false
-    await Promise.all(workers)
-
-    // Stopped part-way: topics that never started count as left to do
-    setTasks(prev => prev.map(t => (t.status === "waiting" || t.status === "working" ? { ...t, status: "failed", note: "stopped" } : t)))
-    setJobs(prev => prev.map(j => (j.phase === "planning" ? { ...j, phase: "waiting" } : j)))
-    onChanged()
+      onChanged()
+    } catch (error) { setError(error instanceof Error ? error.message : "Generation failed. Check Generation activity.") }
     setStep("done")
   }
 
@@ -510,7 +424,7 @@ export function CourseImport({
                 <p className="text-muted-foreground">
                   Each new module gets about 20 to 40 topics, and each topic takes about half a minute, so {newOnes} new module
                   {newOnes !== 1 ? "s" : ""} take{newOnes === 1 ? "s" : ""} roughly {Math.max(5, Math.round((newOnes * 30 * 30) / TOPIC_CONCURRENCY / 60))} minutes.
-                  Keep this window open while it works. Everything is saved as it goes.
+                  Work continues in the background. You can leave or close the app; results are saved in Generation activity.
                 </p>
               )}
             </section>
@@ -523,9 +437,7 @@ export function CourseImport({
               <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
                 <span className="font-medium">
                   {step === "building"
-                    ? stopping
-                      ? "Stopping after the current topics…"
-                      : `Building: ${planned} of ${jobs.length} modules planned`
+                    ? `Building: ${planned} of ${jobs.length} modules planned`
                     : retryable
                       ? `Finished with problems: ${[
                           failedModules ? `${failedModules} module${failedModules !== 1 ? "s" : ""} failed` : "",
@@ -545,7 +457,7 @@ export function CourseImport({
                 />
               </div>
               {step === "building" && (
-                <p className="mt-1.5 text-xs text-muted-foreground">Keep this window open. Everything is saved as it goes.</p>
+                <p className="mt-1.5 text-xs text-muted-foreground">You can leave or close the app. Follow progress in Generation activity.</p>
               )}
             </div>
 
@@ -626,19 +538,7 @@ export function CourseImport({
           </Button>
         </ModalFooter>
       )}
-      {step === "building" && (
-        <ModalFooter>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              stopRef.current = true
-              setStopping(true)
-            }}
-          >
-            Stop
-          </Button>
-        </ModalFooter>
-      )}
+      {step === "building" && <ModalFooter><Button variant="ghost" onClick={onClose}>Continue in background</Button></ModalFooter>}
       {step === "done" && (
         <ModalFooter align="between">
           {retryable ? (

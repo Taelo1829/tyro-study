@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma"
 import { ASSIGNMENT_CHECKPOINT, ASSIGNMENT_QUIZ, RecreationInputError } from "./module-recreation-input"
 import type { AssessmentConfig } from "./module-assessments"
 import { questionDuplicates, type ComparableQuestion } from "./question-duplicates"
+import { parseReplacements } from "./module-recreation-input"
+import { lessonVersion } from "./module-recreation"
+import { lessonSummary, sanitizeTopicContentServer } from "./topic-content-server"
 
 export function isPaperLessonTopic(topic: { id: string; title: string }) {
   return !topic.id.startsWith("assignment-") && !topic.title.startsWith(ASSIGNMENT_CHECKPOINT) && !topic.title.startsWith(ASSIGNMENT_QUIZ)
@@ -12,8 +15,9 @@ function signature(question: string, answers: { answer: string; isCorrect: boole
   return JSON.stringify([normalize(question), answers.map(a => [normalize(a.answer), a.isCorrect]).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))])
 }
 
-export async function savePaperQuestions(moduleId: string, paper: string, input: unknown) {
+export async function savePaperQuestions(moduleId: string, paper: string, input: unknown, lessonDrafts?: unknown) {
   if (!Array.isArray(input) || !input.length || input.length > 300) throw new RecreationInputError("Choose between 1 and 300 paper questions to save.")
+  const lessons = lessonDrafts === undefined ? null : parseReplacements(lessonDrafts)
   // Semantic checks happen before opening the write transaction so network calls
   // do not hold the module lock. The transaction still checks exact duplicates.
   const [snapshot] = await prisma.$queryRaw<{ assessmentConfig: string | null }[]>`SELECT "assessmentConfig" FROM "modules" WHERE "id" = ${moduleId}`
@@ -78,8 +82,21 @@ export async function savePaperQuestions(moduleId: string, paper: string, input:
       await tx.question.createMany({ data: prepared.map(q => ({ id: q.id, topicId: q.topicId, question: q.question, difficulty: q.difficulty })) })
       await tx.answer.createMany({ data: prepared.flatMap(q => q.answers.map((a, i) => ({ ...a, id: `${q.id}-${i}`, questionId: q.id }))) })
     }
+    if (lessons) {
+      if (lessons.length !== affected.size || new Set(lessons.map(l => l.topicId)).size !== affected.size || lessons.some(l => !affected.has(l.topicId))) throw new RecreationInputError("Review one lesson update for every selected topic before saving.")
+      for (const lesson of lessons) {
+        const topic = await tx.topic.findFirst({ where: { id: lesson.topicId, chapter: { moduleId } } })
+        if (!topic || !isPaperLessonTopic(topic)) throw new RecreationInputError("A targeted topic was removed. Generate fresh lesson drafts.")
+        const html = sanitizeTopicContentServer(lesson.html)
+        if (!lessonSummary(html)) throw new RecreationInputError("A lesson draft is empty.")
+        if (topic.content === html) continue
+        if (lessonVersion(topic) !== lesson.version) throw new RecreationInputError("A topic changed after drafting. Nothing was saved. Generate fresh lesson drafts.")
+        const updated = await tx.topic.updateMany({ where: { id: topic.id, chapterId: topic.chapterId, title: topic.title, content: topic.content }, data: { content: html } })
+        if (updated.count !== 1) throw new RecreationInputError("A topic changed while saving. Nothing was saved.")
+      }
+    }
     if (included.size) await tx.$executeRaw`UPDATE "questions" SET "paper" = COALESCE("paper", ${paper}) WHERE "id" = ANY(${[...included]}::text[])`
     if (config && included.size) await tx.$executeRaw`UPDATE "modules" SET "assessmentConfig" = ${JSON.stringify(config)} WHERE "id" = ${moduleId}`
-    return { added: prepared.length, skipped, paper, topics: affected.size }
+    return { added: prepared.length, skipped, paper, topics: affected.size, lessonsUpdated: lessons?.length ?? 0 }
   }, { maxWait: 10000, timeout: 90000 })
 }

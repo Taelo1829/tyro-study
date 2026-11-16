@@ -1,12 +1,15 @@
 "use client"
+import { generationFetch, queueGeneration, waitForGeneration } from "@/lib/generation-client"
 
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { upload } from "@vercel/blob/client"
 import { AlertCircle, CheckCircle2, FileText, Loader2, ScrollText, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MathText } from "@/components/ui/math-text"
 import { cn } from "@/lib/utils"
+import type { PaperSource, LessonReplacement } from "@/lib/module-recreation-input"
+import { sanitizeTopicHtml } from "@/lib/topic-content"
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "./modal"
 import { ocrScannedPdf } from "./pdf-ocr"
 
@@ -32,10 +35,10 @@ interface ReviewQuestion {
   include: boolean
 }
 
-type Step = "pick" | "uploading" | "ocr" | "reading" | "review" | "saving" | "done"
+type Step = "pick" | "uploading" | "ocr" | "reading" | "review" | "drafting" | "saving" | "done"
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+  const res = await generationFetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
   const data = (await res.json().catch(() => ({}))) as T & { error?: string }
   if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`)
   return data
@@ -52,14 +55,10 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
   const [topics, setTopics] = useState<{ id: string; label: string }[]>([])
   const [questions, setQuestions] = useState<ReviewQuestion[]>([])
   const [result, setResult] = useState<{ added: number; skipped: number; topics: number } | null>(null)
-  const busy = step === "uploading" || step === "ocr" || step === "reading" || step === "saving"
-
-  useEffect(() => {
-    if (!busy) return
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
-    window.addEventListener("beforeunload", warn)
-    return () => window.removeEventListener("beforeunload", warn)
-  }, [busy])
+  const [source, setSource] = useState<PaperSource | null>(null)
+  const [lessons, setLessons] = useState<(LessonReplacement & { title: string })[]>([])
+  const [reviewed, setReviewed] = useState(false)
+  const busy = step === "drafting" || step === "uploading" || step === "ocr" || step === "reading" || step === "saving"
 
   function close() {
     if (busy) return
@@ -80,7 +79,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
     setStep("uploading")
     setProgress(0)
     try {
-      type Read = { paper: string; questions: Omit<ReviewQuestion, "include">[]; topics: { id: string; label: string }[] }
+      type Read = { source: PaperSource; paper: string; questions: Omit<ReviewQuestion, "include">[]; topics: { id: string; label: string }[] }
       const safeName = file.name.replace(/[^a-z0-9.-]+/gi, "-").slice(-80)
       const blob = await upload(`textbooks/papers/${safeName}`, file, {
         access: "public",
@@ -99,6 +98,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
         read = await postJson<Read>("/api/admin/papers/read", { moduleId, ocr: { pages: scanned.pages } })
       }
       const r = read as Read
+      setSource(r.source); setLessons([]); setReviewed(false)
       setPaper(r.paper || file.name.replace(/\.pdf$/i, ""))
       setTopics(r.topics)
       // Questions without a topic stay unticked until one is chosen
@@ -110,17 +110,32 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
     }
   }
 
-  const update = (i: number, patch: Partial<ReviewQuestion>) => setQuestions(prev => prev.map((q, j) => (j === i ? { ...q, ...patch } : q)))
+  const update = (i: number, patch: Partial<ReviewQuestion>) => { setLessons([]); setReviewed(false); setQuestions(prev => prev.map((q, j) => (j === i ? { ...q, ...patch } : q))) }
   const chosen = questions.filter(q => q.include && q.topicId)
   const workedOut = questions.filter(q => q.answerSource === "worked out").length
 
+  const lessonsReady = lessons.length > 0 && [...new Set(chosen.map(q => q.topicId))].every(id => lessons.some(l => l.topicId === id))
+  async function prepareLessons() {
+    if (!source) return setError("Read the question paper again to prepare lesson updates.")
+    setStep("drafting"); setError(""); setReviewed(false)
+    try {
+      const ids = [...new Set(chosen.map(q => q.topicId!))]
+      const jobId = await queueGeneration(ids.map(topicId => ({ path: "/api/admin/papers/lesson", body: { moduleId, topicId, source, questions: chosen.filter(q => q.topicId === topicId) }, label: topics.find(t => t.id === topicId)?.label })), "Question paper lesson updates")
+      const job = await waitForGeneration(jobId)
+      setLessons(job.results.map(r => r.data as LessonReplacement & { title: string }))
+    } catch (error) { setError(error instanceof Error ? error.message : "Could not draft lessons") }
+    finally { setStep("review") }
+  }
+
   async function save() {
+    if (!lessonsReady || !reviewed) return
     setStep("saving")
     setError("")
     try {
       const r = await postJson<{ added: number; skipped: number; topics: number }>("/api/admin/papers/save", {
         moduleId,
         paper: paper.trim(),
+        lessons,
         questions: chosen.map(({ question, options, correctOption, difficulty, topicId }) => ({ question, options, correctOption, difficulty, topicId })),
       })
       setResult(r)
@@ -153,7 +168,7 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
               <p className="text-sm text-muted-foreground">
                 Upload a past exam or assignment paper (PDF, with or without its memo). Each question is converted into a
                 multiple-choice question, keeping the paper&apos;s options and memo answers where it has them, and puts it in the
-                topic it tests. Review or change each topic before saving. Questions are added to those topics’ quiz banks alongside existing questions.
+                topic it tests. Review or change each topic before saving. Questions are added to those topics’ quiz banks. Review cohesive lesson updates for the selected topics before saving both together.
               </p>
               <input
                 ref={inputRef}
@@ -272,11 +287,13 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
             <p className="flex items-start gap-2 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-900">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
               Added {result.added} question{result.added === 1 ? "" : "s"} from {paper || "the paper"} to {result.topics} topic
-              {result.topics === 1 ? "" : "s"}.{result.skipped ? ` ${result.skipped} were skipped (already in the topic).` : ""} The mock
-              exam will ask them first.
+              {result.topics === 1 ? "" : "s"}.{result.skipped ? ` ${result.skipped} were skipped (already in the topic).` : ""} The selected lessons have been updated, and topic and chapter quizzes prioritize unanswered uploaded questions.
             </p>
           )}
 
+          {step === "drafting" && <p role="status">Drafting lesson updates in the background. You can leave this page; results are saved in Generation activity.</p>}
+          {lessons.map(lesson => <details key={lesson.topicId} className="rounded border p-3"><summary>Review lesson: {lesson.title}</summary><div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeTopicHtml(lesson.html) }} /></details>)}
+          {lessonsReady && <label className="flex gap-2 text-sm"><input type="checkbox" checked={reviewed} onChange={e => setReviewed(e.target.checked)} />I reviewed these lesson replacements and the selected paper questions.</label>}
           {error && (
             <p className="flex items-start gap-2 text-sm text-red-600" role="alert">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -290,7 +307,8 @@ export function PaperUploader({ moduleId, onAdded }: { moduleId: string; onAdded
             <Button variant="ghost" onClick={close} disabled={step === "saving"}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={save} disabled={step === "saving" || chosen.length === 0}>
+            {!lessonsReady && <Button onClick={() => void prepareLessons()} disabled={step === "saving" || chosen.length === 0}>Prepare lesson updates</Button>}
+            <Button variant="primary" onClick={save} disabled={step === "saving" || chosen.length === 0 || !lessonsReady || !reviewed}>
               {step === "saving" ? "Saving…" : `Add ${chosen.length} question${chosen.length === 1 ? "" : "s"}`}
             </Button>
           </ModalFooter>

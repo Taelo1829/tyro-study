@@ -4,6 +4,8 @@ import { useRef, useState } from "react"
 import { FileUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { ExtractedQuestion } from "@/lib/ai/question-generator"
+import { upload } from "@vercel/blob/client"
+import { generationFetch } from "@/lib/generation-client"
 
 interface PdfUploaderProps {
   onExtracted: (questions: ExtractedQuestion[]) => void
@@ -21,12 +23,12 @@ export function PdfUploader({ onExtracted }: PdfUploaderProps) {
     setFileName(file.name)
 
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const res = await fetch("/api/ai/extract-questions", {
+      if (file.size > 10 * 1024 * 1024) throw new Error("Choose a PDF up to 10 MB")
+      const blob = await upload(`textbooks/questions/${crypto.randomUUID()}.pdf`, file, { access: "public", handleUploadUrl: "/api/admin/textbooks/upload", contentType: "application/pdf" })
+      const res = await generationFetch("/api/ai/extract-questions", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: blob.url }),
       })
       const data = await res.json()
 

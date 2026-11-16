@@ -1,4 +1,5 @@
 "use client"
+import { generationFetch } from "@/lib/generation-client"
 
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
@@ -43,7 +44,7 @@ export function ProjectManager({ topicId, moduleId, onCount }: { topicId: string
   const [writing, setWriting] = useState(false)
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/topics/${topicId}/projects`)
+    const res = await generationFetch(`/api/topics/${topicId}/projects`)
     if (!res.ok) return
     const data = (await res.json()) as { coding: { language: CodingLanguage | null }; projects: ProjectSummary[] }
     setCoding(data.coding)
@@ -60,7 +61,7 @@ export function ProjectManager({ topicId, moduleId, onCount }: { topicId: string
     setError("")
     setMessage("")
     try {
-      const res = await fetch(`/api/topics/${topicId}/projects/generate`, {
+      const res = await generationFetch(`/api/topics/${topicId}/projects/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ count }),
@@ -86,14 +87,14 @@ export function ProjectManager({ topicId, moduleId, onCount }: { topicId: string
       return
     }
     setOpen(prev => ({ ...prev, [id]: "loading" }))
-    const res = await fetch(`/api/projects/${id}`)
+    const res = await generationFetch(`/api/projects/${id}`)
     const data = res.ok ? ((await res.json()) as { project: ProjectDetail }) : null
     setOpen(prev => ({ ...prev, ...(data ? { [id]: data.project } : {}) }))
   }
 
   async function remove(p: ProjectSummary) {
     if (!confirm(`Delete the project "${p.title}"? Students' submissions for it are deleted too.`)) return
-    const res = await fetch(`/api/projects/${p.id}`, { method: "DELETE" })
+    const res = await generationFetch(`/api/projects/${p.id}`, { method: "DELETE" })
     if (res.ok) await load()
   }
 
@@ -245,7 +246,7 @@ function ManualProjectForm({ topicId, onSaved }: { topicId: string; onSaved: () 
         .map(line => line.match(/^(.+?)\s*[:\-–]\s*(\d+)\s*$/))
         .filter((m): m is RegExpMatchArray => !!m)
         .map(m => ({ criterion: m[1].trim(), points: Number(m[2]) }))
-      const res = await fetch(`/api/topics/${topicId}/projects`, {
+      const res = await generationFetch(`/api/topics/${topicId}/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, brief, starterCode: starter, rubric: items, difficulty }),

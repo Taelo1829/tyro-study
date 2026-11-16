@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         pages = (await readTextbookPdf(Buffer.from(await res.arrayBuffer()))).pages
       } catch (err) {
         if (!(err instanceof NoTextError)) throw err
-        await del(pdfUrl!).catch(() => {})
+        // Keep the stored PDF for the background OCR continuation.
         pdfUrl = null
         return NextResponse.json({ needsOcr: true, pageCount: err.pageCount })
       }
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     if (result.questions.length === 0) {
       return NextResponse.json({ error: "No questions were found in that PDF. Is it a question paper?" }, { status: 422 })
     }
-    return NextResponse.json({ ...result, topics })
+    return NextResponse.json({ ...result, topics, source: { name: result.paper || "Question paper", text: pages.join("\n\n") } })
   } catch (err) {
     captureError("Question paper read error", err, "/api/admin/papers/read")
     if (pdfUrl) await del(pdfUrl).catch(() => {})

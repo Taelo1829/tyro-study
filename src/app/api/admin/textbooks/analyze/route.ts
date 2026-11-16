@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       } catch (err) {
         if (!(err instanceof NoTextError)) throw err
         // A scanned book: the browser still has the file and reads its pages with OCR
-        await del(pdfUrl!).catch(() => {})
+        // Keep the stored PDF for the background OCR continuation.
         pdfUrl = null
         return NextResponse.json({ needsOcr: true, pageCount: err.pageCount })
       }

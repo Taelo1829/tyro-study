@@ -1,4 +1,5 @@
 "use client"
+import { generationFetch } from "@/lib/generation-client"
 
 import { useState } from "react"
 import { Sparkles } from "lucide-react"
@@ -31,7 +32,7 @@ export function FlashcardTools({
     setBusy(true)
     setMessage(null)
     try {
-      const res = await fetch("/api/ai/generate-flashcards", {
+      const res = await generationFetch("/api/ai/generate-flashcards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topicId, count: 10 }),
