@@ -21,10 +21,14 @@ export async function enqueueGeneration(userId: string, title: string, tasks: Ge
 }
 export async function generationJobs(userId: string, id?: string) {
   return id ? prisma.$queryRaw<GenerationJob[]>`SELECT * FROM "generation_jobs" WHERE "userId" = ${userId} AND "id" = ${id}`
-    : prisma.$queryRaw<GenerationJob[]>`SELECT * FROM "generation_jobs" WHERE "userId" = ${userId} ORDER BY "createdAt" DESC LIMIT 50`
+    : prisma.$queryRaw<GenerationJob[]>`SELECT * FROM "generation_jobs" WHERE "userId" = ${userId} AND ORDER BY "createdAt" DESC LIMIT 50`
 }
 export async function generationSummaries(userId: string) {
-  return prisma.$queryRaw`SELECT "id", "title", "status", "cursor", jsonb_array_length("tasks") AS "total", "error", "createdAt", "updatedAt" FROM "generation_jobs" WHERE "userId" = ${userId} ORDER BY "createdAt" DESC LIMIT 50`
+  return prisma.$queryRaw`
+    SELECT "id", "title", "status", "cursor", jsonb_array_length("tasks") AS "total", "error", "createdAt", "updatedAt" 
+    FROM "generation_jobs" 
+    WHERE "userId" = ${userId} AND (status IN ('QUEUED','RUNNING') OR "updatedAt" > now() - interval '1 hour' )  
+    ORDER BY "createdAt" DESC LIMIT 50`
 }
 export async function retryGeneration(userId: string, id: string) {
   const [job] = await prisma.$queryRaw<GenerationJob[]>`UPDATE "generation_jobs" SET "status" = 'QUEUED', "error" = NULL, "notified" = false, "leaseToken" = NULL, "leaseUntil" = NULL, "updatedAt" = now() WHERE "id" = ${id} AND "userId" = ${userId} AND "status" = 'FAILED' RETURNING *`

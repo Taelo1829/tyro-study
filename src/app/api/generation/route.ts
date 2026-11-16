@@ -11,7 +11,9 @@ export async function GET(request: Request) {
   if (error) return error
   const id = new URL(request.url).searchParams.get("id") ?? undefined
   // Lists never contain source documents, private answer keys, or large results.
-  return NextResponse.json(id ? (await generationJobs(user!.id, id))[0] ?? null : await generationSummaries(user!.id), { headers: { "Cache-Control": "no-store" } })
+  return NextResponse.json(id ?
+    (await generationJobs(user!.id, id))[0] ?? null :
+    await generationSummaries(user!.id), { headers: { "Cache-Control": "no-store" } })
 }
 export async function POST(request: Request) {
   const { error, user } = await requireAdmin()
